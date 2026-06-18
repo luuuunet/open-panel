@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,7 @@ func (s *Server) registerDatabaseRoutes(authorized *gin.RouterGroup) {
 	authorized.GET("/databases/mysql/status", s.handleMySQLStatus)
 	authorized.GET("/databases/mongodb/status", s.handleMongoDBStatus)
 	authorized.GET("/databases/pgsql/status", s.handlePostgreSQLStatus)
+	authorized.GET("/databases/engines/status", s.handleDatabaseEnginesStatus)
 	authorized.GET("/databases/pgsql/extensions", s.handleListPgExtensions)
 	authorized.POST("/databases/pgsql/extensions/:name/install", s.handleInstallPgExtensionPackage)
 	authorized.PUT("/databases/:id/pgsql/extensions/:name", s.handleSetPgDatabaseExtension)
@@ -109,6 +111,10 @@ func (s *Server) handleCreateDatabase(c *gin.Context) {
 	if req.Type == "" {
 		req.Type = "mysql"
 	}
+	if s.requiresLocalDatabaseEngine(req.Type, req.Host) && !s.appstore.DatabaseEngineInstalled(engineTypeForDB(req.Type)) {
+		response.Error(c, 409, fmt.Sprintf("请先安装 %s", s.appstore.DatabaseEngineStatus(engineTypeForDB(req.Type)).Name))
+		return
+	}
 	mode := database.NormalizeAccessMode(req.AccessMode)
 	if req.AccessMode == "" && req.AllowRemote {
 		mode = database.AccessModeBoth
@@ -152,6 +158,10 @@ func (s *Server) handleProvisionDatabase(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, 400, err.Error())
+		return
+	}
+	if !s.appstore.DatabaseEngineInstalled("mysql") {
+		response.Error(c, 409, "请先安装 MySQL 或 MariaDB")
 		return
 	}
 	cs := database.CharsetFromInput(req.Charset)
@@ -365,6 +375,71 @@ func (s *Server) handleChangeMySQLRootPassword(c *gin.Context) {
 
 func (s *Server) handlePostgreSQLStatus(c *gin.Context) {
 	response.OK(c, s.database.PostgreSQLStatus())
+}
+
+func (s *Server) handleDatabaseEnginesStatus(c *gin.Context) {
+	engines := s.appstore.AllDatabaseEngineStatuses()
+	if st, ok := engines["mysql"]; ok {
+		if live := s.database.MySQLStatus(); live.Installed {
+			if live.ServerVersion != "" {
+				st.Version = live.ServerVersion
+			} else if live.Version != "" {
+				st.Version = live.Version
+			}
+			st.Running = live.Running
+		}
+		engines["mysql"] = st
+	}
+	if st, ok := engines["postgresql"]; ok {
+		if live := s.database.PostgreSQLStatus(); live.Installed {
+			if live.Version != "" {
+				st.Version = live.Version
+			}
+			st.Running = live.Running
+		}
+		engines["postgresql"] = st
+	}
+	if st, ok := engines["mongodb"]; ok {
+		if live := s.database.MongoDBStatus(); live.Installed {
+			if live.Version != "" {
+				st.Version = live.Version
+			}
+			st.Running = live.Running
+		}
+		engines["mongodb"] = st
+	}
+	if st, ok := engines["redis"]; ok && st.Installed {
+		st.Running = s.appstore.LiveStatus("redis") == "running"
+		engines["redis"] = st
+	}
+	response.OK(c, engines)
+}
+
+func engineTypeForDB(dbType string) string {
+	switch strings.ToLower(strings.TrimSpace(dbType)) {
+	case "mariadb":
+		return "mysql"
+	case "postgres":
+		return "postgresql"
+	default:
+		if dbType == "" {
+			return "mysql"
+		}
+		return strings.ToLower(dbType)
+	}
+}
+
+func (s *Server) requiresLocalDatabaseEngine(dbType, host string) bool {
+	host = strings.TrimSpace(strings.ToLower(host))
+	if host != "" && host != "127.0.0.1" && host != "localhost" && host != "::1" {
+		return false
+	}
+	switch engineTypeForDB(dbType) {
+	case "mysql", "postgresql", "mongodb", "redis":
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Server) handleListPgExtensions(c *gin.Context) {

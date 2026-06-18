@@ -85,6 +85,26 @@ const remarkEditValue = ref('')
 
 const pgExtensionsVisible = ref(false)
 
+interface EngineStatus {
+  type: string
+  software_key: string
+  name: string
+  installed: boolean
+  installing: boolean
+  running: boolean
+  version?: string
+}
+
+const engineStatuses = ref<Record<string, EngineStatus>>({})
+const engineInstallVisible = ref(false)
+const engineInstallTrigger = ref(false)
+const engineInstalling = ref(false)
+
+const currentEngine = computed(() => engineStatuses.value[dbTab.value] || null)
+const currentEngineInstalled = computed(() => !!currentEngine.value?.installed)
+const currentEngineName = computed(() => currentEngine.value?.name || dbTab.value.toUpperCase())
+const currentEngineKey = computed(() => currentEngine.value?.software_key || dbTab.value)
+
 const acceleratedSet = computed(() => new Set(acceleratedIds.value))
 
 const sqlEngineLabel = computed(() => {
@@ -224,7 +244,40 @@ function dbAccelTooltip(row: any) {
   return t('databases.kafkaAccelTooltip')
 }
 
+async function loadEngineStatuses() {
+  try {
+    const res: any = await api.get('/databases/engines/status')
+    engineStatuses.value = res.data || {}
+  } catch {
+    engineStatuses.value = {}
+  }
+}
+
+async function installCurrentEngine() {
+  engineInstalling.value = true
+  try {
+    await api.post(`/software/${currentEngineKey.value}/install`, { version: '' }, { timeout: 120000 })
+    ElMessage.success(t('databases.engineInstallStarted'))
+    engineInstallTrigger.value = true
+    engineInstallVisible.value = true
+  } catch (e: any) {
+    ElMessage.error(resolveApiError(e, t('software.installFailed')))
+  } finally {
+    engineInstalling.value = false
+  }
+}
+
+async function onEngineInstallDone(payload: { success: boolean }) {
+  engineInstallTrigger.value = false
+  await load()
+  if (payload.success) ElMessage.success(t('software.installSuccessShort'))
+}
+
 function openCreateDialog() {
+  if (!currentEngineInstalled.value) {
+    ElMessage.warning(t('databases.engineNotInstalled', { name: currentEngineName.value }))
+    return
+  }
   form.value = defaultCreateForm()
   dialogVisible.value = true
 }
@@ -329,7 +382,7 @@ async function load() {
   mysqlStatus.value = statusRes.data
   mongodbStatus.value = mongoRes.data
   pgStatus.value = pgRes.data
-  await Promise.all([loadPma(), loadKafkaAccel()])
+  await Promise.all([loadPma(), loadKafkaAccel(), loadEngineStatuses()])
 }
 
 async function loadPma() {
@@ -598,8 +651,27 @@ onMounted(load)
       <el-tab-pane :label="t('databases.tabRedis')" name="redis" />
     </el-tabs>
 
+    <el-alert
+      v-if="!currentEngineInstalled"
+      type="warning"
+      :closable="false"
+      show-icon
+      class="engine-alert"
+    >
+      {{ t('databases.engineNotInstalled', { name: currentEngineName }) }}
+    </el-alert>
+
     <div class="toolbar">
       <div class="toolbar-left">
+        <el-button
+          v-if="!currentEngineInstalled"
+          type="primary"
+          :loading="engineInstalling || currentEngine?.installing"
+          @click="installCurrentEngine"
+        >
+          {{ t('databases.installEngine', { name: currentEngineName }) }}
+        </el-button>
+        <template v-else>
         <el-button type="success" @click="openCreateDialog">{{ t('databases.add') }}</el-button>
         <el-button v-if="dbTab === 'mysql'" @click="rootDialogVisible = true">{{ t('databases.rootPassword') }}</el-button>
         <el-button v-if="dbTab === 'mysql'" type="warning" :icon="DataBoard" :loading="pmaLoading" @click="openPhpMyAdmin">
@@ -622,19 +694,20 @@ onMounted(load)
         >
           {{ t('databases.kafkaAccel') }}
         </el-button>
+        </template>
         <div v-if="kafkaAccelEnabled && isAdmin" class="mysql-badge kafka-badge">
           <span class="dot running" />
           {{ t('databases.kafkaAccelBadge') }}
         </div>
-        <div v-if="dbTab === 'mysql' && mysqlStatus?.installed" class="mysql-badge">
+        <div v-if="currentEngineInstalled && dbTab === 'mysql' && mysqlStatus?.installed" class="mysql-badge">
           <span class="dot running" />
           {{ sqlEngineLabel }} {{ sqlVersionLabel }}
         </div>
-        <div v-if="dbTab === 'mongodb' && mongodbStatus?.installed" class="mysql-badge">
+        <div v-if="currentEngineInstalled && dbTab === 'mongodb' && mongodbStatus?.installed" class="mysql-badge">
           <span class="dot" :class="{ running: mongodbStatus.running }" />
           MongoDB {{ mongodbStatus.version || '' }}
         </div>
-        <div v-if="dbTab === 'postgresql' && pgStatus?.installed" class="mysql-badge">
+        <div v-if="currentEngineInstalled && dbTab === 'postgresql' && pgStatus?.installed" class="mysql-badge">
           <span class="dot running" />
           PostgreSQL {{ pgStatus.version || '' }}
         </div>
@@ -651,7 +724,7 @@ onMounted(load)
       {{ t('databases.mysql57LegacyHint') }}
     </el-alert>
 
-    <el-table :data="filteredInstances" stripe class="db-table">
+    <el-table v-if="currentEngineInstalled" :data="filteredInstances" stripe class="db-table">
       <el-table-column prop="name" :label="t('databases.dbName')" min-width="140" />
       <el-table-column prop="remark" :label="t('databases.remark')" min-width="120" show-overflow-tooltip>
         <template #default="{ row }">
@@ -727,7 +800,17 @@ onMounted(load)
       </el-table-column>
     </el-table>
 
-    <el-empty v-if="!filteredInstances.length" :description="t('databases.empty')" />
+    <el-empty
+      v-else
+      :description="t('databases.engineNotInstalled', { name: currentEngineName })"
+      :image-size="72"
+    >
+      <el-button type="primary" :loading="engineInstalling" @click="installCurrentEngine">
+        {{ t('databases.installEngine', { name: currentEngineName }) }}
+      </el-button>
+    </el-empty>
+
+    <el-empty v-if="currentEngineInstalled && !filteredInstances.length" :description="t('databases.empty')" />
 
     <el-dialog v-model="dialogVisible" :title="t('databases.addTitle')" width="560px">
       <el-form :model="form" label-width="110px">
@@ -860,6 +943,14 @@ onMounted(load)
     />
 
     <SoftwareInstallLogDialog
+      v-model="engineInstallVisible"
+      :app-key="currentEngineKey"
+      :app-name="currentEngineName"
+      :trigger-install="engineInstallTrigger"
+      @done="onEngineInstallDone"
+    />
+
+    <SoftwareInstallLogDialog
       v-model="installDialogVisible"
       app-key="kafka"
       :app-name="'Kafka'"
@@ -956,6 +1047,9 @@ onMounted(load)
   color: var(--el-text-color-secondary);
 }
 .legacy-hint {
+  margin-bottom: 12px;
+}
+.engine-alert {
   margin-bottom: 12px;
 }
 .root-alert {
