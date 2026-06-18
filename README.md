@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="frontend/public/logo.svg" alt="Open Panel logo" width="128" style="border-radius: 22%;" />
-</p>
-
 <h1 align="center">Open Panel</h1>
 
 <p align="center">
