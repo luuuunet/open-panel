@@ -26,7 +26,7 @@ Built with **Go** + **Vue 3**. Embedded web UI, systemd service, Linux only.
 Real-time health, resource trends, global traffic, and one place to start/stop/restart every installed service.
 
 <p align="center">
-  <img src="docs/images/ss1.png" alt="OWPanel dashboard" width="920" />
+  <img src="https://github.com/luuuunet/owpanel/raw/main/docs/images/ss1.png" alt="OWPanel dashboard" width="920" />
 </p>
 
 ### Log Center & AI
