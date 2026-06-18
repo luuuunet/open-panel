@@ -10,10 +10,14 @@
 </p>
 
 <p align="center">
-  <a href="#中文">中文</a> · <a href="#english">English</a> · <a href="docs/README.md">文档 / Docs</a>
+  <a href="#zh-cn"><img src="https://img.shields.io/badge/语言-中文-blue?style=flat-square" alt="中文"></a>
+  <a href="#english"><img src="https://img.shields.io/badge/Language-English-blue?style=flat-square" alt="English"></a>
+  <a href="docs/README.md"><img src="https://img.shields.io/badge/文档%20%2F%20Docs-README-lightgrey?style=flat-square" alt="文档 / Docs"></a>
 </p>
 
 ---
+
+<a id="zh-cn"></a>
 
 ## 中文
 
@@ -64,7 +68,7 @@ Open Panel 是一个开源的 Linux 服务器运维管理面板，参考 [1Panel
 **Ubuntu / Debian / CentOS / Rocky / AlmaLinux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/open-panel/open-panel/main/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/main/scripts/install.sh | sudo bash
 # 或本地：sudo bash scripts/install.sh
 # 从源码：sudo FROM_SOURCE=1 bash scripts/install.sh
 # 自定义目录：sudo INSTALL_DIR=/opt/open-panel OPEN_PANEL_PORT=8888 bash scripts/install.sh
@@ -186,7 +190,7 @@ pip install paramiko
 .\scripts\auto-setup.ps1 -Action deploy
 
 # 场景 2：在 Linux 服务器上从源码安装面板
-git clone https://github.com/open-panel/open-panel.git
+git clone https://github.com/luuuunet/open-panel.git
 cd open-panel
 sudo bash scripts/auto-setup.sh install
 
@@ -226,7 +230,7 @@ Windows 可编译运行，部分系统级功能（防火墙/FTP/邮件同步）�
 #### 源码开发
 
 ```bash
-git clone https://github.com/open-panel/open-panel.git
+git clone https://github.com/luuuunet/open-panel.git
 cd open-panel
 
 # 后端
@@ -332,6 +336,8 @@ open-panel/
 
 ---
 
+<a id="english"></a>
+
 ## English
 
 Open Panel is an open-source Linux server management panel inspired by modern panels such as [1Panel](https://1panel.cn/), with a full web UI for day-to-day operations.
@@ -381,7 +387,7 @@ Open Panel is an open-source Linux server management panel inspired by modern pa
 **Ubuntu / Debian / CentOS / Rocky / AlmaLinux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/open-panel/open-panel/main/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/main/scripts/install.sh | sudo bash
 # Local: sudo bash scripts/install.sh
 # From source: sudo FROM_SOURCE=1 bash scripts/install.sh
 # Custom path: sudo INSTALL_DIR=/opt/open-panel OPEN_PANEL_PORT=8888 bash scripts/install.sh
@@ -503,7 +509,7 @@ pip install paramiko
 .\scripts\auto-setup.ps1 -Action deploy
 
 # 2. Install from source on a Linux server
-git clone https://github.com/open-panel/open-panel.git
+git clone https://github.com/luuuunet/open-panel.git
 cd open-panel
 sudo bash scripts/auto-setup.sh install
 
@@ -543,7 +549,7 @@ Windows builds run, but some OS-level features (firewall/FTP/mail sync) are simu
 #### Source development
 
 ```bash
-git clone https://github.com/open-panel/open-panel.git
+git clone https://github.com/luuuunet/open-panel.git
 cd open-panel
 
 # Backend
