@@ -42,7 +42,7 @@ Ubuntu, Debian, CentOS, Rocky, or AlmaLinux:
 curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/v0.1.0/scripts/install.sh | sudo bash
 ```
 
-If you still see an old installer (no `installer: 2026-06-13-3` line), use jsDelivr:
+If you still see an old installer (no `installer: 2026-06-13-4` line), use jsDelivr:
 
 ```bash
 curl -fsSL https://cdn.jsdelivr.net/gh/luuuunet/open-panel@v0.1.0/scripts/install.sh | sudo bash

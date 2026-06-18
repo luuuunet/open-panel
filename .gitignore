@@ -32,7 +32,7 @@ Thumbs.db
 
 # Panel data (runtime)
 data/
-logs/
+/logs/
 *.db
 *.log
 
