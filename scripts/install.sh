@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Open Panel — universal Linux installer (Ubuntu / Debian / CentOS / Rocky / AlmaLinux / RHEL)
-# install.sh version: 2026-06-13-2
+# install.sh version: 2026-06-13-3
 set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/open-panel}"
@@ -237,7 +237,7 @@ open_firewall() {
 main() {
   echo "========================================="
   echo "  Open Panel 多系统安装 (Linux)"
-  echo "  installer: 2026-06-13-2"
+  echo "  installer: 2026-06-13-3"
   echo "========================================="
   require_root
   detect_os
