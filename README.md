@@ -39,13 +39,13 @@ Centralized logs across panel, system, websites, CDN, and WAF — with **AI anal
 One command. Downloads a **pre-built binary** (~16 MB, **1–2 minutes** on a 1 GB VPS):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/v0.1.9/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/v0.1.10/scripts/install.sh | sudo bash
 ```
 
 Force source build (slow, 15–30 min on small VPS):
 
 ```bash
-FROM_SOURCE=1 curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/v0.1.9/scripts/install.sh | sudo bash
+FROM_SOURCE=1 curl -fsSL https://raw.githubusercontent.com/luuuunet/open-panel/v0.1.10/scripts/install.sh | sudo bash
 ```
 
 Or from a local clone:
