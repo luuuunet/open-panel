@@ -43,12 +43,6 @@ sudo bash scripts/install.sh
 
 Open `http://YOUR_SERVER_IP:8888` — default user `admin`, password in `data/INITIAL_CREDENTIALS.txt` on the server.
 
-Docker:
-
-```bash
-docker compose up -d --build
-```
-
 ### Documentation
 
 Full user guide: [docs/en/USER_GUIDE.md](docs/en/USER_GUIDE.md)

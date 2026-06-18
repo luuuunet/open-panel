@@ -104,8 +104,6 @@ MySQL/MariaDB, PostgreSQL (with extensions), Redis:
 - **FTP:** Pure-FTPd virtual users tied to site paths
 - **Mail:** Postfix/Dovecot virtual mailboxes
 
-> Requires Linux; not available on Windows demo installs.
-
 ---
 
 ## 9. Automation & Monitoring
@@ -242,8 +240,6 @@ Install/deploy details: [README.md](../../README.md).
 **Cron not running?** Enable task, check logs and scheduler status on Linux.
 
 **Backup fails?** Verify credentials, paths, disk space.
-
-**Windows limitations?** Firewall sync, FTP/mail system integration require Linux.
 
 ---
 
