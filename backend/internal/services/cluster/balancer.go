@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type LBRequest struct {
@@ -303,7 +303,7 @@ server {
     }
 }`, lb.ListenPort, lb.Domain, accessLog, errorLog, upName, wsHeaders)
 
-	conf := fmt.Sprintf("# Open Panel Load Balancer — %s\n%s\n%s\n", lb.Name, upstream, server)
+	conf := fmt.Sprintf("# OWPanel Load Balancer — %s\n%s\n%s\n", lb.Name, upstream, server)
 	return conf, path, nil
 }
 

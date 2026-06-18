@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Server) registerUptimeRoutes(authorized *gin.RouterGroup) {

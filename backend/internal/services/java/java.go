@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 	"gorm.io/gorm"
 )
 
@@ -158,7 +158,7 @@ func (s *Service) writeProxyVhost(p *models.JavaProject) error {
     }
 }`, p.Domain, upstream)
 	}
-	content := fmt.Sprintf("# Open Panel Java — %s\n%s\n", p.Domain, body)
+	content := fmt.Sprintf("# OWPanel Java — %s\n%s\n", p.Domain, body)
 	if err := os.WriteFile(confPath, []byte(content), 0644); err != nil {
 		return err
 	}

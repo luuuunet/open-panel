@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	dbsvc "github.com/open-panel/open-panel/internal/services/database"
+	"github.com/luuuunet/owpanel/internal/models"
+	dbsvc "github.com/luuuunet/owpanel/internal/services/database"
 )
 
 type BackupManifest struct {
@@ -73,7 +73,7 @@ func (s *Service) RunBackup(siteID uint) (*models.WordPressBackup, error) {
 		return nil, err
 	}
 
-	tmpDir, err := os.MkdirTemp("", "open-panel-wp-backup-*")
+	tmpDir, err := os.MkdirTemp("", "owpanel-wp-backup-*")
 	if err != nil {
 		rec.Status = "failed"
 		rec.ErrorMsg = err.Error()
@@ -107,7 +107,7 @@ func (s *Service) RunBackup(siteID uint) (*models.WordPressBackup, error) {
 		DbName:      dbName,
 		HasDatabase: hasDB,
 		CreatedAt:   time.Now(),
-		Panel:       "Open Panel WordPress Full Backup",
+		Panel:       "OWPanel WordPress Full Backup",
 	}
 	if dbErr != "" && !hasDB {
 		manifest.DbName = "missing: " + dbErr
@@ -259,7 +259,7 @@ func createFullBackupZip(rootDir, sqlPath string, includeSQL bool, manifest Back
 	defer zw.Close()
 
 	manifestBytes, _ := json.MarshalIndent(manifest, "", "  ")
-	if err := addZipBytes(zw, "open-panel-backup.json", manifestBytes); err != nil {
+	if err := addZipBytes(zw, "owpanel-backup.json", manifestBytes); err != nil {
 		return err
 	}
 

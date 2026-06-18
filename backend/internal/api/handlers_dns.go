@@ -4,9 +4,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/dns"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/dns"
 )
 
 func (s *Server) registerDNSRoutes(authorized *gin.RouterGroup) {

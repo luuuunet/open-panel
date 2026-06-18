@@ -4,9 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/webserver"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/webserver"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +36,7 @@ func (s *Service) SetHooks(regen, reload func() error) {
 }
 
 func (s *Service) ConfPath() string {
-	return filepath.Join(s.confDir, "open-panel-cache.conf")
+	return filepath.Join(s.confDir, "owpanel-cache.conf")
 }
 
 func (s *Service) ProxyCacheDir() string {

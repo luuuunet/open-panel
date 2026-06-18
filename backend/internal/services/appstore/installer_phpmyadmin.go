@@ -1,7 +1,7 @@
 package appstore
 
 import (
-	"github.com/open-panel/open-panel/internal/services/phpmyadmin"
+	"github.com/luuuunet/owpanel/internal/services/phpmyadmin"
 )
 
 func tryPhpMyAdminInstall(key, version, installPath, dataDir string) (bool, error) {

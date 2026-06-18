@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/services/aichat"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/website"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/website"
 )
 
 const defaultAIPlanTimeout = 60 * time.Second

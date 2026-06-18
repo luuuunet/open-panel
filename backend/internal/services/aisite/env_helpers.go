@@ -1,6 +1,6 @@
 package aisite
 
-import "github.com/open-panel/open-panel/internal/services/appstore"
+import "github.com/luuuunet/owpanel/internal/services/appstore"
 
 func frameworkHint(plan DeployPlan, snap *RepoSnapshot) string {
 	if plan.Framework != "" {

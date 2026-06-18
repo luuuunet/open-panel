@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/services/php"
 )
 
 func tryPHPInstall(key, version, installPath, dataDir string) (bool, error) {
@@ -57,14 +57,14 @@ func configurePHPLinux(version, key, dataDir string) error {
 	port := php.PortForVersion(version)
 	socketPath := fmt.Sprintf("/run/php/php%s-fpm-openpanel.sock", strings.ReplaceAll(version, ".", ""))
 	poolDir := filepath.Join("/etc/php", version, "fpm", "pool.d")
-	poolFile := filepath.Join(poolDir, "open-panel.conf")
+	poolFile := filepath.Join(poolDir, "owpanel.conf")
 
 	if _, err := os.Stat(poolDir); err != nil {
 		return fmt.Errorf("pool dir missing: %w", err)
 	}
 
 	poolName := "openpanel_" + strings.ReplaceAll(version, ".", "_")
-	content := fmt.Sprintf(`; Open Panel managed pool for PHP %s
+	content := fmt.Sprintf(`; OWPanel managed pool for PHP %s
 [%s]
 user = www-data
 group = www-data
@@ -79,7 +79,7 @@ pm.max_spare_servers = 35
 
 	if err := os.WriteFile(poolFile, []byte(content), 0644); err != nil {
 		logInstallLine(fmt.Sprintf("无法写入 %s，尝试 Unix socket …", poolFile))
-		content = fmt.Sprintf(`; Open Panel managed pool for PHP %s
+		content = fmt.Sprintf(`; OWPanel managed pool for PHP %s
 [%s]
 user = www-data
 group = www-data
@@ -113,7 +113,7 @@ pm.max_spare_servers = 35
 
 	runtimeDir := filepath.Join(dataDir, "php", key)
 	_ = os.MkdirAll(runtimeDir, 0755)
-	marker := filepath.Join(runtimeDir, ".open-panel-installed")
+	marker := filepath.Join(runtimeDir, ".owpanel-installed")
 	_ = os.WriteFile(marker, []byte(fmt.Sprintf("version=%s\nport=%d\n", version, port)), 0644)
 
 	svc := "php" + version + "-fpm"

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) ListSubdirs(siteID uint) ([]models.WebsiteSubdir, error) {
@@ -139,7 +139,7 @@ func siteLimitZone(domain string) string {
 }
 
 func (s *Service) limitsConfPath() string {
-	return filepath.Join(s.dataDir, "nginx", "open-panel-limits.conf")
+	return filepath.Join(s.dataDir, "nginx", "owpanel-limits.conf")
 }
 
 func (s *Service) regenerateLimitZones() error {
@@ -150,7 +150,7 @@ func (s *Service) regenerateLimitZones() error {
 	dir := filepath.Join(s.dataDir, "nginx")
 	_ = os.MkdirAll(dir, 0755)
 	var b strings.Builder
-	b.WriteString("# Open Panel site rate limits — include in nginx http {}\n")
+	b.WriteString("# OWPanel site rate limits — include in nginx http {}\n")
 	if len(sites) == 0 {
 		b.WriteString("# (no sites with traffic limit enabled)\n")
 	} else {

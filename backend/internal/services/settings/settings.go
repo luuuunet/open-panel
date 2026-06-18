@@ -3,7 +3,7 @@ package settings
 import (
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +22,7 @@ func (s *Service) baseDefaults() map[string]string {
 	backup := defaultBackupPath(s.dataDir)
 	website := defaultWebsitePath(s.dataDir)
 	return map[string]string{
-		"panel_name":            "Open Panel",
+		"panel_name":            "OWPanel",
 		"panel_port":            "8888",
 		"panel_ssl":             "false",
 		"login_captcha":         "false",

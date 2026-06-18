@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +22,7 @@ func NewService(db *gorm.DB, dataDir string) *Service {
 }
 
 func (s *Service) ConfPath() string {
-	return filepath.Join(s.confDir, "open-panel-waf.conf")
+	return filepath.Join(s.confDir, "owpanel-waf.conf")
 }
 
 func (s *Service) BlacklistMapPath() string {

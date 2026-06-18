@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/auth"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/auth"
 )
 
 func (s *Server) registerSecurityExtraRoutes(admin *gin.RouterGroup) {

@@ -3,9 +3,9 @@ package cache
 import (
 	"fmt"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/webserver"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/webserver"
 )
 
 type AutoEnableSiteResult struct {

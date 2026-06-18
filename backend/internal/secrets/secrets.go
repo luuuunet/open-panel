@@ -18,7 +18,7 @@ const (
 
 // LoadOrCreateJWTSecret returns env override, persisted secret, or a newly generated one.
 func LoadOrCreateJWTSecret(dataDir string) string {
-	if v := strings.TrimSpace(os.Getenv("OPEN_PANEL_JWT_SECRET")); v != "" {
+	if v := strings.TrimSpace(os.Getenv("OWPANEL_JWT_SECRET")); v != "" {
 		return v
 	}
 	path := filepath.Join(dataDir, jwtSecretFile)
@@ -66,7 +66,7 @@ func GeneratePassword(length int) (string, error) {
 // WriteInitialAdminCredentials saves first-login credentials for the operator.
 func WriteInitialAdminCredentials(dataDir, username, password string) (string, error) {
 	path := filepath.Join(dataDir, credFileName)
-	body := fmt.Sprintf(`Open Panel — initial admin credentials
+	body := fmt.Sprintf(`OWPanel — initial admin credentials
 Username: %s
 Password: %s
 

@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/auth"
-	"github.com/open-panel/open-panel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/auth"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
 )
 
 func (s *Server) registerFileRoutes(authorized *gin.RouterGroup) {
@@ -379,7 +379,7 @@ func (s *Server) handleDownloadBatch(c *gin.Context) {
 		response.Error(c, 400, "no paths selected")
 		return
 	}
-	dest := filepath.Join(os.TempDir(), fmt.Sprintf("open-panel-dl-%d.zip", time.Now().UnixNano()))
+	dest := filepath.Join(os.TempDir(), fmt.Sprintf("owpanel-dl-%d.zip", time.Now().UnixNano()))
 	result, err := s.filemgr.Compress(req.Paths, "zip", dest)
 	if err != nil {
 		response.Error(c, 500, err.Error())

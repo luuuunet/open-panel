@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/services/php"
 )
 
 // phpPanelInstalled reports whether the panel installed/managed this PHP version.
@@ -12,10 +12,10 @@ func phpPanelInstalled(key, dataDir string) bool {
 	if key == "phpmyadmin" || !strings.HasPrefix(key, "php") {
 		return false
 	}
-	if fileExists(filepath.Join(dataDir, "php", key, ".open-panel-installed")) {
+	if fileExists(filepath.Join(dataDir, "php", key, ".owpanel-installed")) {
 		return true
 	}
-	if fileExists(filepath.Join(dataDir, "server", key, ".open-panel-installed")) {
+	if fileExists(filepath.Join(dataDir, "server", key, ".owpanel-installed")) {
 		return true
 	}
 	return false

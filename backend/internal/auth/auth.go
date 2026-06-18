@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"gorm.io/gorm"
 )
 

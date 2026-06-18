@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) GetSiteCredentials(id uint) (*ProvisionResult, error) {

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 var bulkSendMu sync.Mutex
@@ -122,8 +122,8 @@ func (s *Service) TestBulkProvider(id uint, to string) error {
 	}
 	return s.sendOutbound(&p, outboundMessage{
 		From: from, FromName: p.DefaultFromName, To: to,
-		Subject: "Open Panel 邮件通道测试",
-		BodyText: "这是一封来自 Open Panel 的测试邮件。This is a test message from Open Panel mail provider.",
+		Subject: "OWPanel 邮件通道测试",
+		BodyText: "这是一封来自 OWPanel 的测试邮件。This is a test message from OWPanel mail provider.",
 	})
 }
 

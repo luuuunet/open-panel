@@ -4,10 +4,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/auth"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/bastion"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/auth"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/bastion"
 )
 
 func (s *Server) registerTotpRoutes(api *gin.RouterGroup) {

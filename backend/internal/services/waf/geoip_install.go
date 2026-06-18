@@ -72,7 +72,7 @@ func (s *Service) downloadMaxMindEdition(licenseKey, edition, filename string) e
 		"https://download.maxmind.com/app/geoip_download?edition_id=%s&license_key=%s&suffix=tar.gz",
 		edition, licenseKey,
 	)
-	tmp := filepath.Join(os.TempDir(), fmt.Sprintf("open-panel-%s-%d.tar.gz", edition, time.Now().UnixNano()))
+	tmp := filepath.Join(os.TempDir(), fmt.Sprintf("owpanel-%s-%d.tar.gz", edition, time.Now().UnixNano()))
 	defer os.Remove(tmp)
 	if err := downloadGeoFile(url, tmp); err != nil {
 		return err

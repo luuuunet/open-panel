@@ -11,7 +11,7 @@ func BuildSiteBotBlock(blocked []CrawlerPreset) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("\n    # Open Panel — per-site bot/crawler control")
+	b.WriteString("\n    # OWPanel — per-site bot/crawler control")
 	for _, c := range blocked {
 		re := CrawlerPatternRegex(c.Patterns)
 		if re == "" {

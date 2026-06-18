@@ -24,7 +24,7 @@ export const LOCALE_OPTIONS: { label: string; short: string; value: LocaleCode }
 
 
 
-const STORAGE_KEY = 'open-panel-locale'
+const STORAGE_KEY = 'owpanel-locale'
 
 
 

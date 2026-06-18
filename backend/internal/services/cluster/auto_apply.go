@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 // AutoApplyAfterJoin wires the node into the workflow and applies LB / replication immediately.

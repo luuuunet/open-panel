@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) sendOutbound(provider *models.MailSendProvider, msg outboundMessage) error {
@@ -78,7 +78,7 @@ func (s *Service) sendLocal(msg outboundMessage) error {
 	buf.WriteString("Subject: " + subject + "\r\n")
 	buf.WriteString("MIME-Version: 1.0\r\n")
 	if strings.TrimSpace(msg.BodyHTML) != "" {
-		boundary := "open-panel-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+		boundary := "owpanel-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 		buf.WriteString("Content-Type: multipart/alternative; boundary=" + boundary + "\r\n\r\n")
 		buf.WriteString("--" + boundary + "\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n")
 		buf.WriteString(body + "\r\n")

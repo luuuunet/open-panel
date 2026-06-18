@@ -4,10 +4,10 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/open-panel/open-panel/internal/api"
-	"github.com/open-panel/open-panel/internal/config"
-	"github.com/open-panel/open-panel/internal/database"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/api"
+	"github.com/luuuunet/owpanel/internal/config"
+	"github.com/luuuunet/owpanel/internal/database"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 func main() {

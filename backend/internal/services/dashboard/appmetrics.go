@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 // InstalledAppMetrics is an installed app with live status and resource usage.
@@ -67,8 +67,8 @@ func processMatchesApp(key string, port int, installPath string, p ProcessBrief)
 		return strings.Contains(ln, "redis")
 	case key == "memcached":
 		return strings.Contains(ln, "memcached")
-	case key == "open-panel":
-		return strings.Contains(ln, "open-panel")
+	case key == "owpanel":
+		return strings.Contains(ln, "owpanel")
 	case key == "phpmyadmin":
 		return strings.Contains(lc, "phpmyadmin") || strings.Contains(installPath, "phpmyadmin") && strings.Contains(ln, "php")
 	case key == "pm2" || key == "nodejs":

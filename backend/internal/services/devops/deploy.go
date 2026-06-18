@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 type DeployConfigView struct {
@@ -304,7 +304,7 @@ func (s *Service) ExportDockerfile(websiteID uint) (string, error) {
 	phpVer = strings.TrimPrefix(strings.ToLower(phpVer), "php")
 
 	var b strings.Builder
-	b.WriteString("# Open Panel 自动导出的 Dockerfile\n")
+	b.WriteString("# OWPanel 自动导出的 Dockerfile\n")
 	b.WriteString("# 站点: " + site.Domain + "\n\n")
 	if site.PHP || site.PhpVersion != "static" {
 		b.WriteString(fmt.Sprintf("FROM php:%s-fpm-alpine\n\n", phpVer))

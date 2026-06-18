@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/open-panel/open-panel/internal/services/sshmgr"
+	"github.com/luuuunet/owpanel/internal/services/sshmgr"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )

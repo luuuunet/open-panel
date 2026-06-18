@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 type Syslog struct {
@@ -55,7 +55,7 @@ func (s *Syslog) Emit(eventType, message string) {
 		return
 	}
 	ts := time.Now().UTC().Format(time.RFC3339)
-	line := fmt.Sprintf("<134>1 %s open-panel pam - - [%s] %s", ts, eventType, message)
+	line := fmt.Sprintf("<134>1 %s owpanel pam - - [%s] %s", ts, eventType, message)
 	go func() {
 		if err := s.send(cfg, line); err != nil {
 			log.Printf("syslog forward failed: %v", err)

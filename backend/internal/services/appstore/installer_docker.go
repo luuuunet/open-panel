@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/secrets"
+	"github.com/luuuunet/owpanel/internal/secrets"
 )
 
 func tryDockerInstall(key, version, installPath, dataDir string) (bool, error) {

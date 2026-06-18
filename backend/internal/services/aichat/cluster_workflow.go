@@ -70,7 +70,7 @@ func (s *Service) ClusterWorkflowChat(req ClusterWorkflowChatRequest) (*ClusterW
 
 func buildClusterWorkflowSystemPrompt(ctx ClusterWorkflowContext) string {
 	var b strings.Builder
-	b.WriteString(`You are a Kubernetes-style cluster orchestration expert for Open Panel.
+	b.WriteString(`You are a Kubernetes-style cluster orchestration expert for OWPanel.
 
 Help users design visual workflow graphs for multi-server automation:
 - Node types: master (panel master), worker (panel worker), lb (HTTP load balancer), db_master, db_slave, web_sync

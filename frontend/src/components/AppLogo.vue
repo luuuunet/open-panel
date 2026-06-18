@@ -3,7 +3,7 @@ import logoUrl from '@/assets/logo.png'
 
 withDefaults(defineProps<{ size?: number; alt?: string }>(), {
   size: 36,
-  alt: 'Open Panel',
+  alt: 'OWPanel',
 })
 </script>
 

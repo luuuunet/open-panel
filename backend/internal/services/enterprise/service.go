@@ -1,12 +1,12 @@
 package enterprise
 
 import (
-	"github.com/open-panel/open-panel/internal/services/audit"
-	"github.com/open-panel/open-panel/internal/services/cluster"
-	"github.com/open-panel/open-panel/internal/services/dashboard"
-	"github.com/open-panel/open-panel/internal/services/security"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	"github.com/open-panel/open-panel/internal/services/uptime"
+	"github.com/luuuunet/owpanel/internal/services/audit"
+	"github.com/luuuunet/owpanel/internal/services/cluster"
+	"github.com/luuuunet/owpanel/internal/services/dashboard"
+	"github.com/luuuunet/owpanel/internal/services/security"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/uptime"
 	"gorm.io/gorm"
 )
 

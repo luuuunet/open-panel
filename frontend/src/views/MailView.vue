@@ -317,8 +317,8 @@ async function exportMailboxes() {
     const token = localStorage.getItem('token') || ''
     const params = new URLSearchParams({ format: exportForm.value.format })
     if (exportForm.value.domain) params.set('domain', exportForm.value.domain)
-    const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-    const base = (w.__OPEN_PANEL_BASE__ || '/').replace(/\/?$/, '/')
+    const w = window as Window & { __OWPANEL_BASE__?: string }
+    const base = (w.__OWPANEL_BASE__ || '/').replace(/\/?$/, '/')
     const res = await fetch(`${base}api/v1/mail/mailboxes/export?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -377,8 +377,8 @@ async function createBackup() {
 
 async function downloadBackup(row: any) {
   const token = localStorage.getItem('token') || ''
-  const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-  const base = (w.__OPEN_PANEL_BASE__ || '/').replace(/\/?$/, '/')
+  const w = window as Window & { __OWPANEL_BASE__?: string }
+  const base = (w.__OWPANEL_BASE__ || '/').replace(/\/?$/, '/')
   const res = await fetch(`${base}api/v1/mail/backups/${row.id}/download`, {
     headers: { Authorization: `Bearer ${token}` },
   })

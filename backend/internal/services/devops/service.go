@@ -1,10 +1,10 @@
 package devops
 
 import (
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/compose"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	"github.com/open-panel/open-panel/internal/services/webserver"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/compose"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/webserver"
 	"gorm.io/gorm"
 )
 

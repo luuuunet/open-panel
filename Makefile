@@ -11,7 +11,7 @@ frontend-dev:
 build: backend-build frontend-build
 
 backend-build:
-	cd backend && go build -o bin/open-panel ./cmd/server
+	cd backend && go build -o bin/owpanel ./cmd/server
 
 frontend-build:
 	cd frontend && npm run build

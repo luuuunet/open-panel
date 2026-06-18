@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -253,14 +253,14 @@ if command -v nginx >/dev/null 2>&1; then echo nginx:ok
 elif command -v apt-get >/dev/null 2>&1; then apt-get update -qq && apt-get install -y nginx
 elif command -v yum >/dev/null 2>&1; then yum install -y nginx
 else echo "请手动安装 nginx"; exit 1; fi
-mkdir -p /var/www/open-panel-backend
-echo 'Open Panel LB Backend OK' > /var/www/open-panel-backend/index.html
-CONF=/etc/nginx/conf.d/open-panel-backend.conf
+mkdir -p /var/www/owpanel-backend
+echo 'OWPanel LB Backend OK' > /var/www/owpanel-backend/index.html
+CONF=/etc/nginx/conf.d/owpanel-backend.conf
 cat > "$CONF" <<'NGX'
 server {
     listen %d;
     server_name _;
-    root /var/www/open-panel-backend;
+    root /var/www/owpanel-backend;
     index index.html;
     location / { try_files $uri $uri/ =404; }
     location /health { return 200 'ok'; add_header Content-Type text/plain; }
@@ -278,7 +278,7 @@ func (s *Service) provisionWorker(client *ssh.Client, port int, log *strings.Bui
 	if err != nil {
 		return err
 	}
-	out, e2 := sshRun(client, "mkdir -p /opt/open-panel && echo 'worker ready' > /opt/open-panel/.cluster-worker")
+	out, e2 := sshRun(client, "mkdir -p /opt/owpanel && echo 'worker ready' > /opt/owpanel/.cluster-worker")
 	log.WriteString(out)
 	return e2
 }

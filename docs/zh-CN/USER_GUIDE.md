@@ -1,6 +1,6 @@
-# Open Panel 用户手册
+# OWPanel 用户手册
 
-本文档介绍 Open Panel 各功能模块的用途与典型操作。适用于管理员、运维人员及被授权的子账户。
+本文档介绍 OWPanel 各功能模块的用途与典型操作。适用于管理员、运维人员及被授权的子账户。
 
 ---
 
@@ -30,7 +30,7 @@
 
 ## 1. 产品概述
 
-Open Panel 是开源 Linux 服务器运维管理面板，提供 Web 界面统一管理：
+OWPanel 是开源 Linux 服务器运维管理面板，提供 Web 界面统一管理：
 
 - 网站、SSL、CDN 缓存、WordPress / Node.js / Java 运行环境
 - MySQL / PostgreSQL / Redis 及备份
@@ -492,7 +492,7 @@ AI 相关密钥在 **面板设置 → AI** 中配置。
 
 ## 18. 数据目录与 CLI
 
-### 18.1 数据目录（默认 `/opt/open-panel/data`）
+### 18.1 数据目录（默认 `/opt/owpanel/data`）
 
 | 路径 | 用途 |
 |------|------|

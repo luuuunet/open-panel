@@ -8,14 +8,14 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 const (
 	hfAppKey          = "huggingface-ai"
-	hfTGIContainer    = "open-panel-hf-tgi"
-	hfWebUIContainer  = "open-panel-hf-webui"
-	hfOllamaContainer = "open-panel-ollama"
+	hfTGIContainer    = "owpanel-hf-tgi"
+	hfWebUIContainer  = "owpanel-hf-webui"
+	hfOllamaContainer = "owpanel-ollama"
 	hfTGIImage        = "ghcr.io/huggingface/text-generation-inference:2.4.1"
 	hfWebUIImage      = "ghcr.io/open-webui/open-webui:main"
 	hfOllamaImage     = "ollama/ollama:latest"

@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/api/response"
 )
 
 func (s *Server) registerPhpMyAdminRoutes(authorized *gin.RouterGroup) {

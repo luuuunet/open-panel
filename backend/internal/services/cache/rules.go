@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) ListRules(websiteID uint) ([]models.CacheRule, error) {

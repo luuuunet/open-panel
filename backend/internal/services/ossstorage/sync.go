@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type syncLogger struct {
@@ -232,7 +232,7 @@ func (s *Service) syncRemoteToOneRemote(task *models.OSSSyncTask, log *syncLogge
 	}
 	srcPrefix := strings.Trim(task.SourcePath, "/")
 	dstPrefix := strings.Trim(task.TargetPath, "/")
-	tmpDir := filepath.Join(os.TempDir(), fmt.Sprintf("open-panel-oss-migrate-%d", task.ID))
+	tmpDir := filepath.Join(os.TempDir(), fmt.Sprintf("owpanel-oss-migrate-%d", task.ID))
 	defer os.RemoveAll(tmpDir)
 	return src.Walk(srcPrefix, func(obj ObjectInfo) error {
 		srcKey := obj.Key

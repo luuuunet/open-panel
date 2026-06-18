@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/performance"
-	"github.com/open-panel/open-panel/internal/services/waf"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/performance"
+	"github.com/luuuunet/owpanel/internal/services/waf"
 	"github.com/oschwald/geoip2-golang"
 	"gorm.io/gorm"
 )
@@ -213,10 +213,10 @@ func (s *Service) ensureGeoIP() {
 		return
 	}
 	if _, err := s.InstallGeoIP(); err != nil {
-		log.Printf("Open Panel: GeoLite2 auto-install skipped: %v", err)
+		log.Printf("OWPanel: GeoLite2 auto-install skipped: %v", err)
 		return
 	}
-	log.Printf("Open Panel: GeoLite2 database ready for traffic map")
+	log.Printf("OWPanel: GeoLite2 database ready for traffic map")
 }
 
 // RecordHTTPAccess stores a live panel HTTP hit for the traffic map.

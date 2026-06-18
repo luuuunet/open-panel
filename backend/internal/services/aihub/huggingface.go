@@ -5,9 +5,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/modelcatalog"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/modelcatalog"
 )
 
 type HuggingFaceOptions = appstore.HuggingFaceOptions
@@ -138,8 +138,8 @@ func (s *Service) HuggingFaceStatus() HuggingFaceStatus {
 				strings.Contains(all["ai_base_url"], ":11434"))
 	}
 	st.OllamaRunning = ollamaReachable()
-	st.TGIRunning = dockerInspectRunning("open-panel-hf-tgi")
-	st.WebUIRunning = dockerInspectRunning("open-panel-hf-webui")
+	st.TGIRunning = dockerInspectRunning("owpanel-hf-tgi")
+	st.WebUIRunning = dockerInspectRunning("owpanel-hf-webui")
 	if st.Runtime == "ollama" && st.OllamaRunning {
 		st.Status = "running"
 	} else if st.TGIRunning {
@@ -173,7 +173,7 @@ func (s *Service) HuggingFaceStatus() HuggingFaceStatus {
 
 func ollamaReachable() bool {
 	if _, err := exec.LookPath("ollama"); err != nil {
-		return dockerInspectRunning("open-panel-ollama")
+		return dockerInspectRunning("owpanel-ollama")
 	}
 	out, err := exec.Command("ollama", "list").Output()
 	return err == nil && len(strings.TrimSpace(string(out))) > 0

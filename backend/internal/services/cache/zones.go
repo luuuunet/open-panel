@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 var domainSafe = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)

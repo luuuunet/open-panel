@@ -3,7 +3,7 @@ package website
 import (
 	"fmt"
 
-	comprunner "github.com/open-panel/open-panel/internal/services/composer"
+	comprunner "github.com/luuuunet/owpanel/internal/services/composer"
 )
 
 func (s *Service) RunComposer(siteID uint, command string) (*comprunner.Result, error) {

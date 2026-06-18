@@ -269,7 +269,7 @@ func (m *Manager) systemIniPaths(version string) []string {
 }
 
 func (m *Manager) accelConfPath(version string) string {
-	return filepath.Join("/etc/php", version, "fpm", "conf.d", "99-open-panel-accel.ini")
+	return filepath.Join("/etc/php", version, "fpm", "conf.d", "99-owpanel-accel.ini")
 }
 
 func (m *Manager) ensureRuntimeDir(key, version string) error {
@@ -317,7 +317,7 @@ func (m *Manager) writeMinimalIni(ini, dir string) error {
 		return nil
 	}
 	errLog := filepath.ToSlash(filepath.Join(dir, "php_errors.log"))
-	content := "; Open Panel managed PHP config\nlog_errors = On\nerror_log = \"" + errLog + "\"\n"
+	content := "; OWPanel managed PHP config\nlog_errors = On\nerror_log = \"" + errLog + "\"\n"
 	return os.WriteFile(ini, []byte(content), 0644)
 }
 

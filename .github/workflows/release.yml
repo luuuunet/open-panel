@@ -31,5 +31,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/open-panel-linux-amd64.tar.gz
-            dist/open-panel-linux-arm64.tar.gz
+            dist/owpanel-linux-amd64.tar.gz
+            dist/owpanel-linux-arm64.tar.gz

@@ -37,8 +37,8 @@ func (s *Service) Dashboard(panelPort string) (*DashboardResult, error) {
 	policies, _ := s.ListPolicies()
 	presets, _ := s.PresetsWithStatus(panelPort)
 
-	hasSSH := s.presetApplied("open-panel-host-ssh", policies)
-	hasWeb := s.presetApplied("open-panel-host-web", policies)
+	hasSSH := s.presetApplied("owpanel-host-ssh", policies)
+	hasWeb := s.presetApplied("owpanel-host-web", policies)
 
 	steps := []SetupStep{
 		{

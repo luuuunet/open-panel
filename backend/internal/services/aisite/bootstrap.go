@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/website"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/website"
 )
 
 func (s *Service) runBootstrap(jobID uint, req DeployRequest) {

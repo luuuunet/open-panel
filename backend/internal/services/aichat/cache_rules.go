@@ -83,7 +83,7 @@ func (s *Service) CacheRuleChat(req CacheRuleChatRequest) (*CacheRuleChatResult,
 
 func buildCacheRuleSystemPrompt(ctx CacheRuleContext) string {
 	var b strings.Builder
-	b.WriteString(`You are a CDN cache expert for Open Panel (Nginx proxy_cache / fastcgi_cache), similar to Cloudflare Page Rules.
+	b.WriteString(`You are a CDN cache expert for OWPanel (Nginx proxy_cache / fastcgi_cache), similar to Cloudflare Page Rules.
 
 Help the user write cache rules. Rules match request URI using Nginx map regex (~* pattern).
 

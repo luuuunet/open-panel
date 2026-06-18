@@ -1,4 +1,4 @@
-# Open Panel User Guide
+# OWPanel User Guide
 
 Complete reference for administrators, operators, and authorized sub-users.
 
@@ -30,7 +30,7 @@ Complete reference for administrators, operators, and authorized sub-users.
 
 ## 1. Overview
 
-Open Panel is an open-source Linux server management panel with a modern Vue 3 UI and Go backend (single binary + embedded frontend).
+OWPanel is an open-source Linux server management panel with a modern Vue 3 UI and Go backend (single binary + embedded frontend).
 
 **Core capabilities:** websites, SSL, CDN cache, databases, Docker, backups, cron, firewall, WAF, SSH terminal with PAM, traffic analytics, sub-user permissions, i18n (Simplified / Traditional Chinese / English).
 
@@ -211,7 +211,7 @@ Panel name, port, security entrance, panel SSL, login captcha, session timeout, 
 
 ## 18. Data Directory & CLI
 
-Default `{dataDir}` = `/opt/open-panel/data`:
+Default `{dataDir}` = `/opt/owpanel/data`:
 
 | Path | Purpose |
 |------|---------|

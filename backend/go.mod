@@ -1,4 +1,4 @@
-module github.com/open-panel/open-panel
+module github.com/luuuunet/owpanel
 
 go 1.26
 

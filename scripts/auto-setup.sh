@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Open Panel — 一键自动搭建（本地构建 / 安装 / 远程部署 / Docker）
+# OWPanel — 一键自动搭建（本地构建 / 安装 / 远程部署 / Docker）
 # Usage:
 #   ./scripts/auto-setup.sh              # 同 build
 #   ./scripts/auto-setup.sh build        # 构建前端 + Linux 发布包
@@ -11,7 +11,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CMD="${1:-build}"
-DIST="$ROOT/dist/open-panel-linux-amd64"
+DIST="$ROOT/dist/owpanel-linux-amd64"
 GOARCH="${DEPLOY_GOARCH:-amd64}"
 
 log() { echo "[auto-setup] $*"; }
@@ -35,7 +35,7 @@ build_backend_linux() {
   mkdir -p "$DIST/data"
   cd "$ROOT/backend"
   GOOS=linux GOARCH="$GOARCH" CGO_ENABLED=0 \
-    go build -ldflags="-s -w" -o "$DIST/open-panel" ./cmd/server
+    go build -ldflags="-s -w" -o "$DIST/owpanel" ./cmd/server
   GOOS=linux GOARCH="$GOARCH" CGO_ENABLED=0 \
     go build -ldflags="-s -w" -o "$DIST/op" ./cmd/op
   rm -rf "$DIST/web"
@@ -63,7 +63,7 @@ cmd_deploy() {
   cmd_build
   need_cmd python3
   python3 -c "import paramiko" 2>/dev/null || die "请安装 paramiko: pip install paramiko"
-  python3 "$ROOT/scripts/deploy.py" --full --binary "$DIST/open-panel"
+  python3 "$ROOT/scripts/deploy.py" --full --binary "$DIST/owpanel"
 }
 
 cmd_dev() {

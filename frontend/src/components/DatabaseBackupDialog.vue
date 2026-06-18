@@ -213,8 +213,8 @@ async function deleteBackup(row: any) {
 async function downloadBackup(row: any) {
   if (!props.databaseId) return
   const token = localStorage.getItem('token')
-  const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-  const base = w.__OPEN_PANEL_BASE__ || '/'
+  const w = window as Window & { __OWPANEL_BASE__?: string }
+  const base = w.__OWPANEL_BASE__ || '/'
   const prefix = base.endsWith('/') ? base : base + '/'
   const url = `${prefix}api/v1/databases/${props.databaseId}/backups/${row.id}/download`
   const res = await fetch(url, {

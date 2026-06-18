@@ -1,9 +1,9 @@
 package security
 
 import (
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	"github.com/open-panel/open-panel/internal/services/waf"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/waf"
 )
 
 type RiskItem struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/website"
+	"github.com/luuuunet/owpanel/internal/services/website"
 )
 
 var deployEnvFailurePatterns = []string{

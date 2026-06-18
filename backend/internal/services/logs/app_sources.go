@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 )
 
 type logCandidate struct {

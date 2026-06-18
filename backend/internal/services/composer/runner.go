@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 )
 
 type Result struct {

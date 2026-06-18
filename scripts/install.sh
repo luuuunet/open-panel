@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Open Panel — universal Linux installer (Ubuntu / Debian / CentOS / Rocky / AlmaLinux / RHEL)
+# OWPanel — universal Linux installer (Ubuntu / Debian / CentOS / Rocky / AlmaLinux / RHEL)
 # install.sh version: 2026-06-13-11
 set -euo pipefail
 
-INSTALL_DIR="${INSTALL_DIR:-/opt/open-panel}"
-PORT="${OPEN_PANEL_PORT:-8888}"
+INSTALL_DIR="${INSTALL_DIR:-/opt/owpanel}"
+PORT="${OWPANEL_PORT:-8888}"
 PANEL_USER="${PANEL_USER:-root}"
 FROM_SOURCE="${FROM_SOURCE:-0}"
-REPO_URL="${REPO_URL:-https://github.com/luuuunet/open-panel.git}"
+REPO_URL="${REPO_URL:-https://github.com/luuuunet/owpanel.git}"
 SOURCE_REF="${SOURCE_REF:-v0.1.1}"
 RELEASE_VERSION="${RELEASE_VERSION:-v0.1.10}"
 RELEASE_DIR="${RELEASE_DIR:-}"
@@ -15,8 +15,8 @@ RELEASE_DIR="${RELEASE_DIR:-}"
 export GIT_TERMINAL_PROMPT=0
 export GOTOOLCHAIN=local
 
-log() { echo "[open-panel] $*"; }
-die() { echo "[open-panel] ERROR: $*" >&2; exit 1; }
+log() { echo "[owpanel] $*"; }
+die() { echo "[owpanel] ERROR: $*" >&2; exit 1; }
 
 require_root() {
   if [[ "$(id -u)" -ne 0 ]]; then
@@ -154,7 +154,7 @@ fetch_repo() {
     archive="https://github.com/${slug}/archive/refs/heads/${SOURCE_REF}.tar.gz"
     carchive="https://codeload.github.com/${slug}/tar.gz/refs/heads/${SOURCE_REF}"
   fi
-  tgz="$(mktemp /tmp/open-panel-src.XXXXXX.tar.gz)"
+  tgz="$(mktemp /tmp/owpanel-src.XXXXXX.tar.gz)"
   log "下载源码包 ${SOURCE_REF}（约 1–5 分钟，请耐心等待）..."
   if curl -fL --connect-timeout 30 --max-time 900 --retry 3 --retry-delay 5 \
       --progress-bar -o "$tgz" "$carchive"; then
@@ -196,7 +196,7 @@ build_from_source() {
   log "编译后端..."
   cd "$SRC/backend"
   go mod download
-  CGO_ENABLED=0 go build -ldflags="-s -w" -o "$INSTALL_DIR/open-panel" ./cmd/server
+  CGO_ENABLED=0 go build -ldflags="-s -w" -o "$INSTALL_DIR/owpanel" ./cmd/server
   CGO_ENABLED=0 go build -ldflags="-s -w" -o "$INSTALL_DIR/op" ./cmd/op
   if command -v npm >/dev/null 2>&1; then
     log "构建前端（npm，请耐心等待）..."
@@ -216,16 +216,16 @@ build_from_source() {
 
 install_binary_layout() {
   mkdir -p "$INSTALL_DIR/data" "$INSTALL_DIR/logs"
-  chmod +x "$INSTALL_DIR/open-panel" 2>/dev/null || true
+  chmod +x "$INSTALL_DIR/owpanel" 2>/dev/null || true
   ln -sf "$INSTALL_DIR/op" /usr/local/bin/op 2>/dev/null || true
   rm -f /usr/local/bin/bt "$INSTALL_DIR/bt" 2>/dev/null || true
 }
 
 write_systemd() {
   log "配置 systemd 服务..."
-  cat > /etc/systemd/system/open-panel.service <<EOF
+  cat > /etc/systemd/system/owpanel.service <<EOF
 [Unit]
-Description=Open Panel Server Management
+Description=OWPanel Server Management
 After=network-online.target
 Wants=network-online.target
 
@@ -233,11 +233,11 @@ Wants=network-online.target
 Type=simple
 User=$PANEL_USER
 WorkingDirectory=$INSTALL_DIR
-Environment=OPEN_PANEL_PORT=$PORT
-Environment=OPEN_PANEL_HOME=$INSTALL_DIR
-Environment=OPEN_PANEL_DATA=$INSTALL_DIR/data
-Environment=OPEN_PANEL_WEB=$INSTALL_DIR/web
-ExecStart=$INSTALL_DIR/open-panel
+Environment=OWPANEL_PORT=$PORT
+Environment=OWPANEL_HOME=$INSTALL_DIR
+Environment=OWPANEL_DATA=$INSTALL_DIR/data
+Environment=OWPANEL_WEB=$INSTALL_DIR/web
+ExecStart=$INSTALL_DIR/owpanel
 Restart=on-failure
 RestartSec=5
 LimitNOFILE=65535
@@ -246,8 +246,8 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 EOF
   systemctl daemon-reload
-  systemctl enable open-panel
-  systemctl restart open-panel
+  systemctl enable owpanel
+  systemctl restart owpanel
 }
 
 install_from_release() {
@@ -255,13 +255,13 @@ install_from_release() {
   if [[ -z "$src" ]]; then
     local script_root
     script_root="$(cd "$(dirname "$0")/.." && pwd)"
-    if [[ -f "$script_root/open-panel" && -d "$script_root/web" ]]; then
+    if [[ -f "$script_root/owpanel" && -d "$script_root/web" ]]; then
       src="$script_root"
     fi
   fi
-  if [[ -n "$src" && -f "$src/open-panel" ]]; then
+  if [[ -n "$src" && -f "$src/owpanel" ]]; then
     log "从发布包安装: $src"
-    cp -f "$src/open-panel" "$INSTALL_DIR/open-panel"
+    cp -f "$src/owpanel" "$INSTALL_DIR/owpanel"
     cp -f "$src/op" "$INSTALL_DIR/op" 2>/dev/null || true
     rm -f "$INSTALL_DIR/bt" 2>/dev/null || true
     rm -rf "$INSTALL_DIR/web"
@@ -273,8 +273,8 @@ install_from_release() {
 
 release_package_name() {
   case "$(uname -m)" in
-    x86_64) echo "open-panel-linux-amd64" ;;
-    aarch64|arm64) echo "open-panel-linux-arm64" ;;
+    x86_64) echo "owpanel-linux-amd64" ;;
+    aarch64|arm64) echo "owpanel-linux-arm64" ;;
     *) die "不支持的 CPU 架构: $(uname -m)" ;;
   esac
 }
@@ -286,7 +286,7 @@ install_from_github_release() {
   pkg="$(release_package_name)"
   ver="$RELEASE_VERSION"
   url="https://github.com/${slug}/releases/download/${ver}/${pkg}.tar.gz"
-  tgz="$(mktemp /tmp/open-panel-rel.XXXXXX.tar.gz)"
+  tgz="$(mktemp /tmp/owpanel-rel.XXXXXX.tar.gz)"
   log "快速安装：下载预编译包 ${ver} (${pkg})..."
   if ! curl -fL --connect-timeout 30 --max-time 600 --retry 3 --retry-delay 5 \
       --progress-bar -o "$tgz" "$url"; then
@@ -300,8 +300,8 @@ install_from_github_release() {
   rm -f "$tgz"
   local root="$tmpdir/$pkg"
   [[ -d "$root" ]] || root="$tmpdir"
-  [[ -f "$root/open-panel" && -d "$root/web" ]] || die "预编译包格式错误"
-  cp -f "$root/open-panel" "$INSTALL_DIR/open-panel"
+  [[ -f "$root/owpanel" && -d "$root/web" ]] || die "预编译包格式错误"
+  cp -f "$root/owpanel" "$INSTALL_DIR/owpanel"
   cp -f "$root/op" "$INSTALL_DIR/op" 2>/dev/null || true
   rm -rf "$INSTALL_DIR/web"
   cp -a "$root/web" "$INSTALL_DIR/web"
@@ -331,7 +331,7 @@ read_admin_credentials() {
         return 0
       fi
     fi
-    pass="$(journalctl -u open-panel --no-pager -n 100 2>/dev/null \
+    pass="$(journalctl -u owpanel --no-pager -n 100 2>/dev/null \
       | grep -m1 'first login' \
       | grep -oE 'password: [^ ]+' \
       | awk '{print $2}' || true)"
@@ -360,7 +360,7 @@ print_install_summary() {
 
   echo ""
   echo "========================================="
-  echo "  Open Panel installed successfully"
+  echo "  OWPanel installed successfully"
   echo "========================================="
   echo ""
   echo "  Panel URL:  ${panel_url}"
@@ -383,7 +383,7 @@ print_install_summary() {
 
 main() {
   echo "========================================="
-  echo "  Open Panel Linux Installer"
+  echo "  OWPanel Linux Installer"
   echo "  installer: 2026-06-13-8"
   echo "========================================="
   require_root
@@ -394,10 +394,10 @@ main() {
     log "Installed from local release bundle"
   elif install_from_github_release; then
     :
-  elif [[ "$FROM_SOURCE" == "1" ]] || [[ ! -f "$INSTALL_DIR/open-panel" ]]; then
+  elif [[ "$FROM_SOURCE" == "1" ]] || [[ ! -f "$INSTALL_DIR/owpanel" ]]; then
     build_from_source
   else
-    log "Using existing binary: $INSTALL_DIR/open-panel"
+    log "Using existing binary: $INSTALL_DIR/owpanel"
   fi
   install_binary_layout
   write_systemd

@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/services/aisite"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/services/aisite"
 )
 
 func (s *Server) registerAISiteRoutes(g *gin.RouterGroup) {

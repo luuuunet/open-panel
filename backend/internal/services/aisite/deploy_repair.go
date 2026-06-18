@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
 )
 
 const maxDeployAIRepairAttempts = 3

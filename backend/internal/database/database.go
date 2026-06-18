@@ -9,10 +9,11 @@ import (
 
 	"errors"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/cilium"
-	"github.com/open-panel/open-panel/internal/services/kafkaaccel"
-	"github.com/open-panel/open-panel/internal/secrets"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/dbmigrate"
+	"github.com/luuuunet/owpanel/internal/services/cilium"
+	"github.com/luuuunet/owpanel/internal/services/kafkaaccel"
+	"github.com/luuuunet/owpanel/internal/secrets"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
@@ -114,6 +115,8 @@ func Init(dataDir string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
 
+	dbmigrate.MigrateAppsKeyColumn(db)
+
 	if err := seedAdmin(db, dataDir); err != nil {
 		return nil, err
 	}
@@ -154,9 +157,9 @@ func seedAdmin(db *gorm.DB, dataDir string) error {
 	if err != nil {
 		log.Printf("warning: could not write initial credentials file: %v", err)
 	} else {
-		log.Printf("Open Panel: initial admin credentials saved to %s", credPath)
+		log.Printf("OWPanel: initial admin credentials saved to %s", credPath)
 	}
-	log.Printf("Open Panel: first login — username: admin  password: %s  (change after login)", pass)
+	log.Printf("OWPanel: first login — username: admin  password: %s  (change after login)", pass)
 	return nil
 }
 

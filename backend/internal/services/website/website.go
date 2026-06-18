@@ -1,13 +1,13 @@
 package website
 
 import (
-	"github.com/open-panel/open-panel/internal/models"
-	dbsvc "github.com/open-panel/open-panel/internal/services/database"
-	"github.com/open-panel/open-panel/internal/services/dns"
-	"github.com/open-panel/open-panel/internal/services/ftp"
-	"github.com/open-panel/open-panel/internal/services/php"
-	"github.com/open-panel/open-panel/internal/services/cache"
-	"github.com/open-panel/open-panel/internal/services/webserver"
+	"github.com/luuuunet/owpanel/internal/models"
+	dbsvc "github.com/luuuunet/owpanel/internal/services/database"
+	"github.com/luuuunet/owpanel/internal/services/dns"
+	"github.com/luuuunet/owpanel/internal/services/ftp"
+	"github.com/luuuunet/owpanel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/services/cache"
+	"github.com/luuuunet/owpanel/internal/services/webserver"
 	"gorm.io/gorm"
 )
 

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const panelIncludeMarker = "open-panel-vhosts"
+const panelIncludeMarker = "owpanel-vhosts"
 
 // Bootstrap prepares vhost directory, panel include snippet, and injects into the system main config.
 func (m *Manager) Bootstrap(key string) error {
@@ -51,9 +51,9 @@ func (m *Manager) logStep(key, msg string) {
 
 func panelIncludePath(dataDir, key string) string {
 	if key == "apache" {
-		return filepath.Join(dataDir, "apache", "open-panel.conf")
+		return filepath.Join(dataDir, "apache", "owpanel.conf")
 	}
-	return filepath.Join(dataDir, "nginx", "open-panel.conf")
+	return filepath.Join(dataDir, "nginx", "owpanel.conf")
 }
 
 func (m *Manager) injectMainInclude(key, configFallback, panelConf string) error {
@@ -80,7 +80,7 @@ func (m *Manager) injectMainInclude(key, configFallback, panelConf string) error
 		return fmt.Errorf("请手动在 %s 的 http {} 内添加: %s", mainConf, includeLine)
 	}
 
-	backup := mainConf + ".open-panel.bak." + time.Now().Format("20060102-150405")
+	backup := mainConf + ".owpanel.bak." + time.Now().Format("20060102-150405")
 	_ = os.WriteFile(backup, data, 0644)
 	if err := os.WriteFile(mainConf, []byte(updated), 0644); err != nil {
 		return err
@@ -128,7 +128,7 @@ func (m *Manager) disableConflictingDefaults(key string) {
 			if !fileExists(p) {
 				continue
 			}
-			backup := p + ".open-panel-disabled"
+			backup := p + ".owpanel-disabled"
 			if fileExists(backup) {
 				continue
 			}
@@ -142,7 +142,7 @@ func (m *Manager) disableConflictingDefaults(key string) {
 			"/etc/httpd/conf.d/welcome.conf",
 		} {
 			if fileExists(p) {
-				_ = os.Rename(p, p+".open-panel-disabled")
+				_ = os.Rename(p, p+".owpanel-disabled")
 			}
 		}
 	}

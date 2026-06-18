@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const panelVolumePrefix = "open-panel-"
+const panelVolumePrefix = "owpanel-"
 
 func (s *Service) enrichVolumeUsage(list []Volume) []Volume {
 	usage := s.buildVolumeUsageMap()

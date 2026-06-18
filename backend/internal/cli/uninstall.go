@@ -20,14 +20,14 @@ func UninstallPanel(ctx *Context) error {
 
 	install := ctx.Install
 	if install == "" {
-		install = "/opt/open-panel"
+		install = "/opt/owpanel"
 	}
 	dataDir := ctx.DataDir
 	if dataDir == "" {
 		dataDir = filepath.Join(install, "data")
 	}
 
-	printMenuTitle("Uninstall Open Panel")
+	printMenuTitle("Uninstall OWPanel")
 	fmt.Printf("  Install dir: %s\n", install)
 	fmt.Printf("  Data dir:    %s\n", dataDir)
 	fmt.Println()
@@ -52,14 +52,14 @@ func UninstallPanel(ctx *Context) error {
 		if err := removePanelProgramFiles(install, dataDir); err != nil {
 			return err
 		}
-		printSuccess("Open Panel uninstalled. Program files removed.")
+		printSuccess("OWPanel uninstalled. Program files removed.")
 		fmt.Printf("  Data preserved at: %s\n", dataDir)
 		printHint("To reinstall later, run the install script — existing data may be reused.")
 	} else {
 		if err := os.RemoveAll(install); err != nil {
 			return fmt.Errorf("remove install dir: %w", err)
 		}
-		printSuccess("Open Panel fully removed (including data).")
+		printSuccess("OWPanel fully removed (including data).")
 	}
 
 	fmt.Println()
@@ -109,7 +109,7 @@ func removePanelProgramFiles(install, dataDir string) error {
 	dataDir = filepath.Clean(dataDir)
 	install = filepath.Clean(install)
 
-	for _, name := range []string{"open-panel", "op", "web", "logs", "bt"} {
+	for _, name := range []string{"owpanel", "op", "web", "logs", "bt"} {
 		p := filepath.Join(install, name)
 		if filepath.Clean(p) == dataDir {
 			continue

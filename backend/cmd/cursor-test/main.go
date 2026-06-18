@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-panel/open-panel/internal/config"
-	"github.com/open-panel/open-panel/internal/database"
-	"github.com/open-panel/open-panel/internal/services/aichat"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/config"
+	"github.com/luuuunet/owpanel/internal/database"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 func main() {

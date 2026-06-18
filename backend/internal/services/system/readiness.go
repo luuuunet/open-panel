@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/open-panel/open-panel/internal/platform"
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/platform"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 )
 
 type CheckItem struct {

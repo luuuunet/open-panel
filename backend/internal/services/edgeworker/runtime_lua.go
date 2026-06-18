@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/secrets"
+	"github.com/luuuunet/owpanel/internal/secrets"
 )
 
 func (s *Service) LuaDir() string {
@@ -37,7 +37,7 @@ func sharedDictName(nsID uint) string {
 }
 
 func generateEdgeRuntimeLua(port int, apiPrefix, secret string) string {
-	return fmt.Sprintf(`-- Open Panel edge_runtime — auto-generated, do not edit
+	return fmt.Sprintf(`-- OWPanel edge_runtime — auto-generated, do not edit
 local http = require "resty.http"
 local cjson = require "cjson.safe"
 

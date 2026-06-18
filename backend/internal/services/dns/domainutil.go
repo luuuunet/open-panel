@@ -3,7 +3,7 @@ package dns
 import (
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func normalizeHost(host string) string {

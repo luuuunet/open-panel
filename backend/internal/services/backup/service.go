@@ -1,10 +1,10 @@
 package backup
 
 import (
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	dbsvc "github.com/open-panel/open-panel/internal/services/database"
-	"github.com/open-panel/open-panel/internal/services/ossstorage"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	dbsvc "github.com/luuuunet/owpanel/internal/services/database"
+	"github.com/luuuunet/owpanel/internal/services/ossstorage"
 	"gorm.io/gorm"
 )
 

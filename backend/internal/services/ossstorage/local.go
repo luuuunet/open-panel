@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type localStore struct {
@@ -39,7 +39,7 @@ func (l *localStore) absKey(key string) string {
 }
 
 func (l *localStore) Test() error {
-	f := filepath.Join(l.root, ".open-panel-test")
+	f := filepath.Join(l.root, ".owpanel-test")
 	if err := os.WriteFile(f, []byte("ok"), 0644); err != nil {
 		return err
 	}

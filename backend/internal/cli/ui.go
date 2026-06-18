@@ -41,7 +41,7 @@ func red(s string) string    { return paint(ansiRed, s) }
 func printBanner() {
 	fmt.Println()
 	fmt.Println(cyan("  ╭────────────────────────────────────────╮"))
-	fmt.Println(cyan("  │") + bold("         OPEN PANEL  CLI              ") + cyan("│"))
+	fmt.Println(cyan("  │") + bold("           OWPANEL  CLI               ") + cyan("│"))
 	fmt.Println(cyan("  │") + dim("      Server Management Console       ") + cyan("│"))
 	fmt.Println(cyan("  ╰────────────────────────────────────────╯"))
 	fmt.Println()

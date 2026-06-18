@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-const STORAGE_KEY = 'open-panel-nav-recent'
+const STORAGE_KEY = 'owpanel-nav-recent'
 const MAX_RECENT = 8
 
 export interface NavRecentEntry {

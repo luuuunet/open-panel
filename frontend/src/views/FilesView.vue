@@ -96,7 +96,7 @@ const searchActive = ref(false)
 const searchLoading = ref(false)
 const searchResults = ref<any[]>([])
 
-const FAV_STORAGE_KEY = 'open-panel-file-favorites'
+const FAV_STORAGE_KEY = 'owpanel-file-favorites'
 const favorites = ref<{ label: string; path: string }[]>([])
 
 const transferVisible = ref(false)
@@ -161,8 +161,8 @@ function isImageName(name: string) {
 
 function apiDownloadUrl(subpath: string) {
   const token = localStorage.getItem('token')
-  const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-  const base = w.__OPEN_PANEL_BASE__ || '/'
+  const w = window as Window & { __OWPANEL_BASE__?: string }
+  const base = w.__OWPANEL_BASE__ || '/'
   const prefix = base.endsWith('/') ? base : base + '/'
   return { url: `${prefix}api/v1${subpath}`, token }
 }

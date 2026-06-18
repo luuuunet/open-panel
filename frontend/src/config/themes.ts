@@ -6,7 +6,7 @@ export interface ThemePrefs {
   darkVariant: DarkThemeVariant
 }
 
-export const THEME_STORAGE_KEY = 'open-panel-theme'
+export const THEME_STORAGE_KEY = 'owpanel-theme'
 
 export const DEFAULT_THEME_PREFS: ThemePrefs = {
   mode: 'system',

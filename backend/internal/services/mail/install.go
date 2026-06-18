@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/platform"
+	"github.com/luuuunet/owpanel/internal/platform"
 )
 
 func (s *Service) InstallStack() error {

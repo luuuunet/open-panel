@@ -34,7 +34,7 @@ func TestPHPFPMServiceLogPaths(t *testing.T) {
 }
 
 func TestLogCandidatesForPHP(t *testing.T) {
-	candidates := logCandidatesForPHP("php83", filepath.Join("/opt/open-panel/data/server/php83"), "/opt/open-panel/data")
+	candidates := logCandidatesForPHP("php83", filepath.Join("/opt/owpanel/data/server/php83"), "/opt/owpanel/data")
 	bySuffix := map[string]string{}
 	for _, c := range candidates {
 		bySuffix[c.suffix] = c.path

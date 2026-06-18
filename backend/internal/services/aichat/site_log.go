@@ -39,7 +39,7 @@ func (s *Service) SiteLogChat(req SiteLogChatRequest) (*LogChatResult, error) {
 	domain := strings.TrimSpace(req.Domain)
 	root := strings.TrimSpace(req.RootPath)
 
-	system := fmt.Sprintf(`你是 Open Panel 网站日志与运维 AI 助手。
+	system := fmt.Sprintf(`你是 OWPanel 网站日志与运维 AI 助手。
 站点域名: %s
 网站根目录: %s
 访问日志: %s
@@ -83,7 +83,7 @@ func (s *Service) AnalyzeSiteLogRepair(bundle string) (*SiteLogRepairPlan, error
 		return nil, err
 	}
 
-	system := `你是 Open Panel 网站运维专家。根据站点诊断与日志，输出 JSON 修复方案（仅 JSON，不要 markdown 代码块外的文字）。
+	system := `你是 OWPanel 网站运维专家。根据站点诊断与日志，输出 JSON 修复方案（仅 JSON，不要 markdown 代码块外的文字）。
 
 可用 actions（只能从中选择）:
 - create_root_dir: 创建网站根目录

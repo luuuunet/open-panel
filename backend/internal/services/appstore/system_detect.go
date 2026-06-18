@@ -120,7 +120,7 @@ func (s *Service) ClearSimulatedIfRealPresent(key string) bool {
 	if !systemPackagePresent(key, s.dataDir) {
 		return false
 	}
-	marker := filepath.Join(s.dataDir, "server", key, ".open-panel-installed")
+	marker := filepath.Join(s.dataDir, "server", key, ".owpanel-installed")
 	_ = os.Remove(marker)
 	s.InvalidateLiveStatus(key)
 	app, err := s.Get(key)
@@ -153,7 +153,7 @@ func systemPackagePresent(key, dataDir string) bool {
 		return detectCertbot() == "running"
 	}
 	if key == "phpmyadmin" {
-		return fileExists(filepath.Join(dataDir, "server", "phpmyadmin", ".open-panel-installed"))
+		return fileExists(filepath.Join(dataDir, "server", "phpmyadmin", ".owpanel-installed"))
 	}
 	if strings.HasPrefix(key, "java") {
 		return javaPackagePresent(key, dataDir)

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) writeApacheVhost(site *models.Website) (string, error) {
@@ -32,7 +32,7 @@ func (s *Service) writeApacheVhost(site *models.Website) (string, error) {
 		}
 		blocks = append(blocks, block)
 	}
-	content := fmt.Sprintf("# Open Panel — %s\n%s\n", site.Domain, strings.Join(blocks, "\n"))
+	content := fmt.Sprintf("# OWPanel — %s\n%s\n", site.Domain, strings.Join(blocks, "\n"))
 	if err := os.WriteFile(confPath, []byte(content), 0644); err != nil {
 		return "", err
 	}

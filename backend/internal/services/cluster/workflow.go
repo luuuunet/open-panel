@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -431,7 +431,7 @@ func (s *Service) generateReplicationScript(master, slave *FlowNode) (string, er
 	mHost := s.nodeHost(master)
 	sHost := s.nodeHost(slave)
 	var b strings.Builder
-	b.WriteString("-- Open Panel auto-generated MySQL replication plan\n")
+	b.WriteString("-- OWPanel auto-generated MySQL replication plan\n")
 	b.WriteString(fmt.Sprintf("-- Master: %s (%s)\n", master.Label, mHost))
 	b.WriteString(fmt.Sprintf("-- Slave: %s (%s)\n\n", slave.Label, sHost))
 	b.WriteString("-- === On MASTER ===\n")

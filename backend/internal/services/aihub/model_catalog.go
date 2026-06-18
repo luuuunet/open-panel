@@ -1,6 +1,6 @@
 package aihub
 
-import "github.com/open-panel/open-panel/internal/services/modelcatalog"
+import "github.com/luuuunet/owpanel/internal/services/modelcatalog"
 
 type ModelCatalogEntry = modelcatalog.ModelCatalogEntry
 

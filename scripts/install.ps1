@@ -1,20 +1,20 @@
-# Open Panel — Windows installer
+# OWPanel — Windows installer
 # Usage (Admin PowerShell):
 #   Set-ExecutionPolicy Bypass -Scope Process -Force
 #   .\scripts\install.ps1
-#   .\scripts\install.ps1 -InstallDir C:\open-panel -Port 8888 -FromSource
+#   .\scripts\install.ps1 -InstallDir C:\owpanel -Port 8888 -FromSource
 
 param(
-    [string]$InstallDir = "C:\open-panel",
+    [string]$InstallDir = "C:\owpanel",
     [int]$Port = 8888,
     [switch]$FromSource,
-    [string]$RepoUrl = "https://github.com/luuuunet/open-panel.git",
+    [string]$RepoUrl = "https://github.com/luuuunet/owpanel.git",
     [string]$Branch = "main"
 )
 
 $ErrorActionPreference = "Stop"
 
-function Write-Log($msg) { Write-Host "[open-panel] $msg" }
+function Write-Log($msg) { Write-Host "[owpanel] $msg" }
 
 function Require-Admin {
     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -31,11 +31,11 @@ function Ensure-Dir($path) {
 function Build-FromSource {
     param([string]$Root, [string]$OutDir)
     Write-Log "从源码构建..."
-    $work = Join-Path $env:TEMP "open-panel-src-$(Get-Random)"
+    $work = Join-Path $env:TEMP "owpanel-src-$(Get-Random)"
     git clone --depth 1 -b $Branch $RepoUrl $work
     Push-Location (Join-Path $work "backend")
     go mod download
-    go build -ldflags="-s -w" -o (Join-Path $OutDir "open-panel.exe") .\cmd\server\
+    go build -ldflags="-s -w" -o (Join-Path $OutDir "owpanel.exe") .\cmd\server\
     go build -ldflags="-s -w" -o (Join-Path $OutDir "op.exe") .\cmd\op\
     Pop-Location
     Push-Location (Join-Path $work "frontend")
@@ -53,14 +53,14 @@ function Build-FromSource {
 
 function Install-ScheduledTask {
     param([string]$Exe, [string]$DataDir, [string]$WebDir, [int]$PanelPort)
-    $taskName = "OpenPanel"
+    $taskName = "OWPanel"
     $workDir = Split-Path $Exe
-    $wrapper = Join-Path $workDir "open-panel-start.ps1"
+    $wrapper = Join-Path $workDir "owpanel-start.ps1"
     $wrapperContent = @"
-`$env:OPEN_PANEL_PORT='$PanelPort'
-`$env:OPEN_PANEL_HOME='$workDir'
-`$env:OPEN_PANEL_DATA='$DataDir'
-`$env:OPEN_PANEL_WEB='$WebDir'
+`$env:OWPANEL_PORT='$PanelPort'
+`$env:OWPANEL_HOME='$workDir'
+`$env:OWPANEL_DATA='$DataDir'
+`$env:OWPANEL_WEB='$WebDir'
 & '$Exe'
 "@
     Set-Content -Path $wrapper -Value $wrapperContent -Encoding UTF8
@@ -68,20 +68,20 @@ function Install-ScheduledTask {
     $trigger = New-ScheduledTaskTrigger -AtStartup
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
-    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Description "Open Panel server" | Out-Null
+    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Description "OWPanel server" | Out-Null
     Write-Log "已注册计划任务: $taskName（开机自启，环境变量见 $wrapper）"
     Start-ScheduledTask -TaskName $taskName
 }
 
 function Open-FirewallPort([int]$PanelPort) {
-    $ruleName = "Open Panel $PanelPort"
+    $ruleName = "OWPanel $PanelPort"
     if (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue) { return }
     New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Protocol TCP -LocalPort $PanelPort -Action Allow | Out-Null
     Write-Log "已开放防火墙端口 $PanelPort"
 }
 
 Write-Host "========================================="
-Write-Host "  Open Panel 多系统安装 (Windows)"
+Write-Host "  OWPanel 多系统安装 (Windows)"
 Write-Host "========================================="
 Require-Admin
 
@@ -94,7 +94,7 @@ Ensure-Dir $InstallDir
 Ensure-Dir (Join-Path $InstallDir "data")
 Ensure-Dir (Join-Path $InstallDir "logs")
 
-$exe = Join-Path $InstallDir "open-panel.exe"
+$exe = Join-Path $InstallDir "owpanel.exe"
 $webDir = Join-Path $InstallDir "web"
 $dataDir = Join-Path $InstallDir "data"
 

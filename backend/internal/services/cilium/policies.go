@@ -61,7 +61,7 @@ func (s *Service) ApplyPolicyYAML(yaml string) (string, error) {
 	if yaml == "" {
 		return "", fmt.Errorf("策略 YAML 不能为空")
 	}
-	dir := filepath.Join(os.TempDir(), "open-panel-cilium")
+	dir := filepath.Join(os.TempDir(), "owpanel-cilium")
 	_ = os.MkdirAll(dir, 0755)
 	path := filepath.Join(dir, fmt.Sprintf("policy-%d.yaml", time.Now().UnixNano()))
 	if err := os.WriteFile(path, []byte(yaml), 0600); err != nil {
@@ -102,7 +102,7 @@ func DefaultHostSSHPolicy() string {
 	return `apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: open-panel-host-ssh
+  name: owpanel-host-ssh
 spec:
   description: "Allow SSH to node (Host Firewall)"
   nodeSelector:

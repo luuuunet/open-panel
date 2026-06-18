@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 type ScoreFactor struct {

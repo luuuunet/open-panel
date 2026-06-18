@@ -49,7 +49,7 @@ func (s *Service) AnalyzeDeployRepair(req DeployRepairRequest) (*DeployRepairPla
 		return nil, err
 	}
 
-	system := `你是 Open Panel 一键部署专家。根据构建失败日志、仓库快照与当前部署脚本，输出 JSON 修复方案（不要 markdown 代码块外的多余文字）。
+	system := `你是 OWPanel 一键部署专家。根据构建失败日志、仓库快照与当前部署脚本，输出 JSON 修复方案（不要 markdown 代码块外的多余文字）。
 
 场景：仓库已克隆到站点根目录，这是第 N 次增量修复重试，不要建议重新 git clone，除非必须提供完整 deploy_script。
 

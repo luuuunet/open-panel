@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/middleware"
-	"github.com/open-panel/open-panel/internal/services/bastion"
-	"github.com/open-panel/open-panel/internal/services/terminal"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/middleware"
+	"github.com/luuuunet/owpanel/internal/services/bastion"
+	"github.com/luuuunet/owpanel/internal/services/terminal"
 )
 
 func (s *Server) registerBastionRoutes(api *gin.RouterGroup) {

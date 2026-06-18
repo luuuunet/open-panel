@@ -30,6 +30,7 @@ const installedApps = ref<any[]>([])
 const category = ref(ALL)
 const keyword = ref('')
 const loading = ref(false)
+const storeLoadFailed = ref(false)
 const refreshingVersions = ref(false)
 
 const installDialog = ref(false)
@@ -116,8 +117,15 @@ function catLabel(c: string) {
 }
 
 async function loadStore() {
-  const res: any = await api.get('/software/store')
-  storeApps.value = res.data || []
+  try {
+    const res: any = await api.get('/software/store')
+    storeApps.value = res.data || []
+    storeLoadFailed.value = false
+  } catch (e: any) {
+    storeApps.value = []
+    storeLoadFailed.value = true
+    ElMessage.error(e?.error || e?.message || t('software.storeLoadFailed'))
+  }
 }
 
 async function loadInstalled() {
@@ -411,7 +419,8 @@ onMounted(loadAll)
             </el-card>
           </el-col>
         </el-row>
-        <el-empty v-if="!filteredStore.length && !loading" :description="t('software.emptySearch')" />
+        <el-empty v-if="storeLoadFailed && !loading" :description="t('software.storeLoadFailed')" />
+        <el-empty v-else-if="!filteredStore.length && !loading" :description="t('software.emptySearch')" />
         <div v-if="filteredStore.length" class="store-footer">
           <span class="store-total">{{ t('software.total', { n: filteredStore.length }) }}</span>
           <el-pagination

@@ -137,7 +137,7 @@ func (m *Manager) writeAccelConf(version string, directives map[string]interface
 		return err
 	}
 	var b strings.Builder
-	b.WriteString("; Open Panel PHP acceleration\n")
+	b.WriteString("; OWPanel PHP acceleration\n")
 	for k, v := range directives {
 		b.WriteString(k)
 		b.WriteString(" = ")

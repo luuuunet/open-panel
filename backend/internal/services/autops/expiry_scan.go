@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) loadExpiryConfig(cfg Config) Config {

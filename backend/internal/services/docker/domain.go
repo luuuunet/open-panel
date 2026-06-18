@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
 	"gorm.io/gorm"
 )
 
@@ -207,7 +207,7 @@ func dockerVhostFile(dataDir, containerName string) string {
 	if safe == "" {
 		safe = "container"
 	}
-	return filepath.Join(dataDir, "nginx", "vhosts", fmt.Sprintf("open-panel-docker-%s.conf", safe))
+	return filepath.Join(dataDir, "nginx", "vhosts", fmt.Sprintf("owpanel-docker-%s.conf", safe))
 }
 
 func (s *Service) applyProxyVhost(b *models.DockerContainerBinding) error {
@@ -221,7 +221,7 @@ func (s *Service) applyProxyVhost(b *models.DockerContainerBinding) error {
 	if name == "" {
 		name = b.ContainerID
 	}
-	conf := fmt.Sprintf(`# Open Panel — Docker %s
+	conf := fmt.Sprintf(`# OWPanel — Docker %s
 server {
     listen 80;
     server_name %s;
@@ -272,9 +272,9 @@ func (s *Service) ensureProxyWebServer() error {
 	} else {
 		vhostDir := filepath.Join(s.dataDir, "nginx", "vhosts")
 		_ = os.MkdirAll(vhostDir, 0755)
-		mainConf := filepath.Join(s.dataDir, "nginx", "open-panel.conf")
+		mainConf := filepath.Join(s.dataDir, "nginx", "owpanel.conf")
 		includeLine := fmt.Sprintf("include %s/*.conf;", filepath.ToSlash(vhostDir))
-		_ = os.WriteFile(mainConf, []byte("# Open Panel auto-generated\n"+includeLine+"\n"), 0644)
+		_ = os.WriteFile(mainConf, []byte("# OWPanel auto-generated\n"+includeLine+"\n"), 0644)
 	}
 	return nil
 }

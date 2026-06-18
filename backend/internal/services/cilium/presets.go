@@ -34,21 +34,21 @@ spec:
 func presetYAML(key, panelPort string) (string, string, error) {
 	switch key {
 	case "ssh":
-		return "open-panel-host-ssh", hostPolicy("open-panel-host-ssh", "Allow SSH", []struct{ port, proto string }{{"22", "TCP"}}), nil
+		return "owpanel-host-ssh", hostPolicy("owpanel-host-ssh", "Allow SSH", []struct{ port, proto string }{{"22", "TCP"}}), nil
 	case "http":
-		return "open-panel-host-http", hostPolicy("open-panel-host-http", "Allow HTTP", []struct{ port, proto string }{{"80", "TCP"}}), nil
+		return "owpanel-host-http", hostPolicy("owpanel-host-http", "Allow HTTP", []struct{ port, proto string }{{"80", "TCP"}}), nil
 	case "https":
-		return "open-panel-host-https", hostPolicy("open-panel-host-https", "Allow HTTPS", []struct{ port, proto string }{{"443", "TCP"}}), nil
+		return "owpanel-host-https", hostPolicy("owpanel-host-https", "Allow HTTPS", []struct{ port, proto string }{{"443", "TCP"}}), nil
 	case "web":
-		return "open-panel-host-web", hostPolicy("open-panel-host-web", "Allow HTTP/HTTPS", []struct{ port, proto string }{{"80", "TCP"}, {"443", "TCP"}}), nil
+		return "owpanel-host-web", hostPolicy("owpanel-host-web", "Allow HTTP/HTTPS", []struct{ port, proto string }{{"80", "TCP"}, {"443", "TCP"}}), nil
 	case "panel":
 		if panelPort == "" {
 			panelPort = "8888"
 		}
-		name := "open-panel-host-panel"
-		return name, hostPolicy(name, "Allow Open Panel port", []struct{ port, proto string }{{panelPort, "TCP"}}), nil
+		name := "owpanel-host-panel"
+		return name, hostPolicy(name, "Allow OWPanel port", []struct{ port, proto string }{{panelPort, "TCP"}}), nil
 	case "kube-api":
-		return "open-panel-host-kube-api", hostPolicy("open-panel-host-kube-api", "Allow K3s API", []struct{ port, proto string }{{"6443", "TCP"}}), nil
+		return "owpanel-host-kube-api", hostPolicy("owpanel-host-kube-api", "Allow K3s API", []struct{ port, proto string }{{"6443", "TCP"}}), nil
 	case "baseline":
 		return "", "", fmt.Errorf("baseline 请使用 ApplyBaselinePresets")
 	default:
@@ -63,7 +63,7 @@ func ListPresetMeta(panelPort string) []PolicyPresetMeta {
 	return []PolicyPresetMeta{
 		{Key: "ssh", Name: "SSH 远程", Description: "放行 TCP 22，避免 Host Firewall 锁死服务器", Icon: "terminal", Ports: "22/tcp"},
 		{Key: "web", Name: "网站 HTTP/HTTPS", Description: "放行 80、443，适用于 Nginx/OpenResty 站点", Icon: "globe", Ports: "80,443/tcp"},
-		{Key: "panel", Name: "Open Panel 面板", Description: "放行面板端口，便于远程管理", Icon: "monitor", Ports: panelPort + "/tcp"},
+		{Key: "panel", Name: "OWPanel 面板", Description: "放行面板端口，便于远程管理", Icon: "monitor", Ports: panelPort + "/tcp"},
 		{Key: "kube-api", Name: "K3s API", Description: "放行 6443，集群 kubectl/Helm 通信", Icon: "connection", Ports: "6443/tcp"},
 		{Key: "http", Name: "仅 HTTP", Description: "仅放行 80", Icon: "link", Ports: "80/tcp"},
 		{Key: "https", Name: "仅 HTTPS", Description: "仅放行 443", Icon: "lock", Ports: "443/tcp"},

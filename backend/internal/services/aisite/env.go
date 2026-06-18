@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 )
 
 const appInstallTimeout = 20 * time.Minute

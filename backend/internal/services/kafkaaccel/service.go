@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 	"gorm.io/gorm"
 )
 
 const kafkaAppKey = "kafka"
-const defaultContainer = "open-panel-kafka"
+const defaultContainer = "owpanel-kafka"
 
 type Service struct {
 	db   *gorm.DB

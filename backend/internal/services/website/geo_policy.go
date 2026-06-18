@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/waf"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/waf"
 )
 
 func (s *Service) ListGeoPolicies(websiteID uint) ([]models.WebsiteGeoPolicy, error) {

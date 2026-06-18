@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 const mysqlRootPasswordKey = "mysql_root_password"

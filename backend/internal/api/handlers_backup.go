@@ -2,9 +2,9 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/extension"
-	"github.com/open-panel/open-panel/internal/services/backup"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/extension"
+	"github.com/luuuunet/owpanel/internal/services/backup"
 )
 
 func (s *Server) handleListBackupRemotes(c *gin.Context) {

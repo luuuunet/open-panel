@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/services/migration"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/services/migration"
 )
 
 func (s *Server) handleMigrationPreview(c *gin.Context) {
@@ -63,7 +63,7 @@ func (s *Server) handleMigrationImport(c *gin.Context) {
 	}
 	defer file.Close()
 
-	tmpDir := filepath.Join(os.TempDir(), "open-panel-migration-upload")
+	tmpDir := filepath.Join(os.TempDir(), "owpanel-migration-upload")
 	_ = os.MkdirAll(tmpDir, 0755)
 	tmpPath := filepath.Join(tmpDir, fmt.Sprintf("%d-%s", time.Now().UnixNano(), header.Filename))
 	out, err := os.Create(tmpPath)

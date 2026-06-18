@@ -73,10 +73,10 @@ func (s *Service) SendTestMail(from, to, subject, body string) error {
 		return fmt.Errorf("发件人与收件人不能为空")
 	}
 	if subject == "" {
-		subject = "Open Panel Mail Test"
+		subject = "OWPanel Mail Test"
 	}
 	if body == "" {
-		body = "This is a test message from Open Panel mail server."
+		body = "This is a test message from OWPanel mail server."
 	}
 	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s\r\n", from, to, subject, body)
 	cmd := exec.Command("sendmail", "-f", from, to)

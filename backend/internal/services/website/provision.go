@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
-	"github.com/open-panel/open-panel/internal/services/sitepurge"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
+	"github.com/luuuunet/owpanel/internal/services/sitepurge"
 	"gorm.io/gorm"
 )
 
@@ -352,7 +352,7 @@ func (s *Service) ensureIndexHTML(root, phpVersion string) {
 	}
 	content := `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Welcome</title></head>
-<body><h1>It works!</h1><p>Open Panel site is ready.</p></body></html>`
+<body><h1>It works!</h1><p>OWPanel site is ready.</p></body></html>`
 	if phpVersion != "" && phpVersion != "static" {
 		phpIndex := filepath.Join(root, "index.php")
 		_ = os.WriteFile(phpIndex, []byte(`<?php echo "PHP " . PHP_VERSION . " is working";`), 0644)

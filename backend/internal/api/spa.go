@@ -32,7 +32,7 @@ func (s *Server) serveIndexHTML(c *gin.Context) {
 	if base != "/" {
 		baseTag = fmt.Sprintf(`<base href=%q>`, base)
 	}
-	inject := fmt.Sprintf(`%s<script>window.__OPEN_PANEL_BASE__=%q;</script>`, baseTag, base)
+	inject := fmt.Sprintf(`%s<script>window.__OWPANEL_BASE__=%q;</script>`, baseTag, base)
 	html := strings.Replace(string(content), "<head>", "<head>"+inject, 1)
 	if base != "/" {
 		// Absolute asset URLs so nested routes (/software/, /dashboard/) always load JS/CSS correctly.

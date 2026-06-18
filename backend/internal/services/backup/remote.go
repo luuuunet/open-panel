@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/jlaffaye/ftp"
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
@@ -124,12 +124,12 @@ func (s *Service) TestRemote(id uint) error {
 	if _, err := s.GetRemote(id); err != nil {
 		return err
 	}
-	tmp := filepath.Join(os.TempDir(), "open-panel-backup-test.txt")
-	if err := os.WriteFile(tmp, []byte("open-panel backup test"), 0644); err != nil {
+	tmp := filepath.Join(os.TempDir(), "owpanel-backup-test.txt")
+	if err := os.WriteFile(tmp, []byte("owpanel backup test"), 0644); err != nil {
 		return err
 	}
 	defer os.Remove(tmp)
-	return s.uploadToRemote(id, tmp, "open-panel-backup-test.txt")
+	return s.uploadToRemote(id, tmp, "owpanel-backup-test.txt")
 }
 
 func (s *Service) applyRemoteDefaults(r *models.BackupRemote) {
@@ -324,7 +324,7 @@ func uploadOneDrive(r *models.BackupRemote, localFile, remoteName string) error 
 	}
 	remoteDir := strings.Trim(r.RemotePath, "/")
 	if remoteDir == "" {
-		remoteDir = "OpenPanelBackups"
+		remoteDir = "OWPanelBackups"
 	}
 	u := fmt.Sprintf("https://graph.microsoft.com/v1.0/me/drive/root:/%s/%s:/content", url.PathEscape(remoteDir), url.PathEscape(remoteName))
 	f, err := os.Open(localFile)

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type AutoEnableResult struct {
@@ -126,7 +126,7 @@ func (s *Service) ensureKafkaReady(steps *[]string) error {
 	if !s.kafkaInstalled() && !s.containerRunning(defaultContainer) {
 		return fmt.Errorf("needs_kafka_install")
 	}
-	return fmt.Errorf("Kafka 已安装但 Broker 不可达，请检查 Docker 容器 open-panel-kafka")
+	return fmt.Errorf("Kafka 已安装但 Broker 不可达，请检查 Docker 容器 owpanel-kafka")
 }
 
 func (s *Service) AutoEnableForDatabase(databaseID uint, installKafka bool) (*AutoEnableResult, error) {

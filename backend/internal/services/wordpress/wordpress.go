@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	dbsvc "github.com/open-panel/open-panel/internal/services/database"
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
-	ftpsvc "github.com/open-panel/open-panel/internal/services/ftp"
-	"github.com/open-panel/open-panel/internal/services/sitepurge"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	dbsvc "github.com/luuuunet/owpanel/internal/services/database"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
+	ftpsvc "github.com/luuuunet/owpanel/internal/services/ftp"
+	"github.com/luuuunet/owpanel/internal/services/sitepurge"
 	"gorm.io/gorm"
 )
 
@@ -556,7 +556,7 @@ func (s *Service) downloadWordPress(root, version string) error {
 func (s *Service) scaffoldWordPress(root string, site *models.WordPressSite) error {
 	index := fmt.Sprintf(`<?php
 /**
- * Open Panel WordPress site — %s
+ * OWPanel WordPress site — %s
  * Complete install: visit http://%s/wp-admin/install.php
  */
 define('WP_USE_THEMES', true);
@@ -565,5 +565,5 @@ require __DIR__ . '/wp-load.php';
 	_ = os.WriteFile(filepath.Join(root, "index.php"), []byte(index), 0644)
 	_ = os.MkdirAll(filepath.Join(root, "wp-content", "uploads"), 0755)
 	readme := fmt.Sprintf("WordPress site %s\nRoot: %s\nPHP: %s\nNginx: %s\n", site.Domain, root, site.PhpVersion, site.NginxVersion)
-	return os.WriteFile(filepath.Join(root, "open-panel-readme.txt"), []byte(readme), 0644)
+	return os.WriteFile(filepath.Join(root, "owpanel-readme.txt"), []byte(readme), 0644)
 }

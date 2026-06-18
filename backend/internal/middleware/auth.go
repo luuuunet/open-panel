@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/auth"
+	"github.com/luuuunet/owpanel/internal/auth"
 )
 
 func Auth(authSvc *auth.Service) gin.HandlerFunc {

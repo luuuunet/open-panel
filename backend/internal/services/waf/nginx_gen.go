@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 type ApplyResult struct {
@@ -116,7 +116,7 @@ func (s *Service) Apply() (*ApplyResult, error) {
 
 func (s *Service) generateNginx(cfg *models.SecurityConfig, rules []models.WAFRule) string {
 	var b strings.Builder
-	b.WriteString("# Open Panel Nginx Security — auto generated\n")
+	b.WriteString("# OWPanel Nginx Security — auto generated\n")
 	b.WriteString("# Modules: rate_limit, conn_limit, access_control, request_filter, security_headers, security_log, edge_policies\n\n")
 
 	if cfg.LogFormatEnabled {

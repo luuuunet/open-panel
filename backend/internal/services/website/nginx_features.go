@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/waf"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/waf"
 )
 
 type nginxFeatureBlocks struct {
@@ -61,7 +61,7 @@ func buildGeoPolicyBlock(policies []models.WebsiteGeoPolicy) string {
 		return ""
 	}
 	var b strings.Builder
-	b.WriteString("\n    # Open Panel — per-site geo policies (needs $geoip2_country_code from WAF GeoIP2)")
+	b.WriteString("\n    # OWPanel — per-site geo policies (needs $geoip2_country_code from WAF GeoIP2)")
 	for _, p := range policies {
 		if !p.Enabled {
 			continue

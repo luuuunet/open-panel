@@ -12,7 +12,7 @@ var wpFTPDefineRE = regexp.MustCompile(`(?m)^\s*define\s*\(\s*['"](?:FS_METHOD|F
 var wpDefaultSaltBlockRE = regexp.MustCompile(`(?s)/\*\*#@\+.*?/\*\*#@-?\*/\s*`)
 var wpSaltDefineRE = regexp.MustCompile(`(?m)^\s*define\s*\(\s*['"](?:AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT)['"]\s*,[^\n]*\n`)
 
-const wpProxyHTTPSBlock = `// Open Panel — trust reverse proxy HTTPS (Cloudflare / CDN)
+const wpProxyHTTPSBlock = `// OWPanel — trust reverse proxy HTTPS (Cloudflare / CDN)
 if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
 	$_SERVER['HTTPS'] = 'on';
 }
@@ -35,7 +35,7 @@ func stripDefaultWPSalts(content string) string {
 }
 
 func ensureWPProxyHTTPS(content string) string {
-	if strings.Contains(content, "Open Panel — trust reverse proxy HTTPS") {
+	if strings.Contains(content, "OWPanel — trust reverse proxy HTTPS") {
 		return content
 	}
 	if idx := strings.Index(content, "<?php"); idx >= 0 {
@@ -59,13 +59,13 @@ func escapePHPString(s string) string {
 }
 
 func buildWPFilesystemBlock() string {
-	return `// Open Panel — direct filesystem for plugin/theme installs
+	return `// OWPanel — direct filesystem for plugin/theme installs
 define('FS_METHOD', 'direct');
 `
 }
 
 func buildWPFTPBlock(ftpUser, ftpPass string) string {
-	return fmt.Sprintf(`// Open Panel — auto FTP for plugin/theme installs
+	return fmt.Sprintf(`// OWPanel — auto FTP for plugin/theme installs
 define('FS_METHOD', 'ftpext');
 define('FTP_HOST', '%s');
 define('FTP_USER', '%s');
@@ -113,7 +113,7 @@ func stripWPFTPBlock(content string) string {
 	var out []string
 	skip := false
 	for _, line := range lines {
-		if strings.Contains(line, "Open Panel — auto FTP") || strings.Contains(line, "Open Panel — direct filesystem") {
+		if strings.Contains(line, "OWPanel — auto FTP") || strings.Contains(line, "OWPanel — direct filesystem") {
 			skip = true
 			continue
 		}

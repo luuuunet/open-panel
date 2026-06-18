@@ -187,8 +187,8 @@ const volumeColumns = computed(() => {
 })
 
 function volumeDisplayName(vol: DockerVolume) {
-  if (vol.category === 'panel' && vol.name.startsWith('open-panel-')) {
-    return vol.name.slice('open-panel-'.length)
+  if (vol.category === 'panel' && vol.name.startsWith('owpanel-')) {
+    return vol.name.slice('owpanel-'.length)
   }
   return vol.name
 }

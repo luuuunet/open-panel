@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 var safePathRe = regexp.MustCompile(`^[a-zA-Z0-9_-]{4,32}$`)
@@ -91,13 +91,13 @@ func syncSystemdPort(ctx *Context, port int) error {
 		return err
 	}
 	content := string(data)
-	if !strings.Contains(content, "OPEN_PANEL_PORT=") {
-		return fmt.Errorf("systemd unit has no OPEN_PANEL_PORT")
+	if !strings.Contains(content, "OWPANEL_PORT=") {
+		return fmt.Errorf("systemd unit has no OWPANEL_PORT")
 	}
 	lines := strings.Split(content, "\n")
 	for i, line := range lines {
-		if strings.HasPrefix(strings.TrimSpace(line), "Environment=OPEN_PANEL_PORT=") {
-			lines[i] = fmt.Sprintf("Environment=OPEN_PANEL_PORT=%d", port)
+		if strings.HasPrefix(strings.TrimSpace(line), "Environment=OWPANEL_PORT=") {
+			lines[i] = fmt.Sprintf("Environment=OWPANEL_PORT=%d", port)
 		}
 	}
 	if err := os.WriteFile(unitPath, []byte(strings.Join(lines, "\n")), 0644); err != nil {

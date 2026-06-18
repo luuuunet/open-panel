@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 	"gorm.io/gorm"
 )
 
@@ -191,9 +191,9 @@ func (m *Manager) ReadMainConfig(key string) (string, error) {
 	path := m.resolveConfigPath(key, app.ConfigPath)
 	data, err := os.ReadFile(path)
 	if err != nil {
-		panelConf := filepath.Join(m.dataDir, "nginx", "open-panel.conf")
+		panelConf := filepath.Join(m.dataDir, "nginx", "owpanel.conf")
 		if key == "apache" {
-			panelConf = filepath.Join(m.dataDir, "apache", "open-panel.conf")
+			panelConf = filepath.Join(m.dataDir, "apache", "owpanel.conf")
 		}
 		data, err = os.ReadFile(panelConf)
 		if err != nil {
@@ -244,18 +244,18 @@ func (m *Manager) ensureVhostInclude(key string) {
 func (m *Manager) writeNginxMainInclude() {
 	vhostDir := filepath.Join(m.dataDir, "nginx", "vhosts")
 	_ = os.MkdirAll(vhostDir, 0755)
-	mainConf := filepath.Join(m.dataDir, "nginx", "open-panel.conf")
+	mainConf := filepath.Join(m.dataDir, "nginx", "owpanel.conf")
 	includeLine := fmt.Sprintf("include %s/*.conf;", filepath.ToSlash(vhostDir))
-	content := fmt.Sprintf("# Open Panel auto-generated\n%s\n", includeLine)
+	content := fmt.Sprintf("# OWPanel auto-generated\n%s\n", includeLine)
 	_ = os.WriteFile(mainConf, []byte(content), 0644)
 }
 
 func (m *Manager) writeApacheMainInclude() {
 	vhostDir := filepath.Join(m.dataDir, "apache", "vhosts")
 	_ = os.MkdirAll(vhostDir, 0755)
-	mainConf := filepath.Join(m.dataDir, "apache", "open-panel.conf")
+	mainConf := filepath.Join(m.dataDir, "apache", "owpanel.conf")
 	includeLine := fmt.Sprintf("IncludeOptional %s/*.conf", filepath.ToSlash(vhostDir))
-	content := fmt.Sprintf("# Open Panel auto-generated\n%s\n", includeLine)
+	content := fmt.Sprintf("# OWPanel auto-generated\n%s\n", includeLine)
 	_ = os.WriteFile(mainConf, []byte(content), 0644)
 }
 

@@ -4,10 +4,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/aichat"
-	"github.com/open-panel/open-panel/internal/services/cache"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/services/cache"
 )
 
 func (s *Server) registerCacheRoutes(authorized *gin.RouterGroup) {

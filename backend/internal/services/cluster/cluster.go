@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/dashboard"
-	"github.com/open-panel/open-panel/internal/services/performance"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	"github.com/open-panel/open-panel/internal/services/webserver"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/dashboard"
+	"github.com/luuuunet/owpanel/internal/services/performance"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/webserver"
 	"gorm.io/gorm"
 )
 
@@ -89,7 +89,7 @@ func (s *Service) AgentInfo() map[string]interface{} {
 		"cpu":        cpu,
 		"memory":     mem,
 		"panel_name": all["panel_name"],
-		"version":    "open-panel",
+		"version":    "owpanel",
 		"role":       "master",
 	}
 }

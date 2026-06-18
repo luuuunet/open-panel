@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type loadedExtension struct {

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
 )

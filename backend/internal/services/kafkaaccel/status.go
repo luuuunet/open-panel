@@ -58,7 +58,7 @@ func (s *Service) Status() (*StatusResult, error) {
 	if !installed {
 		out.Hint = "Install Kafka from the App Store (Docker app kafka, port 9092)"
 	} else if !running {
-		out.Hint = "Start the Kafka service or Docker container open-panel-kafka"
+		out.Hint = "Start the Kafka service or Docker container owpanel-kafka"
 	} else if !reachable {
 		out.Hint = "Kafka is running but broker is not reachable at " + bootstrap
 	}

@@ -7,10 +7,10 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/middleware"
-	"github.com/open-panel/open-panel/internal/services/aichat"
-	"github.com/open-panel/open-panel/internal/services/cluster"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/middleware"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/services/cluster"
 )
 
 func (s *Server) registerClusterRoutes(api *gin.RouterGroup) {
@@ -441,7 +441,7 @@ func (s *Server) handleClusterJoinScript(c *gin.Context) {
 	apiBase := s.cluster.PanelAPIBase(requestHost(c))
 	script := s.cluster.GenerateJoinScript(role, token, apiBase)
 	c.Header("Content-Type", "application/x-sh")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=open-panel-join-%s.sh", role))
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=owpanel-join-%s.sh", role))
 	c.String(http.StatusOK, script)
 }
 

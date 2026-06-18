@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/auth"
+	"github.com/luuuunet/owpanel/internal/auth"
 )
 
 func ChangePanelPassword(ctx *Context) error {

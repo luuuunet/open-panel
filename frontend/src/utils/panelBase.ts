@@ -1,7 +1,7 @@
 /** Panel URL prefix when security entrance is enabled (e.g. `/bb276bbd/`). */
 export function panelBase(): string {
-  const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-  const base = w.__OPEN_PANEL_BASE__ || '/'
+  const w = window as Window & { __OWPANEL_BASE__?: string }
+  const base = w.__OWPANEL_BASE__ || '/'
   return base.endsWith('/') ? base : base + '/'
 }
 

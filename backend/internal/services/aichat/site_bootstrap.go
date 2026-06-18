@@ -106,7 +106,7 @@ func firstNonEmpty(vals ...string) string {
 
 func buildSiteBootstrapSystemPrompt(req SiteBootstrapRequest) string {
 	var b strings.Builder
-	b.WriteString(`You are an expert DevOps engineer for Open Panel hosting panel.
+	b.WriteString(`You are an expert DevOps engineer for OWPanel hosting panel.
 
 This is ONE-CLICK FULL AUTO deploy: user only provides GitHub URL. The panel automatically:
 1) installs Git + runtime (nginx, mysql, php, composer, nodejs, docker, pm2)
@@ -175,8 +175,8 @@ Output JSON ONLY in a markdown code block:
 	b.WriteString("- Node server (Express/Nest): project_type node, use_pm2 true, php_version static\n")
 	b.WriteString("- Docker/docker-compose: use_docker true, php_version static, deploy_script runs compose\n")
 	b.WriteString("- enable_webhook true for git push auto-deploy; rollback_on_fail true to delete site on failure\n")
-	b.WriteString("- Open Panel AUTO-INSTALLS missing runtime via app store BEFORE deploy: nginx, mysql, php, composer, nodejs, docker as needed\n")
-	b.WriteString("- Open Panel AUTO-CONFIGURES after deploy: Laravel .env DB credentials, migrate, document_root public — do NOT tell user to apt install composer/npm or manually edit .env\n")
+	b.WriteString("- OWPanel AUTO-INSTALLS missing runtime via app store BEFORE deploy: nginx, mysql, php, composer, nodejs, docker as needed\n")
+	b.WriteString("- OWPanel AUTO-CONFIGURES after deploy: Laravel .env DB credentials, migrate, document_root public — do NOT tell user to apt install composer/npm or manually edit .env\n")
 	b.WriteString("- post_notes: only OPTIONAL follow-ups (HTTPS, queue worker, cron schedule); never manual env/Composer/NPM install steps\n")
 	b.WriteString("- Respond in Chinese for summary and post_notes\n\n")
 

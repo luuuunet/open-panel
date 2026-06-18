@@ -1,6 +1,6 @@
 package appstore
 
-import "github.com/open-panel/open-panel/internal/models"
+import "github.com/luuuunet/owpanel/internal/models"
 
 // MailStackActions wires the panel mail module into the software store mail-server app.
 type MailStackActions interface {

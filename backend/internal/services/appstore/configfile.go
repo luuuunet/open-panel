@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/services/php"
 )
 
 type ConfigMeta struct {
@@ -165,7 +165,7 @@ func (s *Service) resolveConfigPath(key, fallback string) string {
 		candidates = append(candidates,
 			"/etc/apache2/apache2.conf",
 			"/etc/httpd/conf/httpd.conf",
-			filepath.Join(s.dataDir, "apache", "open-panel.conf"),
+			filepath.Join(s.dataDir, "apache", "owpanel.conf"),
 		)
 	case "mysql", "mariadb":
 		candidates = append(candidates, "/etc/my.cnf", "/etc/mysql/my.cnf")
@@ -252,9 +252,9 @@ func (s *Service) readWebServerConfig(key string) (string, error) {
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
-		panelConf := filepath.Join(s.dataDir, key, "open-panel.conf")
+		panelConf := filepath.Join(s.dataDir, key, "owpanel.conf")
 		if key == "apache" {
-			panelConf = filepath.Join(s.dataDir, "apache", "open-panel.conf")
+			panelConf = filepath.Join(s.dataDir, "apache", "owpanel.conf")
 		}
 		data, err = os.ReadFile(panelConf)
 		if err != nil {

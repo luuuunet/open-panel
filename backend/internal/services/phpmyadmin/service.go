@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/php"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 	"gorm.io/gorm"
 )
 
@@ -74,7 +74,7 @@ func (s *Service) Install(installPath, version string, port int) error {
 	if err := writeConfig(root); err != nil {
 		return err
 	}
-	marker := filepath.Join(root, ".open-panel-installed")
+	marker := filepath.Join(root, ".owpanel-installed")
 	_ = os.WriteFile(marker, []byte("phpmyadmin\n"), 0644)
 	return s.EnsureVhost(root, port)
 }
@@ -107,7 +107,7 @@ func findInstallRoot(installPath, dataDir string) string {
 			continue
 		}
 		seen[c] = true
-		if hasPhpMyAdminFiles(c) || fileExists(filepath.Join(c, ".open-panel-installed")) {
+		if hasPhpMyAdminFiles(c) || fileExists(filepath.Join(c, ".owpanel-installed")) {
 			return c
 		}
 	}
@@ -126,7 +126,7 @@ func (s *Service) EnsureVhost(root string, port int) error {
 		port = 888
 	}
 	fcgiBackend := detectPhpFpmBackend()
-	conf := fmt.Sprintf(`# Open Panel — phpMyAdmin
+	conf := fmt.Sprintf(`# OWPanel — phpMyAdmin
 server {
     listen %d;
     server_name _;
@@ -172,7 +172,7 @@ func (s *Service) AccessInfo(installPath string, port int, dbInstalled bool) (*A
 	}
 	installed := dbInstalled ||
 		hasPhpMyAdminFiles(root) ||
-		fileExists(filepath.Join(root, ".open-panel-installed"))
+		fileExists(filepath.Join(root, ".owpanel-installed"))
 	info := &AccessInfo{
 		Installed:   installed,
 		Port:        port,
@@ -219,7 +219,7 @@ func (s *Service) Status(port int) string {
 	if root == "" {
 		root = filepath.Join(s.dataDir, "server", appKey)
 	}
-	if !fileExists(filepath.Join(root, ".open-panel-installed")) && !hasPhpMyAdminFiles(root) {
+	if !fileExists(filepath.Join(root, ".owpanel-installed")) && !hasPhpMyAdminFiles(root) {
 		if s.db != nil && AppInstalled(s.db) {
 			return "stopped"
 		}
@@ -304,7 +304,7 @@ func resolveInstallPath(installPath, dataDir string) string {
 }
 
 func vhostFile(dataDir string) string {
-	return filepath.Join(dataDir, "nginx", "vhosts", "open-panel-phpmyadmin.conf")
+	return filepath.Join(dataDir, "nginx", "vhosts", "owpanel-phpmyadmin.conf")
 }
 
 func hasPhpMyAdminFiles(root string) bool {
@@ -414,7 +414,7 @@ func writeConfig(root string) error {
 	secret, _ := randomHex(16)
 	content := fmt.Sprintf(`<?php
 /**
- * Open Panel generated phpMyAdmin config
+ * OWPanel generated phpMyAdmin config
  */
 declare(strict_types=1);
 

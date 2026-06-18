@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/edgeworker"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/edgeworker"
 )
 
 func (s *Server) registerEdgeWorkerRoutes(authorized *gin.RouterGroup) {

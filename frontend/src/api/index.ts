@@ -4,8 +4,8 @@ import axios from 'axios'
 export const AI_REQUEST_TIMEOUT = 360000
 
 export function apiBaseURL(): string {
-  const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-  const base = w.__OPEN_PANEL_BASE__ || '/'
+  const w = window as Window & { __OWPANEL_BASE__?: string }
+  const base = w.__OWPANEL_BASE__ || '/'
   const prefix = base.endsWith('/') ? base : base + '/'
   return prefix + 'api/v1'
 }
@@ -45,8 +45,8 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('token')
-      const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-      const base = w.__OPEN_PANEL_BASE__ || '/'
+      const w = window as Window & { __OWPANEL_BASE__?: string }
+      const base = w.__OWPANEL_BASE__ || '/'
       window.location.href = base.replace(/\/?$/, '/') + 'login'
     }
     if (err.code === 'ECONNABORTED' || (typeof err.message === 'string' && /timeout of \d+ms exceeded/i.test(err.message))) {

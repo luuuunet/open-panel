@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/database"
-	"github.com/open-panel/open-panel/internal/secrets"
+	"github.com/luuuunet/owpanel/internal/database"
+	"github.com/luuuunet/owpanel/internal/secrets"
 )
 
 func RestartPanel() error  { return serviceAction("restart") }

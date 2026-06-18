@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/platform"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/platform"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 type packageSpec struct {
@@ -379,7 +379,7 @@ func simulateInstall(key, version, installPath, dataDir string) error {
 	if err := os.MkdirAll(base, 0755); err != nil {
 		return err
 	}
-	marker := filepath.Join(base, ".open-panel-installed")
+	marker := filepath.Join(base, ".owpanel-installed")
 	content := fmt.Sprintf("key=%s\nversion=%s\ninstalled_at=%s\nmode=simulated\n", key, version, time.Now().Format(time.RFC3339))
 	if err := os.WriteFile(marker, []byte(content), 0644); err != nil {
 		return err
@@ -390,7 +390,7 @@ func simulateInstall(key, version, installPath, dataDir string) error {
 }
 
 func IsSimulatedInstall(key, dataDir string) bool {
-	marker := filepath.Join(dataDir, "server", key, ".open-panel-installed")
+	marker := filepath.Join(dataDir, "server", key, ".owpanel-installed")
 	b, err := os.ReadFile(marker)
 	if err != nil {
 		return false
@@ -464,7 +464,7 @@ func detectJavaStatus(key string) string {
 }
 
 func detectJavaStatusForInstall(key, dataDir string) string {
-	if fileExists(filepath.Join(dataDir, "server", key, ".open-panel-installed")) {
+	if fileExists(filepath.Join(dataDir, "server", key, ".owpanel-installed")) {
 		return "running"
 	}
 	return detectJavaStatus(key)

@@ -62,7 +62,7 @@ func (s *Service) DownloadFromURL(dir, rawURL, filename string) (*RemoteDownload
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "Open-Panel-FileManager/1.0")
+	req.Header.Set("User-Agent", "OWPanel-FileManager/1.0")
 
 	resp, err := client.Do(req)
 	if err != nil {

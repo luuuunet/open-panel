@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	"github.com/open-panel/open-panel/internal/services/waf"
-	"github.com/open-panel/open-panel/internal/services/wordpress"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/waf"
+	"github.com/luuuunet/owpanel/internal/services/wordpress"
 )
 
 func (s *Server) registerWAFRoutes(authorized *gin.RouterGroup) {

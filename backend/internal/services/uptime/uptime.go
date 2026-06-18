@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/performance"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/performance"
 	"gorm.io/gorm"
 )
 

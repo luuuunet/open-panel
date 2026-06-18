@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/robfig/cron/v3"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"

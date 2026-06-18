@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type ApplyResult struct {
@@ -122,7 +122,7 @@ func (s *Service) Apply() (*ApplyResult, error) {
 
 func (s *Service) generateAll(workers []models.EdgeWorker, rt RuntimeInfo) string {
 	var b strings.Builder
-	b.WriteString("# Open Panel Edge Workers — preview\n")
+	b.WriteString("# OWPanel Edge Workers — preview\n")
 	b.WriteString(fmt.Sprintf("# runtime: %s (lua=%v njs=%v)\n\n", rt.Runtime, rt.LuaAvailable, rt.NjsAvailable))
 	b.WriteString("=== http {} block (edgeworkers.conf) ===\n")
 	b.WriteString(s.generateHTTP(workers, rt))
@@ -138,7 +138,7 @@ func (s *Service) generateAll(workers []models.EdgeWorker, rt RuntimeInfo) strin
 
 func (s *Service) generateHTTP(workers []models.EdgeWorker, rt RuntimeInfo) string {
 	var b strings.Builder
-	b.WriteString("# Open Panel Edge Workers — auto generated (Cloudflare Workers-style)\n")
+	b.WriteString("# OWPanel Edge Workers — auto generated (Cloudflare Workers-style)\n")
 	b.WriteString(fmt.Sprintf("# runtime: %s\n\n", rt.Runtime))
 	if len(workers) == 0 {
 		b.WriteString("# No enabled workers\n")
@@ -168,7 +168,7 @@ func (s *Service) generateHTTP(workers []models.EdgeWorker, rt RuntimeInfo) stri
 
 func (s *Service) generateServerSnippet(workers []models.EdgeWorker, rt RuntimeInfo, label string) string {
 	if len(workers) == 0 {
-		return fmt.Sprintf("# Open Panel Edge Workers — %s (empty)\n", label)
+		return fmt.Sprintf("# OWPanel Edge Workers — %s (empty)\n", label)
 	}
 	sort.SliceStable(workers, func(i, j int) bool {
 		if workers[i].Priority != workers[j].Priority {
@@ -178,7 +178,7 @@ func (s *Service) generateServerSnippet(workers []models.EdgeWorker, rt RuntimeI
 	})
 
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("# Open Panel Edge Workers — %s\n", label))
+	b.WriteString(fmt.Sprintf("# OWPanel Edge Workers — %s\n", label))
 	var headerFilters []models.EdgeWorker
 	for _, w := range workers {
 		triggers := parseTriggers(w.Triggers)

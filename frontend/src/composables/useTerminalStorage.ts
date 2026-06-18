@@ -1,8 +1,8 @@
 import type { TerminalSession } from '@/types/terminal'
 import { uniqueId } from '@/utils/uniqueId'
 
-const SAVED_KEY = 'open-panel-terminal-saved-v1'
-const PREFS_KEY = 'open-panel-terminal-prefs-v1'
+const SAVED_KEY = 'owpanel-terminal-saved-v1'
+const PREFS_KEY = 'owpanel-terminal-prefs-v1'
 
 export interface SavedConnection {
   id: string

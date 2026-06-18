@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/services/mail"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/services/mail"
 )
 
 func (s *Server) registerMailRoutes(authorized *gin.RouterGroup) {

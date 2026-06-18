@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
 )
 
 type SiteLogChatRequest struct {

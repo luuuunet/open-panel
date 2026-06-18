@@ -3,7 +3,7 @@ package appstore
 import (
 	"sort"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 // StoreCategoryOrder is the preferred tab order in the software store.

@@ -1,4 +1,4 @@
-# Contributing to Open Panel
+# Contributing to OWPanel
 
 Thank you for your interest in contributing!
 

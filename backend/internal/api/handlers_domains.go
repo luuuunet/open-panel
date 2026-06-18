@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
 )
 
 func (s *Server) handleCheckDomains(c *gin.Context) {

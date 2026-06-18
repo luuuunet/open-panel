@@ -46,7 +46,7 @@ func (s *Service) LogChat(req LogChatRequest) (*LogChatResult, error) {
 		logText = "...(truncated)\n" + logText
 	}
 
-	system := fmt.Sprintf(`你是 Open Panel 日志分析助手，帮助运维人员读懂服务器日志。
+	system := fmt.Sprintf(`你是 OWPanel 日志分析助手，帮助运维人员读懂服务器日志。
 当前日志来源: %s
 分类: %s
 文件路径: %s

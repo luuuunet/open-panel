@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )
@@ -239,7 +239,7 @@ func (s *Service) scheduleJobLocked(job *models.CronJob) {
 		if s.systemCrontabActive && job.Enabled {
 			s.db.Model(job).Updates(map[string]interface{}{
 				"sync_status":  "synced",
-				"sync_message": "/etc/cron.d/open-panel",
+				"sync_message": "/etc/cron.d/owpanel",
 			})
 		}
 		return
@@ -386,27 +386,27 @@ func (s *Service) syncSystemCrontabLocked() error {
 	dir := filepath.Join(s.dataDir, "cron")
 	_ = os.MkdirAll(dir, 0755)
 	var b strings.Builder
-	b.WriteString("# Open Panel managed cron jobs — do not edit manually\n")
+	b.WriteString("# OWPanel managed cron jobs — do not edit manually\n")
 	b.WriteString("SHELL=/bin/bash\nPATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\n")
 	for _, job := range jobs {
 		logPath := s.logPath(job.ID)
-		line := fmt.Sprintf("%s root %s >> %s 2>&1 # open-panel:%d:%s\n",
+		line := fmt.Sprintf("%s root %s >> %s 2>&1 # owpanel:%d:%s\n",
 			strings.TrimSpace(job.Schedule), job.Command, logPath, job.ID, job.Name)
 		b.WriteString(line)
 	}
-	cronFile := filepath.Join(dir, "open-panel.crontab")
+	cronFile := filepath.Join(dir, "owpanel.crontab")
 	content := []byte(b.String())
 	if err := os.WriteFile(cronFile, content, 0644); err != nil {
 		return err
 	}
 
-	systemFile := "/etc/cron.d/open-panel"
+	systemFile := "/etc/cron.d/owpanel"
 	if err := os.WriteFile(systemFile, content, 0644); err == nil {
 		s.systemCrontabActive = true
 		for _, job := range jobs {
 			s.db.Model(&models.CronJob{}).Where("id = ?", job.ID).Updates(map[string]interface{}{
 				"sync_status":  "synced",
-				"sync_message": "/etc/cron.d/open-panel",
+				"sync_message": "/etc/cron.d/owpanel",
 			})
 		}
 		// 系统 crontab 生效时移除内置调度，避免重复执行

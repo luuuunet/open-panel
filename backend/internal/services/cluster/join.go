@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type AgentRegisterRequest struct {
@@ -101,7 +101,7 @@ func (s *Service) GenerateJoinScript(role, token, apiBase string) string {
 	}
 	apiBase = strings.TrimSuffix(apiBase, "/")
 	script := fmt.Sprintf(`#!/bin/bash
-# Open Panel cluster join script — role: %s
+# OWPanel cluster join script — role: %s
 set -e
 API_BASE="%s"
 TOKEN="%s"
@@ -120,23 +120,23 @@ HOST="${JOIN_HOST:-$(detect_ip)}"
 HOSTNAME="$(hostname -f 2>/dev/null || hostname)"
 NAME="${JOIN_NAME:-$HOSTNAME}"
 
-echo "[open-panel] Joining cluster as $PROVISION_ROLE ($HOST)..."
+echo "[owpanel] Joining cluster as $PROVISION_ROLE ($HOST)..."
 
 # Optional local bootstrap before register
 case "$PROVISION_ROLE" in
   worker|lb_backend)
     if ! command -v nginx >/dev/null 2>&1; then
-      echo "[open-panel] Installing nginx..."
+      echo "[owpanel] Installing nginx..."
       export DEBIAN_FRONTEND=noninteractive
       if command -v apt-get >/dev/null 2>&1; then apt-get update -qq && apt-get install -y nginx curl
       elif command -v yum >/dev/null 2>&1; then yum install -y nginx curl; fi
     fi
-    mkdir -p /var/www/open-panel-backend
-    echo 'Open Panel LB Backend OK' > /var/www/open-panel-backend/index.html
+    mkdir -p /var/www/owpanel-backend
+    echo 'OWPanel LB Backend OK' > /var/www/owpanel-backend/index.html
     ;;
   db_slave|db_master)
     if ! command -v mysql >/dev/null 2>&1; then
-      echo "[open-panel] Installing MySQL..."
+      echo "[owpanel] Installing MySQL..."
       export DEBIAN_FRONTEND=noninteractive
       if command -v apt-get >/dev/null 2>&1; then apt-get update -qq && apt-get install -y mysql-server curl
       elif command -v yum >/dev/null 2>&1; then yum install -y mysql-server || yum install -y mariadb-server; fi
@@ -156,12 +156,12 @@ HTTP_CODE=$(curl -fsSL -w "%%{http_code}" -o /tmp/op-join-resp.json \
   -d "$PAYLOAD" 2>/dev/null || echo "000")
 
 if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
-  echo "[open-panel] Registered successfully:"
+  echo "[owpanel] Registered successfully:"
   cat /tmp/op-join-resp.json
   echo ""
-  echo "[open-panel] Done. Return to master panel → 可视化工作流 → 运行流水线"
+  echo "[owpanel] Done. Return to master panel → 可视化工作流 → 运行流水线"
 else
-  echo "[open-panel] Register failed (HTTP $HTTP_CODE):"
+  echo "[owpanel] Register failed (HTTP $HTTP_CODE):"
   cat /tmp/op-join-resp.json 2>/dev/null || true
   exit 1
 fi

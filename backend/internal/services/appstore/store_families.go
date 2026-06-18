@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 // StoreVersionEntry is one installable version within a grouped store card.

@@ -22,7 +22,7 @@ func (s *Service) ensureCacheInclude() (bool, string) {
 	}
 	cachePath := filepath.ToSlash(s.ConfPath())
 	includeLine := fmt.Sprintf("include %s;", cachePath)
-	marker := "open-panel-cache.conf"
+	marker := "owpanel-cache.conf"
 
 	data, err := os.ReadFile(confPath)
 	if err != nil {
@@ -35,8 +35,8 @@ func (s *Service) ensureCacheInclude() (bool, string) {
 
 	updated, ok := injectHTTPInclude(content, includeLine)
 	if !ok {
-		snippetPath := filepath.Join(s.confDir, "open-panel-http-snippet.conf")
-		snippet := fmt.Sprintf("# Open Panel CDN cache — include from http {}\n%s\n", includeLine)
+		snippetPath := filepath.Join(s.confDir, "owpanel-http-snippet.conf")
+		snippet := fmt.Sprintf("# OWPanel CDN cache — include from http {}\n%s\n", includeLine)
 		if err := os.WriteFile(snippetPath, []byte(snippet), 0644); err != nil {
 			return false, err.Error()
 		}
@@ -71,6 +71,6 @@ func injectHTTPInclude(content, includeLine string) (string, bool) {
 	if insertAt < len(content) && content[insertAt] == '\n' {
 		insertAt++
 	}
-	block := fmt.Sprintf("    # Open Panel CDN cache\n    %s\n", includeLine)
+	block := fmt.Sprintf("    # OWPanel CDN cache\n    %s\n", includeLine)
 	return content[:insertAt] + block + content[insertAt:], true
 }

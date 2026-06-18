@@ -3,8 +3,8 @@ import { useAuthStore } from '@/stores/auth'
 import { canAccessMenuItem, menuItemForPath } from '@/config/menu'
 
 function routerBase(): string {
-  const w = window as Window & { __OPEN_PANEL_BASE__?: string }
-  const base = w.__OPEN_PANEL_BASE__ || import.meta.env.BASE_URL || '/'
+  const w = window as Window & { __OWPANEL_BASE__?: string }
+  const base = w.__OWPANEL_BASE__ || import.meta.env.BASE_URL || '/'
   return base.endsWith('/') ? base : base + '/'
 }
 

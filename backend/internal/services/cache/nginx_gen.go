@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) Preview() (string, error) {
@@ -78,10 +78,10 @@ func (s *Service) Apply() (*ApplyResult, error) {
 
 func (s *Service) generateHTTP(cfg *models.CacheConfig) (string, error) {
 	if !cfg.Enabled {
-		return "# Open Panel CDN Cache — disabled\n", nil
+		return "# OWPanel CDN Cache — disabled\n", nil
 	}
 	var b strings.Builder
-	b.WriteString("# Open Panel CDN Cache — auto generated (Cloudflare-style edge cache)\n\n")
+	b.WriteString("# OWPanel CDN Cache — auto generated (Cloudflare-style edge cache)\n\n")
 
 	sites, _ := s.cachedSites()
 	perSiteMem := "10m"

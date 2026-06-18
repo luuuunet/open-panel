@@ -1,4 +1,4 @@
-# Open Panel — 一键自动搭建（Windows）
+# OWPanel — 一键自动搭建（Windows）
 # Usage (PowerShell):
 #   .\scripts\auto-setup.ps1                    # 构建
 #   .\scripts\auto-setup.ps1 -Action build      # 构建前端 + Linux 发布包
@@ -17,7 +17,7 @@ if (-not $GoArch) { $GoArch = 'amd64' }
 
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path $PSScriptRoot -Parent
-$Dist = Join-Path $Root 'dist\open-panel-linux-amd64'
+$Dist = Join-Path $Root 'dist\owpanel-linux-amd64'
 
 function Write-Log($msg) { Write-Host "[auto-setup] $msg" }
 
@@ -39,7 +39,7 @@ function Build-BackendLinux {
     $env:GOOS = 'linux'
     $env:GOARCH = $GoArch
     $env:CGO_ENABLED = '0'
-    go build -ldflags='-s -w' -o (Join-Path $Dist 'open-panel') .\cmd\server\
+    go build -ldflags='-s -w' -o (Join-Path $Dist 'owpanel') .\cmd\server\
     go build -ldflags='-s -w' -o (Join-Path $Dist 'op') .\cmd\op\
     Pop-Location
     $webSrc = Join-Path $Root 'backend\web'
@@ -61,7 +61,7 @@ function Invoke-Deploy {
     if (-not $py) { throw '需要 Python 3 运行 deploy.py' }
     & $py.Source -c 'import paramiko' 2>$null
     if ($LASTEXITCODE -ne 0) { throw '请安装 paramiko: pip install paramiko' }
-    & $py.Source (Join-Path $Root 'scripts\deploy.py') --full --binary (Join-Path $Dist 'open-panel')
+    & $py.Source (Join-Path $Root 'scripts\deploy.py') --full --binary (Join-Path $Dist 'owpanel')
 }
 
 function Invoke-Dev {
@@ -76,7 +76,7 @@ function Invoke-Dev {
 }
 
 Write-Host '========================================='
-Write-Host '  Open Panel 自动搭建'
+Write-Host '  OWPanel 自动搭建'
 Write-Host "  模式: $Action"
 Write-Host '========================================='
 

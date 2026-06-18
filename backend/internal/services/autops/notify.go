@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/dashboard"
-	"github.com/open-panel/open-panel/internal/services/notify"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/dashboard"
+	"github.com/luuuunet/owpanel/internal/services/notify"
 )
 
 func (s *Service) loadNotifyConfig(cfg Config) Config {

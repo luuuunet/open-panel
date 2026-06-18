@@ -30,8 +30,8 @@ func (s *Service) ensureEdgeInclude() (bool, string) {
 
 	updated, ok := injectHTTPInclude(content, includeLine)
 	if !ok {
-		snippetPath := filepath.Join(s.confDir, "open-panel-edge-http-snippet.conf")
-		snippet := fmt.Sprintf("# Open Panel Edge Workers — include from http {}\n%s\n", includeLine)
+		snippetPath := filepath.Join(s.confDir, "owpanel-edge-http-snippet.conf")
+		snippet := fmt.Sprintf("# OWPanel Edge Workers — include from http {}\n%s\n", includeLine)
 		if err := os.WriteFile(snippetPath, []byte(snippet), 0644); err != nil {
 			return false, err.Error()
 		}
@@ -65,6 +65,6 @@ func injectHTTPInclude(content, includeLine string) (string, bool) {
 	if insertAt < len(content) && content[insertAt] == '\n' {
 		insertAt++
 	}
-	block := fmt.Sprintf("    # Open Panel Edge Workers\n    %s\n", includeLine)
+	block := fmt.Sprintf("    # OWPanel Edge Workers\n    %s\n", includeLine)
 	return content[:insertAt] + block + content[insertAt:], true
 }

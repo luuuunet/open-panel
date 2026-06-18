@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
-	"github.com/open-panel/open-panel/internal/services/sitepurge"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
+	"github.com/luuuunet/owpanel/internal/services/sitepurge"
 	"gorm.io/gorm"
 )
 

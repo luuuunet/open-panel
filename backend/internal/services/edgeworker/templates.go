@@ -40,8 +40,8 @@ end
 			RoutePattern:  "/",
 			Triggers:      "response",
 			Script: `-- Edge Worker: add response header (header_filter phase)
--- Matches Cloudflare: response.headers.set('X-Edge', 'open-panel')
-ngx.header["X-Powered-By"] = "Open-Panel-Edge"
+-- Matches Cloudflare: response.headers.set('X-Edge', 'owpanel')
+ngx.header["X-Powered-By"] = "OWPanel-Edge"
 ngx.header["X-Edge-Worker"] = "add-header"
 `,
 		},

@@ -56,7 +56,7 @@ func installComposer(dataDir string) error {
 		if err := writeComposerWrapper(base, dest); err != nil {
 			return err
 		}
-		marker := filepath.Join(base, ".open-panel-installed")
+		marker := filepath.Join(base, ".owpanel-installed")
 		return os.WriteFile(marker, []byte("composer.phar\n"), 0644)
 	}
 	if _, err := exec.LookPath("composer"); err == nil {
@@ -146,7 +146,7 @@ func CertbotInstalled(dataDir string) bool {
 	if CertbotBinary() != "" {
 		return true
 	}
-	return fileExists(filepath.Join(dataDir, "server", "certbot", ".open-panel-installed"))
+	return fileExists(filepath.Join(dataDir, "server", "certbot", ".owpanel-installed"))
 }
 
 func ComposerBinary(dataDir string) string {
@@ -185,7 +185,7 @@ func installNodeJS(dataDir, major string) error {
 	base := filepath.Join(dataDir, "server", "nodejs", major)
 	nodeBin := filepath.Join(base, "bin", "node")
 	if fileExists(nodeBin) && nodeBinaryMajor(nodeBin) >= atoi(major) {
-		marker := filepath.Join(base, ".open-panel-installed")
+		marker := filepath.Join(base, ".owpanel-installed")
 		return os.WriteFile(marker, []byte(nodeBin+"\n"), 0644)
 	}
 	_ = os.RemoveAll(base)
@@ -224,7 +224,7 @@ func installNodeJS(dataDir, major string) error {
 	if err := os.Rename(src, base); err != nil {
 		return fmt.Errorf("安装 Node.js 失败: %w", err)
 	}
-	marker := filepath.Join(base, ".open-panel-installed")
+	marker := filepath.Join(base, ".owpanel-installed")
 	return os.WriteFile(marker, []byte(filepath.Join(base, "bin", "node")+"\n"), 0644)
 }
 

@@ -28,7 +28,7 @@ func (s *Service) AnalyzeSiteRepair(bundle string) (*SiteRepairPlan, error) {
 		return nil, err
 	}
 
-	system := `你是 Open Panel 网站运维专家。根据站点诊断信息，输出 JSON 修复方案（不要 markdown 代码块外的多余文字）。
+	system := `你是 OWPanel 网站运维专家。根据站点诊断信息，输出 JSON 修复方案（不要 markdown 代码块外的多余文字）。
 
 可用 actions（只能从中选择，按推荐顺序排列）:
 - create_root_dir: 网站根目录不存在时创建

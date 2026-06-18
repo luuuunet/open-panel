@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/open-panel/open-panel/internal/secrets"
+	"github.com/luuuunet/owpanel/internal/secrets"
 )
 
 type Config struct {
@@ -17,7 +17,7 @@ type Config struct {
 
 func Load() *Config {
 	port := 8888
-	if v := os.Getenv("OPEN_PANEL_PORT"); v != "" {
+	if v := envFirst("OWPANEL_PORT", "OPEN_PANEL_PORT"); v != "" {
 		if p, err := strconv.Atoi(v); err == nil {
 			port = p
 		}
@@ -25,12 +25,12 @@ func Load() *Config {
 
 	dataDir := resolveDataDir()
 
-	webDir := os.Getenv("OPEN_PANEL_WEB")
+	webDir := envFirst("OWPANEL_WEB", "OPEN_PANEL_WEB")
 	if webDir == "" {
 		webDir = resolveWebDir()
 	}
 
-	jwtSecret := os.Getenv("OPEN_PANEL_JWT_SECRET")
+	jwtSecret := envFirst("OWPANEL_JWT_SECRET", "OPEN_PANEL_JWT_SECRET")
 
 	cfg := &Config{
 		Port:      port,
@@ -48,8 +48,17 @@ func (c *Config) ResolveSecrets() {
 	}
 }
 
+func envFirst(keys ...string) string {
+	for _, key := range keys {
+		if v := os.Getenv(key); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func resolveDataDir() string {
-	if v := os.Getenv("OPEN_PANEL_DATA"); v != "" {
+	if v := envFirst("OWPANEL_DATA", "OPEN_PANEL_DATA"); v != "" {
 		return v
 	}
 	for _, dir := range dataDirCandidates() {
@@ -81,7 +90,12 @@ func resolveWebDir() string {
 }
 
 func dataDirCandidates() []string {
-	candidates := []string{"./data", "../data"}
+	candidates := []string{
+		"./data",
+		"../data",
+		"/opt/owpanel/data",
+		"/opt/open-panel/data",
+	}
 	if exe, err := os.Executable(); err == nil {
 		candidates = append(candidates, filepath.Join(filepath.Dir(exe), "data"))
 	}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build-aware deploy for Open Panel (binary + web) via SSH/SFTP."""
+"""Build-aware deploy for OWPanel (binary + web) via SSH/SFTP."""
 from __future__ import annotations
 
 import argparse
@@ -110,33 +110,33 @@ def deploy_web(client: paramiko.SSHClient, install_dir: str, port: str) -> int:
         log(f"Missing {web} — run frontend build first")
         return 1
 
-    remote_tar = "/tmp/open-panel-web.tar.gz"
+    remote_tar = "/tmp/owpanel-web.tar.gz"
     upload_bytes(client, tarball_dir(web), remote_tar)
 
     script = f"""
 set -euo pipefail
-rm -rf /tmp/open-panel-web-new && mkdir -p /tmp/open-panel-web-new
-tar -xzf {remote_tar} -C /tmp/open-panel-web-new
+rm -rf /tmp/owpanel-web-new && mkdir -p /tmp/owpanel-web-new
+tar -xzf {remote_tar} -C /tmp/owpanel-web-new
 rm -rf {install_dir}/web
-cp -a /tmp/open-panel-web-new {install_dir}/web
-systemctl restart open-panel
+cp -a /tmp/owpanel-web-new {install_dir}/web
+systemctl restart owpanel
 sleep 2
-systemctl is-active open-panel
+systemctl is-active owpanel
 curl -sf -o /dev/null -w "HTTP %{{http_code}}\\n" "http://127.0.0.1:{port}/" || true
 """
     return run(client, f"bash -s <<'EOF'\n{script}\nEOF")
 
 
 def deploy_binary(client: paramiko.SSHClient, install_dir: str, binary: Path) -> int:
-    remote = "/tmp/open-panel-bin.new"
+    remote = "/tmp/owpanel-bin.new"
     upload_file(client, binary, remote)
     op = binary.parent / "op-linux-amd64"
     if not op.is_file():
         op = binary.parent / "op"
     script = f"""
 set -euo pipefail
-cp -f {remote} {install_dir}/open-panel
-chmod +x {install_dir}/open-panel
+cp -f {remote} {install_dir}/owpanel
+chmod +x {install_dir}/owpanel
 """
     if op.is_file():
         upload_file(client, op, "/tmp/op-bin.new")
@@ -146,23 +146,23 @@ chmod +x {install_dir}/op
 ln -sf {install_dir}/op /usr/local/bin/op
 """
     script += """
-systemctl restart open-panel
+systemctl restart owpanel
 sleep 2
-systemctl is-active open-panel
+systemctl is-active owpanel
 """
     return run(client, f"bash -s <<'EOF'\n{script}\nEOF")
 
 
 def main() -> int:
     load_env()
-    parser = argparse.ArgumentParser(description="Deploy Open Panel to remote server")
+    parser = argparse.ArgumentParser(description="Deploy OWPanel to remote server")
     parser.add_argument("--web-only", action="store_true", help="Upload frontend only")
     parser.add_argument("--binary", type=Path, help="Pre-built linux binary path")
     parser.add_argument("--full", action="store_true", help="Upload binary + web")
     args = parser.parse_args()
 
-    install_dir = cfg("INSTALL_DIR", "/opt/open-panel")
-    port = cfg("OPEN_PANEL_PORT", "8888")
+    install_dir = cfg("INSTALL_DIR", "/opt/owpanel")
+    port = cfg("OWPANEL_PORT", "8888")
 
     client = connect()
     code = 0
@@ -170,7 +170,7 @@ def main() -> int:
         if args.web_only:
             code = deploy_web(client, install_dir, port)
         elif args.full or args.binary:
-            binary = args.binary or ROOT / "dist" / "open-panel-linux-amd64" / "open-panel"
+            binary = args.binary or ROOT / "dist" / "owpanel-linux-amd64" / "owpanel"
             if not binary.is_file():
                 log(f"Binary not found: {binary}")
                 return 1

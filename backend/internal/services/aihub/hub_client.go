@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/services/modelcatalog"
+	"github.com/luuuunet/owpanel/internal/services/modelcatalog"
 )
 
 const hfHubOrigin = "https://huggingface.co"
@@ -210,7 +210,7 @@ func hfHubGET(path, token string, dest any) error {
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
-	req.Header.Set("User-Agent", "open-panel/1.0")
+	req.Header.Set("User-Agent", "owpanel/1.0")
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {

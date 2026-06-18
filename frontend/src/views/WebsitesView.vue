@@ -1442,7 +1442,7 @@ async function handleCreateJava() {
           <el-input v-model="javaForm.domain" placeholder="app.example.com" />
         </el-form-item>
         <el-form-item :label="t('websites.rootPath')">
-          <el-input v-model="javaForm.path" placeholder="/opt/open-panel/data/wwwroot/app.example.com" />
+          <el-input v-model="javaForm.path" placeholder="/opt/owpanel/data/wwwroot/app.example.com" />
         </el-form-item>
         <el-form-item label="Tomcat">
           <el-select v-model="javaForm.tomcat_key" style="width: 100%">

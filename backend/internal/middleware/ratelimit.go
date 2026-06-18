@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/auth"
+	"github.com/luuuunet/owpanel/internal/auth"
 )
 
 func RateLimitSensitive(scope string) gin.HandlerFunc {

@@ -21,7 +21,7 @@ func (m *Manager) Installed() bool {
 	if _, err := exec.LookPath("pm2"); err == nil {
 		return true
 	}
-	return fileExists(filepath.Join(m.dataDir, "server", "pm2", ".open-panel-installed"))
+	return fileExists(filepath.Join(m.dataDir, "server", "pm2", ".owpanel-installed"))
 }
 
 type StartOptions struct {

@@ -25,7 +25,7 @@ func (s *Service) ListTopics() (*TopicsResult, error) {
 	if !s.kafkaRunning() {
 		return &TopicsResult{
 			Topics: nil,
-			Hint:   "Start Kafka to list topics (App Store → Kafka, or docker start open-panel-kafka)",
+			Hint:   "Start Kafka to list topics (App Store → Kafka, or docker start owpanel-kafka)",
 		}, nil
 	}
 	topics, err := s.runKafkaTopicsList(cfg.BootstrapServers)

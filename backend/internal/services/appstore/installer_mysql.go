@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 )
 
 func tryMySQLInstall(key, version, installPath, dataDir string) (bool, error) {

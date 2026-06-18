@@ -39,7 +39,7 @@ func (s *Service) TerminalChat(req TerminalChatRequest) (*TerminalChatResult, er
 		user = "root"
 	}
 
-	system := fmt.Sprintf(`你是 Open Panel 内置 SSH 终端助手，帮助用户管理 Linux 服务器。
+	system := fmt.Sprintf(`你是 OWPanel 内置 SSH 终端助手，帮助用户管理 Linux 服务器。
 当前连接: %s@%s
 - 用简洁中文回答运维、Shell、Nginx、Docker、MySQL 等问题
 - 若需要执行命令，在回复末尾用单独一行给出建议命令，格式: CMD: 命令内容

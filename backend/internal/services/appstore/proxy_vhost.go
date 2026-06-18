@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
 )
 
 type WebServerHooks struct {
@@ -55,7 +55,7 @@ func (s *Service) AccessURL(key string, bindDomain string, port int) string {
 }
 
 func proxyVhostFile(dataDir, key string) string {
-	return filepath.Join(dataDir, "nginx", "vhosts", fmt.Sprintf("open-panel-app-%s.conf", key))
+	return filepath.Join(dataDir, "nginx", "vhosts", fmt.Sprintf("owpanel-app-%s.conf", key))
 }
 
 func (s *Service) ApplyProxyVhost(key string) error {
@@ -74,7 +74,7 @@ func (s *Service) ApplyProxyVhost(key string) error {
 	if err := s.ensureProxyWebServer(); err != nil {
 		return err
 	}
-	conf := fmt.Sprintf(`# Open Panel — %s (%s)
+	conf := fmt.Sprintf(`# OWPanel — %s (%s)
 server {
     listen 80;
     server_name %s;
@@ -122,9 +122,9 @@ func (s *Service) ensureProxyWebServer() error {
 	} else {
 		vhostDir := filepath.Join(s.dataDir, "nginx", "vhosts")
 		_ = os.MkdirAll(vhostDir, 0755)
-		mainConf := filepath.Join(s.dataDir, "nginx", "open-panel.conf")
+		mainConf := filepath.Join(s.dataDir, "nginx", "owpanel.conf")
 		includeLine := fmt.Sprintf("include %s/*.conf;", filepath.ToSlash(vhostDir))
-		_ = os.WriteFile(mainConf, []byte("# Open Panel auto-generated\n"+includeLine+"\n"), 0644)
+		_ = os.WriteFile(mainConf, []byte("# OWPanel auto-generated\n"+includeLine+"\n"), 0644)
 	}
 	return nil
 }

@@ -4,14 +4,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func TestRenderServerBlockAccessLogPaths(t *testing.T) {
-	s := &Service{dataDir: "/opt/open-panel/data"}
+	s := &Service{dataDir: "/opt/owpanel/data"}
 	site := &models.Website{
 		Domain:     "example.com",
-		RootPath:   "/opt/open-panel/data/wwwroot/example.com/public",
+		RootPath:   "/opt/owpanel/data/wwwroot/example.com/public",
 		Port:       80,
 		PHP:        true,
 		PhpVersion: "8.4",
@@ -27,8 +27,8 @@ func TestRenderServerBlockAccessLogPaths(t *testing.T) {
 	if strings.Contains(block, "%!(EXTRA") {
 		t.Fatalf("fmt placeholder mismatch in vhost:\n%s", block)
 	}
-	wantAccess := "/opt/open-panel/data/logs/example.com_access.log"
-	wantError := "/opt/open-panel/data/logs/example.com_error.log"
+	wantAccess := "/opt/owpanel/data/logs/example.com_access.log"
+	wantError := "/opt/owpanel/data/logs/example.com_error.log"
 	if !strings.Contains(block, "access_log "+wantAccess+";") {
 		t.Fatalf("missing access log path, got:\n%s", block)
 	}

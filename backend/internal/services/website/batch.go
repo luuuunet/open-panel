@@ -7,7 +7,7 @@ import (
 )
 
 // Pipe-delimited batch line: 域名|文档根目录|FTP|数据库|PHP版本
-// Example: example.com,www.example.com:8081|/opt/open-panel/data/wwwroot/example.com|1|1|83
+// Example: example.com,www.example.com:8081|/opt/owpanel/data/wwwroot/example.com|1|1|83
 type pipeBatchLine struct {
 	lineNum    int
 	raw        string

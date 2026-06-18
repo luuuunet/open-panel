@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 type SiteCacheStat struct {
@@ -73,7 +73,7 @@ func (s *Service) StatusSummary() (*StatusSummary, error) {
 		confPath := strings.TrimSpace(s.nginxConfPath())
 		if confPath != "" {
 			if data, err := os.ReadFile(confPath); err == nil {
-				includeOK = strings.Contains(string(data), "open-panel-cache.conf")
+				includeOK = strings.Contains(string(data), "owpanel-cache.conf")
 			}
 			if !includeOK {
 				includeHint = fmt.Sprintf("请在 %s 的 http {} 中添加: include %s;", confPath, filepath.ToSlash(s.ConfPath()))

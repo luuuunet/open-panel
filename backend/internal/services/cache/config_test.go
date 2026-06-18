@@ -3,7 +3,7 @@ package cache
 import (
 	"testing"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func TestStaticTTLNilConfig(t *testing.T) {

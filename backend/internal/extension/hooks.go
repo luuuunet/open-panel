@@ -65,9 +65,9 @@ func (r *Registry) runHookScript(extDir, event, script string, payload []byte) {
 	cmd := exec.Command(path)
 	cmd.Dir = extDir
 	cmd.Env = append(os.Environ(),
-		"OPEN_PANEL_DATA_DIR="+r.dataDir,
-		"OPEN_PANEL_HOOK_EVENT="+event,
-		"OPEN_PANEL_HOOK_PAYLOAD="+ctxFile,
+		"OWPANEL_DATA_DIR="+r.dataDir,
+		"OWPANEL_HOOK_EVENT="+event,
+		"OWPANEL_HOOK_PAYLOAD="+ctxFile,
 	)
 	if runtime.GOOS == "windows" {
 		if strings.HasSuffix(strings.ToLower(path), ".ps1") {

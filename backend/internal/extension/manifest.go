@@ -1,6 +1,6 @@
 package extension
 
-// Manifest describes an Open Panel extension installed under dataDir/extensions/<id>/.
+// Manifest describes an OWPanel extension installed under dataDir/extensions/<id>/.
 type Manifest struct {
 	ID          string            `json:"id"`
 	Name        string            `json:"name"`

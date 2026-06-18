@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-panel/open-panel/internal/cli"
+	"github.com/luuuunet/owpanel/internal/cli"
 )
 
 func main() {

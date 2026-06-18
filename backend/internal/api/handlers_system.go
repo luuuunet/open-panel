@@ -2,10 +2,10 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/open-panel/open-panel/internal/api/response"
-	"github.com/open-panel/open-panel/internal/platform"
-	"github.com/open-panel/open-panel/internal/services/stack"
-	"github.com/open-panel/open-panel/internal/services/system"
+	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/platform"
+	"github.com/luuuunet/owpanel/internal/services/stack"
+	"github.com/luuuunet/owpanel/internal/services/system"
 )
 
 func (s *Server) registerSystemRoutes(authorized *gin.RouterGroup) {

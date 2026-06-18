@@ -20,7 +20,7 @@ func nodePackagePresent(key, dataDir string) bool {
 		return false
 	}
 	base := filepath.Join(dataDir, "server", "nodejs", strconv.Itoa(major))
-	if fileExists(filepath.Join(base, ".open-panel-installed")) {
+	if fileExists(filepath.Join(base, ".owpanel-installed")) {
 		return true
 	}
 	if fileExists(filepath.Join(base, "bin", "node")) {
@@ -126,7 +126,7 @@ func detectNodeStatusForInstall(key, dataDir string) string {
 		return "stopped"
 	}
 	base := filepath.Join(dataDir, "server", "nodejs", strconv.Itoa(major))
-	if fileExists(filepath.Join(base, ".open-panel-installed")) {
+	if fileExists(filepath.Join(base, ".owpanel-installed")) {
 		return "running"
 	}
 	if !nodeBinaryMajorMatches(key) {

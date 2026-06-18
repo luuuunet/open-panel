@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 )
 
 func runShell(script, cwd string) (string, error) {

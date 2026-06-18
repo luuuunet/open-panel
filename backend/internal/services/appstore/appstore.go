@@ -11,10 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/domaincheck"
-	"github.com/open-panel/open-panel/internal/services/php"
-	"github.com/open-panel/open-panel/internal/services/stack"
+	"github.com/luuuunet/owpanel/internal/dbmigrate"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/domaincheck"
+	"github.com/luuuunet/owpanel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/services/stack"
 	"gorm.io/gorm"
 )
 
@@ -120,7 +121,7 @@ var catalog = []catalogItem{
 	},
 	{
 		App: models.App{Key: "mail-server", Name: "邮件服务器", Category: "邮件", Versions: "latest", Version: "latest", Description: "Postfix + Dovecot 一键套件（SMTP 发信 + IMAP/POP3 收信），安装后请前往「邮件」管理域名与邮箱", Port: 25, InstallPath: "/etc/postfix", ConfigPath: "/etc/postfix/main.cf", Icon: "Message"},
-		defaultConfig: map[string]interface{}{"inet_interfaces": "all", "virtual_mailbox_maps": "hash:/etc/postfix/open-panel-virtual"},
+		defaultConfig: map[string]interface{}{"inet_interfaces": "all", "virtual_mailbox_maps": "hash:/etc/postfix/owpanel-virtual"},
 	},
 	{
 		App: models.App{Key: "phpmyadmin", Name: "phpMyAdmin", Category: "工具", Versions: "5.2", Version: "5.2", Description: "MySQL 在线管理", Port: 888, InstallPath: "server/phpmyadmin", ConfigPath: "server/phpmyadmin/config.inc.php", Icon: "Tools"},
@@ -343,6 +344,19 @@ func (s *Service) List() ([]models.App, error) {
 		return apps, err
 	}
 	apps = filterCatalogApps(apps)
+	if len(apps) == 0 && len(mergedCatalog()) > 0 {
+		var total int64
+		_ = s.db.Model(&models.App{}).Count(&total)
+		if total > 0 || dbmigrate.AppsHasLegacyKeyColumn(s.db) {
+			dbmigrate.MigrateAppsKeyColumn(s.db)
+			s.forceResyncCatalog()
+			apps = nil
+			if err := s.db.Find(&apps).Error; err != nil {
+				return apps, err
+			}
+			apps = filterCatalogApps(apps)
+		}
+	}
 	SortAppsByCategory(apps)
 	return apps, nil
 }
@@ -723,7 +737,7 @@ func (s *Service) detectAppStatus(key string) string {
 		return detectNodeStatusForInstall(key, s.dataDir)
 	}
 	if key == "pm2" {
-		if fileExists(filepath.Join(s.dataDir, "server", "pm2", ".open-panel-installed")) {
+		if fileExists(filepath.Join(s.dataDir, "server", "pm2", ".owpanel-installed")) {
 			return "running"
 		}
 		return detectPM2()
@@ -732,7 +746,7 @@ func (s *Service) detectAppStatus(key string) string {
 		return detectComposer(s.dataDir)
 	}
 	if key == "certbot" {
-		if fileExists(filepath.Join(s.dataDir, "server", "certbot", ".open-panel-installed")) {
+		if fileExists(filepath.Join(s.dataDir, "server", "certbot", ".owpanel-installed")) {
 			return "running"
 		}
 		return detectCertbot()
@@ -1077,14 +1091,47 @@ func (s *Service) ensureCatalog() {
 	if !s.catalogSyncedAt.IsZero() && time.Since(s.catalogSyncedAt) < 5*time.Minute {
 		return
 	}
+	if dbmigrate.AppsHasLegacyKeyColumn(s.db) {
+		dbmigrate.MigrateAppsKeyColumn(s.db)
+	}
+	s.syncCatalogLocked()
+	var count int64
+	_ = s.db.Model(&models.App{}).Count(&count)
+	if count == 0 {
+		s.syncCatalogLocked()
+	}
+	s.catalogSyncedAt = time.Now()
+}
+
+func (s *Service) forceResyncCatalog() {
+	s.catalogMu.Lock()
+	defer s.catalogMu.Unlock()
+	s.catalogSyncedAt = time.Time{}
 	s.syncCatalogLocked()
 	s.catalogSyncedAt = time.Now()
 }
 
+func (s *Service) findCatalogApp(key string) (models.App, error) {
+	var existing models.App
+	err := s.db.Unscoped().Where("app_key = ?", key).First(&existing).Error
+	if err == nil {
+		return existing, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return existing, err
+	}
+	if dbmigrate.AppsHasLegacyKeyColumn(s.db) {
+		err = s.db.Unscoped().Where(`"key" = ?`, key).First(&existing).Error
+		if err == nil {
+			return existing, nil
+		}
+	}
+	return existing, err
+}
+
 func (s *Service) syncCatalogLocked() {
 	for _, item := range mergedCatalog() {
-		var existing models.App
-		err := s.db.Unscoped().Where("app_key = ?", item.Key).First(&existing).Error
+		existing, err := s.findCatalogApp(item.Key)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			a := item.App
 			a.Category = NormalizeCategory(a.Category)
@@ -1098,6 +1145,7 @@ func (s *Service) syncCatalogLocked() {
 			continue
 		}
 		s.db.Unscoped().Model(&existing).Updates(map[string]interface{}{
+			"app_key":      item.Key,
 			"name":         item.Name,
 			"category":     NormalizeCategory(item.Category),
 			"versions":     item.Versions,

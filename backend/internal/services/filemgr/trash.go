@@ -32,7 +32,7 @@ type TrashItem struct {
 
 func (s *Service) recycleDir() string {
 	if s.dataDir == "" {
-		return filepath.Join(os.TempDir(), "open-panel-recycle")
+		return filepath.Join(os.TempDir(), "owpanel-recycle")
 	}
 	return filepath.Join(s.dataDir, "recycle")
 }

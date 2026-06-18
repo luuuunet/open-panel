@@ -1,7 +1,7 @@
 package website
 
 import (
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 // ToggleCrossSiteProtect enables or disables anti cross-site access for a website.

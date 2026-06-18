@@ -8,9 +8,9 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/docker"
-	"github.com/open-panel/open-panel/internal/services/performance"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/docker"
+	"github.com/luuuunet/owpanel/internal/services/performance"
 	"github.com/shirou/gopsutil/v3/host"
 )
 

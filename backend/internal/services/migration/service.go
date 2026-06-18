@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 	"gorm.io/gorm"
 )
 
@@ -125,7 +125,7 @@ func (s *Service) Export(opts ExportOptions) (*ExportResult, error) {
 	}
 
 	ts := time.Now().Format("20060102-150405")
-	filename := fmt.Sprintf("open-panel-migration-%s.tar.gz", ts)
+	filename := fmt.Sprintf("owpanel-migration-%s.tar.gz", ts)
 	dest := filepath.Join(s.exportDir(), filename)
 	if err := createTarGz(staging, dest); err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (s *Service) ImportBundle(bundlePath string, opts ImportOptions) (*ImportRe
 		return nil, fmt.Errorf("unsupported import mode: %s", mode)
 	}
 
-	tmp := filepath.Join(os.TempDir(), fmt.Sprintf("open-panel-import-%d", time.Now().UnixNano()))
+	tmp := filepath.Join(os.TempDir(), fmt.Sprintf("owpanel-import-%d", time.Now().UnixNano()))
 	if err := os.MkdirAll(tmp, 0755); err != nil {
 		return nil, err
 	}

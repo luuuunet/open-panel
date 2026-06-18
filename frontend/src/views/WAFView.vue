@@ -782,7 +782,7 @@ onMounted(async () => {
             <el-table-column :label="t('waf.guide.mappingCapability')" min-width="200">
               <template #default="{ row }">{{ t(row.capability) }}</template>
             </el-table-column>
-            <el-table-column :label="t('waf.guide.mappingOpenPanel')" min-width="280">
+            <el-table-column :label="t('waf.guide.mappingOWPanel')" min-width="280">
               <template #default="{ row }">{{ t(row.openpanel) }}</template>
             </el-table-column>
           </el-table>

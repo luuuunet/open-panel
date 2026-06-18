@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/website"
+	"github.com/luuuunet/owpanel/internal/services/website"
 )
 
 func resolveFramework(plan DeployPlan, snap *RepoSnapshot) string {

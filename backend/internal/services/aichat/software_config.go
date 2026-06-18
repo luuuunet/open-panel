@@ -45,7 +45,7 @@ func (s *Service) SoftwareConfigChat(req SoftwareConfigChatRequest) (*SoftwareCo
 		raw = raw[:60000] + "\n...(truncated)"
 	}
 
-	system := fmt.Sprintf(`你是 Open Panel 软件商店配置助手，帮助用户修改已安装软件的配置。
+	system := fmt.Sprintf(`你是 OWPanel 软件商店配置助手，帮助用户修改已安装软件的配置。
 
 软件: %s (%s)
 分类: %s

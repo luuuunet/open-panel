@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Open Panel">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="OWPanel">
   <rect width="64" height="64" rx="14" fill="#F35B04"/>
   <circle cx="32" cy="32" r="16.5" stroke="#FFFFFF" stroke-width="5" fill="none"/>
   <path fill="#FFFFFF" d="M 44.5 9.5 26.5 31.5H 42.5L 19.5 54.5 41.5 33.5H 25.5Z"/>

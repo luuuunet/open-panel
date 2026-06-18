@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	dbsvc "github.com/open-panel/open-panel/internal/services/database"
+	"github.com/luuuunet/owpanel/internal/models"
+	dbsvc "github.com/luuuunet/owpanel/internal/services/database"
 )
 
 type DatabaseBackupConfig struct {

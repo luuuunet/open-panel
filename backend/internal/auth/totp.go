@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -70,7 +70,7 @@ func (s *Service) SetupTotp(userID uint, encryptFn func(string) (string, error))
 		return nil, err
 	}
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      "OpenPanel",
+		Issuer:      "OWPanel",
 		AccountName: user.Username,
 		SecretSize:  20,
 	})

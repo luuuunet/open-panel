@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 func (s *Service) ListBlacklist() ([]models.IPBlacklist, error) {
@@ -56,7 +56,7 @@ func (s *Service) writeBlacklistMap() error {
 		return err
 	}
 	var b strings.Builder
-	b.WriteString("# Open Panel IP blacklist map — auto generated\n")
+	b.WriteString("# OWPanel IP blacklist map — auto generated\n")
 	for _, item := range list {
 		b.WriteString(fmt.Sprintf("%s 1;\n", item.IP))
 	}

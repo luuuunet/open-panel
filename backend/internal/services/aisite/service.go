@@ -1,13 +1,13 @@
 package aisite
 
 import (
-	"github.com/open-panel/open-panel/internal/services/aichat"
-	"github.com/open-panel/open-panel/internal/services/appstore"
-	"github.com/open-panel/open-panel/internal/services/cron"
-	"github.com/open-panel/open-panel/internal/services/devops"
-	"github.com/open-panel/open-panel/internal/services/nodejs"
-	"github.com/open-panel/open-panel/internal/services/settings"
-	"github.com/open-panel/open-panel/internal/services/website"
+	"github.com/luuuunet/owpanel/internal/services/aichat"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/cron"
+	"github.com/luuuunet/owpanel/internal/services/devops"
+	"github.com/luuuunet/owpanel/internal/services/nodejs"
+	"github.com/luuuunet/owpanel/internal/services/settings"
+	"github.com/luuuunet/owpanel/internal/services/website"
 	"gorm.io/gorm"
 )
 

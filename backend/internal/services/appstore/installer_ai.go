@@ -17,38 +17,38 @@ type aiDockerSpec struct {
 
 var aiDockerApps = map[string]aiDockerSpec{
 	"open-webui": {
-		Container: "open-panel-open-webui",
+		Container: "owpanel-open-webui",
 		Image:     "ghcr.io/open-webui/open-webui:main",
 		Port:      "8080:8080",
 		Env:       []string{"OLLAMA_BASE_URL=http://host.docker.internal:11434"},
 	},
 	"localai": {
-		Container: "open-panel-localai",
+		Container: "owpanel-localai",
 		Image:     "localai/localai:latest",
 		Port:      "8090:8080",
 	},
 	"dify": {
-		Container: "open-panel-dify",
+		Container: "owpanel-dify",
 		Image:     "langgenius/dify-web:latest",
 		Port:      "8091:3000",
 	},
 	"anythingllm": {
-		Container: "open-panel-anythingllm",
+		Container: "owpanel-anythingllm",
 		Image:     "mintplexlabs/anythingllm:latest",
 		Port:      "3001:3001",
 	},
 	"fastgpt": {
-		Container: "open-panel-fastgpt",
+		Container: "owpanel-fastgpt",
 		Image:     "ghcr.io/labring/fastgpt:latest",
 		Port:      "3002:3000",
 	},
 	"comfyui": {
-		Container: "open-panel-comfyui",
+		Container: "owpanel-comfyui",
 		Image:     "yanwk/comfyui-boot:cu124-slim",
 		Port:      "8188:8188",
 	},
 	"sd-webui": {
-		Container: "open-panel-sd-webui",
+		Container: "owpanel-sd-webui",
 		Image:     "continuumio/miniconda3:latest",
 		Port:      "7860:7860",
 	},

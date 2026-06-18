@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/open-panel/open-panel/internal/config"
-	"github.com/open-panel/open-panel/internal/database"
+	"github.com/luuuunet/owpanel/internal/config"
+	"github.com/luuuunet/owpanel/internal/database"
 )
 
 func main() {

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
+	"github.com/luuuunet/owpanel/internal/models"
 )
 
 const (
@@ -24,9 +24,9 @@ func (s *Service) vmailBase() string {
 	return filepath.Join(s.mailRoot(), "vmail")
 }
 
-func postfixDomainMap() string  { return "/etc/postfix/open-panel-domains" }
-func postfixVirtualMap() string { return "/etc/postfix/open-panel-virtual" }
-func dovecotInclude() string    { return "/etc/dovecot/conf.d/99-open-panel.conf" }
+func postfixDomainMap() string  { return "/etc/postfix/owpanel-domains" }
+func postfixVirtualMap() string { return "/etc/postfix/owpanel-virtual" }
+func dovecotInclude() string    { return "/etc/dovecot/conf.d/99-owpanel.conf" }
 
 func (s *Service) ensureVMailUser() error {
 	if runtime.GOOS == "windows" {
@@ -117,7 +117,7 @@ func (s *Service) applyDovecotConf(passwdPath string) error {
 		return nil
 	}
 	cert, key := s.resolveSSLPaths()
-	conf := fmt.Sprintf(`# Managed by Open Panel — do not edit manually
+	conf := fmt.Sprintf(`# Managed by OWPanel — do not edit manually
 protocols = imap pop3
 mail_location = maildir:%%h
 first_valid_uid = %d

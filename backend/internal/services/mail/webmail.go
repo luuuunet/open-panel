@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/php"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/php"
 )
 
 const webmailDefaultPort = 889
@@ -65,7 +65,7 @@ func (s *Service) webmailRoot() string {
 }
 
 func (s *Service) webmailVhostFile() string {
-	return filepath.Join(s.dataDir, "nginx", "vhosts", "open-panel-snappymail.conf")
+	return filepath.Join(s.dataDir, "nginx", "vhosts", "owpanel-snappymail.conf")
 }
 
 func (s *Service) WebmailStatus() (*WebmailStatus, error) {
@@ -686,7 +686,7 @@ server {
 }`, port, rootSlash, fcgi)
 	}
 
-	content := "# Open Panel — SnappyMail Webmail\n" + body + "\n"
+	content := "# OWPanel — SnappyMail Webmail\n" + body + "\n"
 	if err := os.MkdirAll(filepath.Dir(s.webmailVhostFile()), 0755); err != nil {
 		return err
 	}

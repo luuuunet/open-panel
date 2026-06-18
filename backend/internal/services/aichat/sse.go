@@ -39,7 +39,7 @@ func (s *Service) StreamSiteLogChat(req SiteLogChatRequest, c *gin.Context) {
 
 	access := trimLogForAI(req.AccessLog, 40000)
 	errLog := trimLogForAI(req.ErrorLog, 40000)
-	system := fmt.Sprintf(`你是 Open Panel 网站日志与运维 AI 助手（类似 Cursor IDE 助手）。
+	system := fmt.Sprintf(`你是 OWPanel 网站日志与运维 AI 助手（类似 Cursor IDE 助手）。
 站点域名: %s
 网站根目录: %s
 访问日志: %s
@@ -90,7 +90,7 @@ func (s *Service) StreamLogChat(req LogChatRequest, c *gin.Context) {
 		name = req.SourceID
 	}
 	logText := trimLogForAI(req.LogContent, 80000)
-	system := fmt.Sprintf(`你是 Open Panel 日志分析助手（类似 Cursor IDE）。
+	system := fmt.Sprintf(`你是 OWPanel 日志分析助手（类似 Cursor IDE）。
 来源: %s | 分类: %s | 路径: %s
 
 用 Markdown 回答，指出错误模式与修复建议。日志:

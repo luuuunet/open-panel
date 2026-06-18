@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/services/website"
+	"github.com/luuuunet/owpanel/internal/services/website"
 )
 
 type SiteProjectChatRequest struct {
@@ -66,7 +66,7 @@ func (s *Service) SiteProjectChat(req SiteProjectChatRequest) (*SiteProjectChatR
 func buildSiteProjectSystemPrompt(req SiteProjectChatRequest) string {
 	snap := req.Snapshot
 	var b strings.Builder
-	b.WriteString("你是 Open Panel 网站项目 AI 助手，可以分析并修改整个网站项目中的多个文件（主题、样式、模板、前端代码等）。\n")
+	b.WriteString("你是 OWPanel 网站项目 AI 助手，可以分析并修改整个网站项目中的多个文件（主题、样式、模板、前端代码等）。\n")
 	b.WriteString(fmt.Sprintf("站点域名: %s\n网站根目录: %s\n项目类型: %s\nPHP: %s\n",
 		req.Domain, req.RootPath, snap.ProjectType, snap.PhpVersion))
 	if req.FocusPath != "" && req.Scope == "file" {

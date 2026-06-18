@@ -10,7 +10,7 @@ import (
 )
 
 func javaPackagePresent(key, dataDir string) bool {
-	if fileExists(filepath.Join(dataDir, "server", key, ".open-panel-installed")) {
+	if fileExists(filepath.Join(dataDir, "server", key, ".owpanel-installed")) {
 		return true
 	}
 	if javaBinaryForKey(key) != "" {

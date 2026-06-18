@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-panel/open-panel/internal/models"
-	"github.com/open-panel/open-panel/internal/services/php"
-	sslpkg "github.com/open-panel/open-panel/internal/services/ssl"
+	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/php"
+	sslpkg "github.com/luuuunet/owpanel/internal/services/ssl"
 )
 
 // WordPressRewriteRules is stored on linked Website records for panel display;
@@ -52,10 +52,10 @@ func (s *Service) writeNginxVhost(site *models.WordPressSite) (string, error) {
 		blocks = append(blocks, wpHTTPBlock(serverNames, root, accessLog, errorLog, fastcgi))
 	}
 
-	content := fmt.Sprintf("# Open Panel WordPress — %s\n# Bound domains: %s\n%s\n",
+	content := fmt.Sprintf("# OWPanel WordPress — %s\n# Bound domains: %s\n%s\n",
 		site.Domain, serverNames, strings.Join(blocks, "\n"))
 	if cfCDN {
-		content = fmt.Sprintf("# Open Panel WordPress — %s (Cloudflare CDN mode)\n# Bound domains: %s\n%s\n",
+		content = fmt.Sprintf("# OWPanel WordPress — %s (Cloudflare CDN mode)\n# Bound domains: %s\n%s\n",
 			site.Domain, serverNames, strings.Join(blocks, "\n"))
 	}
 	_ = os.MkdirAll(filepath.Join(s.dataDir, "logs"), 0755)
