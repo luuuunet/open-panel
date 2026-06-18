@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Open Panel — universal Linux installer (Ubuntu / Debian / CentOS / Rocky / AlmaLinux / RHEL)
-# install.sh version: 2026-06-13-6
+# install.sh version: 2026-06-13-7
 set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/open-panel}"
@@ -319,36 +319,89 @@ open_firewall() {
   fi
 }
 
+read_admin_credentials() {
+  local cred="$INSTALL_DIR/data/INITIAL_CREDENTIALS.txt"
+  local i user pass
+  for i in $(seq 1 20); do
+    if [[ -f "$cred" ]]; then
+      user="$(grep -m1 '^Username:' "$cred" 2>/dev/null | sed 's/^Username:[[:space:]]*//')"
+      pass="$(grep -m1 '^Password:' "$cred" 2>/dev/null | sed 's/^Password:[[:space:]]*//')"
+      if [[ -n "$pass" ]]; then
+        printf '%s|%s' "${user:-admin}" "$pass"
+        return 0
+      fi
+    fi
+    pass="$(journalctl -u open-panel --no-pager -n 100 2>/dev/null \
+      | grep -m1 'first login' \
+      | grep -oE 'password: [^ ]+' \
+      | awk '{print $2}' || true)"
+    if [[ -n "$pass" ]]; then
+      printf 'admin|%s' "$pass"
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+print_install_summary() {
+  local ip panel_url cred user pass
+  ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  [[ -n "$ip" ]] || ip="127.0.0.1"
+  panel_url="http://${ip}:${PORT}"
+
+  user="admin"
+  pass=""
+  cred="$(read_admin_credentials || true)"
+  if [[ -n "$cred" ]]; then
+    user="${cred%%|*}"
+    pass="${cred#*|}"
+  fi
+
+  echo ""
+  echo "========================================="
+  echo "  Open Panel installed successfully"
+  echo "========================================="
+  echo ""
+  echo "  Panel URL:  ${panel_url}"
+  echo "  Username:   ${user}"
+  if [[ -n "$pass" ]]; then
+    echo "  Password:   ${pass}"
+  else
+    echo "  Password:   (starting up — run: op info)"
+  fi
+  echo ""
+  echo "  Panel CLI (run anytime):"
+  echo "    op info       Show panel URLs, port, and data directory"
+  echo "    op config     Change port, security entrance, or SSL"
+  echo "    op restart    Restart the panel service"
+  echo ""
+  echo "  Change your password after first login."
+  echo "========================================="
+}
+
 main() {
   echo "========================================="
-  echo "  Open Panel 多系统安装 (Linux)"
-  echo "  installer: 2026-06-13-6"
+  echo "  Open Panel Linux Installer"
+  echo "  installer: 2026-06-13-7"
   echo "========================================="
   require_root
   detect_os
   install_deps_minimal
   mkdir -p "$INSTALL_DIR"
   if install_from_release; then
-    log "发布包已部署"
+    log "Installed from local release bundle"
   elif install_from_github_release; then
     :
   elif [[ "$FROM_SOURCE" == "1" ]] || [[ ! -f "$INSTALL_DIR/open-panel" ]]; then
     build_from_source
   else
-    log "使用已有二进制: $INSTALL_DIR/open-panel"
+    log "Using existing binary: $INSTALL_DIR/open-panel"
   fi
   install_binary_layout
   write_systemd
   open_firewall
-  IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-  echo ""
-  echo "========================================="
-  echo "  安装完成"
-  echo "  地址: http://${IP:-127.0.0.1}:$PORT"
-  echo "  账号: admin / (随机密码)"
-  echo "  密码文件: $INSTALL_DIR/data/INITIAL_CREDENTIALS.txt"
-  echo "  或: journalctl -u open-panel | grep password"
-  echo "========================================="
+  print_install_summary
 }
 
 main "$@"
