@@ -15,6 +15,12 @@
   <a href="docs/README.md"><img src="https://img.shields.io/badge/文档%20%2F%20Docs-README-lightgrey?style=flat-square" alt="文档 / Docs"></a>
 </p>
 
+<p align="center">
+  <img src="docs/images/dashboard.png" alt="Open Panel dashboard" width="900" />
+</p>
+
+<p align="center"><em>Dashboard · 仪表盘预览</em></p>
+
 ---
 
 <a id="zh-cn"></a>
