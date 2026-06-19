@@ -29,6 +29,7 @@ func (s *Service) loadNotifyConfig(cfg Config) Config {
 	} else if cfg.MemThreshold == 0 {
 		cfg.MemThreshold = 90
 	}
+	cfg.MemAutoRelief = all["auto_ops_mem_auto_relief"] != "false"
 	if v, _ := strconv.Atoi(all["auto_ops_disk_threshold"]); v >= 50 && v <= 100 {
 		cfg.DiskThreshold = v
 	} else if cfg.DiskThreshold == 0 {
@@ -68,6 +69,11 @@ func (s *Service) saveNotifyConfig(patch Config, data map[string]string) {
 	}
 	data["auto_ops_cpu_threshold"] = strconv.Itoa(cpu)
 	data["auto_ops_mem_threshold"] = strconv.Itoa(mem)
+	if patch.MemAutoRelief {
+		data["auto_ops_mem_auto_relief"] = "true"
+	} else {
+		data["auto_ops_mem_auto_relief"] = "false"
+	}
 	data["auto_ops_disk_threshold"] = strconv.Itoa(disk)
 }
 
@@ -84,7 +90,7 @@ func (s *Service) maybeNotify(cfg Config, app models.App, eventType, message, st
 		if !cfg.NotifyOnFail {
 			return
 		}
-	case "resource_cpu", "resource_memory", "resource_disk", "cron_failed",
+	case "resource_cpu", "resource_memory", "resource_disk", "memory_relief", "cron_failed",
 		"ssl_expiring", "site_expiring", "ssl_renew_fail":
 		// notify when webhook configured
 	default:

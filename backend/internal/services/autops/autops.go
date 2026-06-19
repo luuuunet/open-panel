@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/luuuunet/owpanel/internal/bootstrap"
 	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/luuuunet/owpanel/internal/services/appstore"
 	"github.com/luuuunet/owpanel/internal/services/dashboard"
@@ -45,6 +46,7 @@ type Config struct {
 	ResourceEnabled bool   `json:"resource_enabled"`
 	CPUThreshold    int    `json:"cpu_threshold"`
 	MemThreshold    int    `json:"mem_threshold"`
+	MemAutoRelief   bool   `json:"mem_auto_relief"`
 	DiskThreshold   int    `json:"disk_threshold"`
 	SSLAutoRenew    bool   `json:"ssl_auto_renew"`
 	AlertDaysSSL    int    `json:"alert_days_ssl"`
@@ -82,19 +84,26 @@ func (s *Service) Start() {
 				sleep = 10 * time.Second
 			}
 			if cfg.Enabled {
+				s.ensureK3sWatch()
 				s.apps.SyncInstalledStatuses()
 				s.runCheck(false)
+			} else {
+				s.checkMemoryPressure(cfg, time.Now())
 			}
 			time.Sleep(sleep)
 		}
 	}()
 }
 
+func bootstrapSmallMachine() bool {
+	return bootstrap.SmallMachine()
+}
+
 func (s *Service) loadConfig() Config {
 	cfg := Config{
 		Enabled: true, IntervalSec: 30, CooldownSec: 300, MaxRestarts: 5,
 		NotifyOnDown: true, NotifyOnFail: true,
-		CPUThreshold: 90, MemThreshold: 90, DiskThreshold: 90,
+		CPUThreshold: 90, MemThreshold: 90, MemAutoRelief: true, DiskThreshold: 90,
 		SSLAutoRenew: true, AlertDaysSSL: 14, AlertDaysSite: 14,
 		WebsiteScanEnabled: true,
 	}
@@ -144,6 +153,7 @@ func (s *Service) UpdateConfig(patch Config) error {
 }
 
 func (s *Service) GetStatus() (*StatusResponse, error) {
+	s.ensureK3sWatch()
 	s.apps.SyncInstalledStatuses()
 	cfg := s.loadConfig()
 	apps, err := s.apps.ListInstalled()
@@ -249,6 +259,7 @@ func (s *Service) runCheck(manual bool) {
 		return
 	}
 	now := time.Now()
+	s.checkMemoryPressure(cfg, now)
 	if cfg.Enabled || manual {
 		s.checkResources(cfg, now)
 	}
@@ -332,4 +343,21 @@ func (s *Service) logEvent(app models.App, eventType, message, status string) {
 	}).Error
 	cfg := s.loadConfig()
 	s.maybeNotify(cfg, app, eventType, message, status)
+}
+
+func (s *Service) ensureK3sWatch() {
+	if bootstrapSmallMachine() {
+		return
+	}
+	app, err := s.apps.Get("k3s")
+	if err != nil || !app.Installed {
+		return
+	}
+	if app.WatchEnabled && app.AutoRestart {
+		return
+	}
+	_ = s.db.Model(app).Updates(map[string]interface{}{
+		"watch_enabled": true,
+		"auto_restart":  true,
+	}).Error
 }

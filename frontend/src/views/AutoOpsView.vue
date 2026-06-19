@@ -6,7 +6,7 @@ import api from '@/api'
 import { categoryLabel } from '@/locales'
 import SoftwareIcon from '@/components/SoftwareIcon.vue'
 import { ElMessage } from 'element-plus'
-import { ArrowRight, Bell, Refresh, Timer, Promotion, Share, FolderOpened, Lock, Document, Box, Histogram, Cpu, Coin } from '@element-plus/icons-vue'
+import { ArrowRight, Bell, Refresh, Timer, Promotion, Share, FolderOpened, Lock, Document, Box, Histogram, Cpu, Coin, Platform } from '@element-plus/icons-vue'
 import { cfTheme } from '@/config/theme'
 
 const route = useRoute()
@@ -57,6 +57,7 @@ const quickLinks = computed(() => [
   { path: '/backup', icon: FolderOpened, title: t('menu.backup'), desc: t('autoOps.linkBackup'), stat: overview.value ? `${overview.value.backup_enabled || 0}/${overview.value.backup_total || 0}` : '—' },
   { path: '/devops', icon: Promotion, title: t('menu.devops'), desc: t('autoOps.linkDevops'), stat: 'CI/CD' },
   { path: '/cluster', icon: Share, title: t('menu.cluster'), desc: t('autoOps.linkCluster'), stat: t('autoOps.multiNode') },
+  { path: '/k8s', icon: Platform, title: t('menu.k8s'), desc: t('autoOps.linkK8s'), stat: overview.value?.k8s_ready ? t('k8s.ready') : (overview.value?.k8s_installed ? t('k8s.notReady') : '—') },
   { path: '/ssl', icon: Lock, title: t('menu.ssl'), desc: t('autoOps.linkSSL'), stat: overview.value?.ssl_expiring_soon ? t('autoOps.expiringCount', { n: overview.value.ssl_expiring_soon }) : '—' },
   { path: '/websites', icon: Bell, title: t('menu.website'), desc: t('autoOps.linkSites'), stat: overview.value?.sites_expiring_soon ? t('autoOps.expiringCount', { n: overview.value.sites_expiring_soon }) : '—' },
   { path: '/logs', icon: Document, title: t('menu.logs'), desc: t('autoOps.linkLogs'), stat: overview.value?.log_auto_cleanup ? t('autoOps.logCleanupOn') : t('autoOps.logCleanupOff') },
@@ -399,6 +400,10 @@ onUnmounted(() => clearInterval(timer))
           <el-card shadow="never" class="stat-card clickable" @click="router.push('/websites')">
             <div class="stat-label">{{ t('autoOps.sitesExpiring') }}</div>
             <div class="stat-big">{{ overview?.sites_expiring_soon ?? 0 }}</div>
+          </el-card>
+          <el-card shadow="never" class="stat-card clickable" @click="router.push('/k8s')">
+            <div class="stat-label">{{ t('autoOps.k8sCluster') }}</div>
+            <div class="stat-big">{{ overview?.k8s_ready ? t('k8s.ready') : (overview?.k8s_installed ? t('k8s.notReady') : '—') }}</div>
           </el-card>
           <el-card shadow="never" class="stat-card clickable" @click="tab = 'websites'; loadWebsiteAudits()">
             <div class="stat-label">{{ t('autoOps.websiteAudit') }}</div>

@@ -62,10 +62,16 @@ func (s *Service) SaveDeployConfig(cfg *models.SiteDeployConfig) (*DeployConfigV
 		if cfg.WebhookSecret == "" {
 			cfg.WebhookSecret = existing.WebhookSecret
 		}
+		if cfg.WebhookSecret == "" {
+			cfg.WebhookSecret = newWebhookSecret()
+		}
 		if err := s.db.Save(cfg).Error; err != nil {
 			return nil, err
 		}
 	} else {
+		if cfg.WebhookSecret == "" {
+			cfg.WebhookSecret = newWebhookSecret()
+		}
 		if err := s.db.Create(cfg).Error; err != nil {
 			return nil, err
 		}
@@ -109,6 +115,12 @@ func newWebhookToken() string {
 	return hex.EncodeToString(b)
 }
 
+func newWebhookSecret() string {
+	b := make([]byte, 32)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
 func (s *Service) ListDeployJobs(websiteID uint, limit int) ([]models.SiteDeployJob, error) {
 	if limit <= 0 {
 		limit = 20
@@ -134,13 +146,14 @@ func (s *Service) HandleWebhook(token, trigger string, body []byte, signature st
 	if err := s.db.Where("webhook_token = ? AND enabled = ?", token, true).First(&cfg).Error; err != nil {
 		return nil, fmt.Errorf("无效的 WebHook 或部署未启用")
 	}
-	if cfg.WebhookSecret != "" {
-		if signature == "" {
-			return nil, fmt.Errorf("Webhook 签名校验失败：缺少 X-Hub-Signature-256 请求头")
-		}
-		if !verifyGitHubSignature(cfg.WebhookSecret, body, signature) {
-			return nil, fmt.Errorf("Webhook 签名校验失败")
-		}
+	if strings.TrimSpace(cfg.WebhookSecret) == "" {
+		return nil, fmt.Errorf("Webhook 未配置签名密钥，请在部署设置中重新保存以生成密钥")
+	}
+	if signature == "" {
+		return nil, fmt.Errorf("Webhook 签名校验失败：缺少 X-Hub-Signature-256 请求头")
+	}
+	if !verifyGitHubSignature(cfg.WebhookSecret, body, signature) {
+		return nil, fmt.Errorf("Webhook 签名校验失败")
 	}
 	if trigger == "" {
 		trigger = "webhook"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import api, { resolveApiError } from '@/api'
+import api, { downloadAuthenticated, resolveApiError } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { Plus, Refresh, Download, VideoPlay, Connection, Document, Edit, Delete } from '@element-plus/icons-vue'
@@ -135,7 +135,7 @@ async function exportCompliance() {
     })
     const fn = res.data?.filename
     if (fn) {
-      window.open(`${api.defaults.baseURL}/bastion/compliance/download/${fn}?token=${auth.token}`, '_blank')
+      await downloadAuthenticated(`/bastion/compliance/download/${fn}`, fn)
     }
     ElMessage.success(t('bastionPage.complianceExportOk'))
   } catch (e: any) {
@@ -343,9 +343,11 @@ function connectAccount(row: any) {
 }
 
 async function exportVault() {
-  const base = api.defaults.baseURL || '/api/v1'
-  const token = localStorage.getItem('token') || ''
-  window.open(`${base}/bastion/accounts/vault/export?token=${encodeURIComponent(token)}`, '_blank')
+  try {
+    await downloadAuthenticated('/bastion/accounts/vault/export', 'bastion-vault.json')
+  } catch (e: any) {
+    ElMessage.error(resolveApiError(e, t('common.failed')))
+  }
 }
 
 function triggerVaultImport() {
@@ -792,10 +794,12 @@ async function openReplay(row: any) {
   }
 }
 
-function downloadSession(row: any) {
-  const base = api.defaults.baseURL || '/api/v1'
-  const token = localStorage.getItem('token') || ''
-  window.open(`${base}/bastion/sessions/${row.id}/download?token=${encodeURIComponent(token)}`, '_blank')
+async function downloadSession(row: any) {
+  try {
+    await downloadAuthenticated(`/bastion/sessions/${row.id}/download`, `session-${row.id}.log`)
+  } catch (e: any) {
+    ElMessage.error(resolveApiError(e, t('common.failed')))
+  }
 }
 
 async function killSession(row: any) {

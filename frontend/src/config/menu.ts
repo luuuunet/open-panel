@@ -107,6 +107,7 @@ export const menuGroups: MenuGroup[] = [
       { path: '/backup', titleKey: 'menu.backup', icon: 'FolderOpened', perm: 'backup' },
       { path: '/devops', titleKey: 'menu.devops', icon: 'Promotion', admin: true },
       { path: '/cluster', titleKey: 'menu.cluster', icon: 'Share', perm: 'monitor' },
+      { path: '/k8s', titleKey: 'menu.k8s', icon: 'Platform', perm: 'monitor' },
       { path: '/enterprise', titleKey: 'menu.enterprise', icon: 'OfficeBuilding', admin: true },
       { path: '/logs', titleKey: 'menu.logs', icon: 'Document', admin: true },
       { path: '/extensions', titleKey: 'menu.extensions', icon: 'Box', admin: true },

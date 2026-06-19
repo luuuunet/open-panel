@@ -229,6 +229,9 @@ func runServiceAction(key, action, dataDir string) error {
 	if ok, err := tryAIServiceAction(key, action); ok {
 		return err
 	}
+	if ok, err := tryK3sServiceAction(key, action); ok {
+		return err
+	}
 
 	spec, ok := resolvePackageSpec(key)
 	if !ok {
@@ -271,6 +274,9 @@ func detectServiceStatus(key string) string {
 		return status
 	}
 	if ok, status := tryAIStatus(key); ok {
+		return status
+	}
+	if ok, status := tryK3sStatus(key); ok {
 		return status
 	}
 	if strings.HasPrefix(key, "java") {

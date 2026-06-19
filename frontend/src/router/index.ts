@@ -40,6 +40,7 @@ const router = createRouter({
         { path: 'oss', name: 'oss', component: () => import('@/views/OSSView.vue'), meta: { titleKey: 'page.oss' } },
         { path: 'uptime', name: 'uptime', component: () => import('@/views/UptimeView.vue'), meta: { titleKey: 'page.uptime' } },
         { path: 'cluster', name: 'cluster', component: () => import('@/views/ClusterView.vue'), meta: { titleKey: 'page.cluster' } },
+        { path: 'k8s', name: 'k8s', component: () => import('@/views/K8sView.vue'), meta: { titleKey: 'page.k8s' } },
         { path: 'enterprise', name: 'enterprise', component: () => import('@/views/EnterpriseView.vue'), meta: { titleKey: 'page.enterprise', admin: true } },
         { path: 'auto-ops', name: 'auto-ops', component: () => import('@/views/AutoOpsView.vue'), meta: { titleKey: 'page.autoOps' } },
         { path: 'devops', name: 'devops', component: () => import('@/views/DevOpsView.vue'), meta: { titleKey: 'page.devops', admin: true } },

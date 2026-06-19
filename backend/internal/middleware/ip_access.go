@@ -33,7 +33,11 @@ func PanelIPAccess(load func() PanelIPAccessConfig) gin.HandlerFunc {
 		}
 		if cfg.WhitelistEnabled {
 			list := strings.TrimSpace(cfg.Whitelist)
-			if list != "" && !matchIPList(ip, list) {
+			if list == "" {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "whitelist enabled but empty - configure IPs"})
+				return
+			}
+			if !matchIPList(ip, list) {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "IP not in panel access whitelist"})
 				return
 			}

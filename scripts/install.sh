@@ -488,7 +488,48 @@ install_certbot() {
   esac
 }
 
+tune_host_memory() {
+  local ram_mb swap_mb
+  ram_mb="$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo 2>/dev/null || echo 0)"
+  swap_mb="$(awk '/SwapTotal/{printf "%d", $2/1024}' /proc/meminfo 2>/dev/null || echo 0)"
+  log "系统内存: ${ram_mb}MB, Swap: ${swap_mb}MB"
+
+  if [[ "${swap_mb:-0}" -eq 0 && "${ram_mb:-0}" -gt 0 && "${ram_mb:-0}" -lt 4096 ]]; then
+    log "未检测到 Swap，创建 1GB swapfile（缓解 kswapd0 内存抖动）..."
+    if [[ ! -f /swapfile ]]; then
+      fallocate -l 1G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=1024 status=none
+      chmod 600 /swapfile
+      mkswap /swapfile
+    fi
+    swapon /swapfile 2>/dev/null || true
+    grep -q '/swapfile' /etc/fstab 2>/dev/null || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  fi
+
+  cat >/etc/sysctl.d/99-owpanel-memory.conf <<'EOF'
+# OWPanel auto-generated memory tuning
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+EOF
+  sysctl -p /etc/sysctl.d/99-owpanel-memory.conf 2>/dev/null || sysctl -w vm.swappiness=10 vm.vfs_cache_pressure=50 2>/dev/null || true
+
+  if [[ "${ram_mb:-0}" -lt 1024 && "${INSTALL_STACK}" == "lnmp" ]]; then
+    log "低内存 (${ram_mb}MB)：自动切换 INSTALL_STACK=web（跳过 MariaDB/FTP）"
+    INSTALL_STACK=web
+  elif [[ "${ram_mb:-0}" -lt 2048 ]]; then
+    log "小内存 (${ram_mb}MB)：已启用 Swap 与内核调优；MariaDB 将使用低内存配置"
+    local dbconf="/etc/mysql/mariadb.conf.d/99-owpanel-lowmem.cnf"
+    mkdir -p "$(dirname "$dbconf")"
+    cat >"$dbconf" <<'EOF'
+[mysqld]
+innodb_buffer_pool_size = 64M
+max_connections = 50
+performance_schema = OFF
+EOF
+  fi
+}
+
 install_runtime_stack() {
+  tune_host_memory
   local stack
   stack="$(echo "${INSTALL_STACK}" | tr '[:upper:]' '[:lower:]')"
   case "$stack" in

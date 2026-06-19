@@ -30,6 +30,24 @@ export function resolveApiError(err: unknown, fallback: string, timeoutFallback?
   return e?.error || e?.message || fallback
 }
 
+/** Download a protected API path using Bearer auth (avoids ?token= in URLs). */
+export async function downloadAuthenticated(subpath: string, filename?: string): Promise<void> {
+  const token = localStorage.getItem('token')
+  const path = subpath.startsWith('/') ? subpath : `/${subpath}`
+  const res = await fetch(`${apiBaseURL()}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    throw new Error('download failed')
+  }
+  const blob = await res.blob()
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = filename || path.split('/').pop() || 'download'
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
 const api = axios.create({
   baseURL: apiBaseURLInternal(),
   timeout: 30000,

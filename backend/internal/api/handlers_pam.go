@@ -78,17 +78,52 @@ func (s *Server) handleTotpLogin(c *gin.Context) {
 		response.Error(c, 400, err.Error())
 		return
 	}
+
+	ip := c.ClientIP()
+	ua := c.GetHeader("User-Agent")
+	claims, _ := s.authSvc.ParseToken(req.TempToken)
+	username := ""
+	if claims != nil {
+		username = claims.Username
+	}
+
+	if err := auth.CheckLoginIPAllowed(ip); err != nil {
+		response.Error(c, 429, err.Error())
+		return
+	}
+	auth.RecordLoginIPAttempt(ip)
+	if username != "" {
+		if err := auth.CheckLoginAllowed(ip, username); err != nil {
+			auth.RecordLoginEvent(s.db, username, ip, ua, false, "locked")
+			s.enterprise.Recorder().Login(username, ip, ua, false, "locked")
+			if s.syslog != nil {
+				s.syslog.LoginFailure(username, ip, "locked")
+			}
+			response.Error(c, 429, err.Error())
+			return
+		}
+	}
+
 	token, user, err := s.authSvc.CompleteTotpLogin(req.TempToken, req.Code, s.totpDecrypt)
 	if err != nil {
 		if err == auth.ErrInvalidTotpCode {
+			if username == "" && user != nil {
+				username = user.Username
+			}
+			if username != "" {
+				auth.RecordLoginFailure(ip, username)
+				auth.RecordLoginEvent(s.db, username, ip, ua, false, "invalid_totp")
+				s.enterprise.Recorder().Login(username, ip, ua, false, "invalid_totp")
+				if s.syslog != nil {
+					s.syslog.LoginFailure(username, ip, "invalid_totp")
+				}
+			}
 			response.Error(c, 401, "invalid TOTP code")
 			return
 		}
 		response.Error(c, 401, err.Error())
 		return
 	}
-	ip := c.ClientIP()
-	ua := c.GetHeader("User-Agent")
 	auth.RecordLoginSuccess(ip, user.Username)
 	auth.RecordLoginEvent(s.db, user.Username, ip, ua, true, "ok_totp")
 	s.enterprise.Recorder().Login(user.Username, ip, ua, true, "ok_totp")

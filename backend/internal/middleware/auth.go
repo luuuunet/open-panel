@@ -8,36 +8,57 @@ import (
 	"github.com/luuuunet/owpanel/internal/auth"
 )
 
+func bearerToken(c *gin.Context) string {
+	header := c.GetHeader("Authorization")
+	if header == "" {
+		return ""
+	}
+	parts := strings.SplitN(header, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return ""
+	}
+	return parts[1]
+}
+
+func authenticate(c *gin.Context, authSvc *auth.Service, allowQueryToken bool) bool {
+	token := bearerToken(c)
+	if token == "" && allowQueryToken {
+		token = c.Query("token")
+	}
+	if token == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authorization"})
+		return false
+	}
+
+	claims, err := authSvc.ParseToken(token)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+		return false
+	}
+
+	c.Set("user_id", claims.UserID)
+	c.Set("username", claims.Username)
+	c.Set("role", claims.Role)
+	c.Set("permissions", claims.Permissions)
+	c.Set("disk_quota_mb", claims.DiskQuotaMB)
+	return true
+}
+
+// Auth validates JWT from Authorization Bearer header only.
 func Auth(authSvc *auth.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := ""
-		header := c.GetHeader("Authorization")
-		if header != "" {
-			parts := strings.SplitN(header, " ", 2)
-			if len(parts) == 2 && parts[0] == "Bearer" {
-				token = parts[1]
-			}
+		if authenticate(c, authSvc, false) {
+			c.Next()
 		}
-		if token == "" {
-			token = c.Query("token")
-		}
-		if token == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing authorization"})
-			return
-		}
+	}
+}
 
-		claims, err := authSvc.ParseToken(token)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
-			return
+// AuthAllowQueryToken validates Bearer header or ?token= (browser WebSocket only).
+func AuthAllowQueryToken(authSvc *auth.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if authenticate(c, authSvc, true) {
+			c.Next()
 		}
-
-		c.Set("user_id", claims.UserID)
-		c.Set("username", claims.Username)
-		c.Set("role", claims.Role)
-		c.Set("permissions", claims.Permissions)
-		c.Set("disk_quota_mb", claims.DiskQuotaMB)
-		c.Next()
 	}
 }
 

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/k8s"
 )
 
 type OverviewResponse struct {
@@ -28,6 +30,8 @@ type OverviewResponse struct {
 	CPU              float64         `json:"cpu_percent"`
 	Memory           float64         `json:"memory_percent"`
 	Disk             float64         `json:"disk_percent"`
+	K8sInstalled     bool            `json:"k8s_installed"`
+	K8sReady         bool            `json:"k8s_ready"`
 }
 
 func (s *Service) GetOverview() (*OverviewResponse, error) {
@@ -96,6 +100,16 @@ func (s *Service) GetOverview() (*OverviewResponse, error) {
 	out.WebsiteAvgScore = wa.AvgScore
 
 	out.loadLogRetention(s.dataDir)
+
+	out.K8sInstalled = appstore.K3sRunning()
+	if !out.K8sInstalled {
+		if app, err := s.apps.Get("k3s"); err == nil && app.Installed {
+			out.K8sInstalled = true
+		}
+	}
+	if out.K8sInstalled {
+		out.K8sReady = k8s.ClusterReady()
+	}
 
 	if s.dashboard != nil {
 		mon := s.dashboard.GetMonitor(0.1)

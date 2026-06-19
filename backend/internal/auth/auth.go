@@ -25,10 +25,24 @@ type Claims struct {
 type Service struct {
 	db        *gorm.DB
 	jwtSecret []byte
+	tokenTTL  func() time.Duration
 }
 
 func NewService(db *gorm.DB, jwtSecret string) *Service {
 	return &Service{db: db, jwtSecret: []byte(jwtSecret)}
+}
+
+func (s *Service) SetTokenTTL(fn func() time.Duration) {
+	s.tokenTTL = fn
+}
+
+func (s *Service) tokenDuration() time.Duration {
+	if s.tokenTTL != nil {
+		if d := s.tokenTTL(); d > 0 {
+			return d
+		}
+	}
+	return 24 * time.Hour
 }
 
 func (s *Service) Login(username, password string) (string, *models.User, error) {
@@ -53,6 +67,9 @@ func (s *Service) Login(username, password string) (string, *models.User, error)
 
 func (s *Service) ParseToken(tokenStr string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
+		if t.Method != jwt.SigningMethodHS256 {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
 		return s.jwtSecret, nil
 	})
 	if err != nil {
@@ -74,7 +91,7 @@ func (s *Service) issueToken(user *models.User) (string, error) {
 		Permissions: user.Permissions,
 		DiskQuotaMB: user.DiskQuotaMB,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.tokenDuration())),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

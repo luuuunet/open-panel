@@ -759,6 +759,12 @@ func (s *Service) detectAppStatus(key string) string {
 		}
 		return detectPhpMyAdminStatus(s.dataDir, port)
 	}
+	if key == "k3s" {
+		if K3sRunning() {
+			return "running"
+		}
+		return "stopped"
+	}
 	return detectServiceStatus(key)
 }
 

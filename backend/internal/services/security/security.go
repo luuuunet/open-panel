@@ -1,9 +1,13 @@
 package security
 
 import (
+	"strings"
+
+	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/luuuunet/owpanel/internal/services/appstore"
 	"github.com/luuuunet/owpanel/internal/services/settings"
 	"github.com/luuuunet/owpanel/internal/services/waf"
+	"gorm.io/gorm"
 )
 
 type RiskItem struct {
@@ -19,10 +23,11 @@ type Service struct {
 	waf      *waf.Service
 	appstore *appstore.Service
 	settings *settings.Service
+	db       *gorm.DB
 }
 
-func NewService(wafSvc *waf.Service, apps *appstore.Service, settingsSvc *settings.Service) *Service {
-	return &Service{waf: wafSvc, appstore: apps, settings: settingsSvc}
+func NewService(wafSvc *waf.Service, apps *appstore.Service, settingsSvc *settings.Service, db *gorm.DB) *Service {
+	return &Service{waf: wafSvc, appstore: apps, settings: settingsSvc, db: db}
 }
 
 func (s *Service) Scan() []RiskItem {
@@ -54,11 +59,11 @@ func (s *Service) Scan() []RiskItem {
 		{Key: "fail2ban", Name: "Fail2ban", Level: "medium", Status: s.fail2banStatus(), Solution: "建议安装 Fail2ban 联动安全日志", FixType: "install"},
 		{Key: "ssh_port", Name: "SSH 加固", Level: "medium", Status: sshPortStatus(), Solution: "建议修改 SSH 默认端口并禁用 root/密码登录", FixType: "navigate"},
 		{Key: "panel_entry", Name: "面板安全入口", Level: "high", Status: panelEntryStatus(s.settings), Solution: "启用随机安全入口路径，隐藏面板地址", FixType: "navigate"},
-		{Key: "panel_ip_whitelist", Name: "面板 IP 访问控制", Level: "high", Status: s.panelIPWhitelistStatus(), Solution: "启用 IP 白名单限制面板登录来源", FixType: "navigate"},
+		{Key: "panel_ip_whitelist", Name: "面板 IP 访问控制", Level: "high", Status: s.panelIPWhitelistStatus(), Solution: "启用 IP 白名单限制面板登录来源", FixType: "auto"},
 		{Key: "login_audit", Name: "登录审计日志", Level: "medium", Status: s.loginAuditStatus(), Solution: "记录登录成功/失败并在安全页查看", FixType: "none"},
-		{Key: "strong_password", Name: "强密码策略", Level: "medium", Status: s.strongPasswordStatus(), Solution: "要求密码包含大小写字母与数字", FixType: "navigate"},
-		{Key: "db_remote", Name: "数据库远程访问", Level: "high", Status: "pass", Solution: "已禁止远程访问", FixType: "none"},
-		{Key: "ssl", Name: "SSL 证书", Level: "medium", Status: "pass", Solution: "证书配置正常", FixType: "none"},
+		{Key: "strong_password", Name: "强密码策略", Level: "medium", Status: s.strongPasswordStatus(), Solution: "要求密码包含大小写字母与数字", FixType: "auto"},
+		{Key: "db_remote", Name: "数据库远程访问", Level: "high", Status: s.dbRemoteStatus(), Solution: "已禁止远程访问", FixType: "none"},
+		{Key: "ssl", Name: "SSL 证书", Level: "medium", Status: s.sslStatus(), Solution: "证书配置正常", FixType: "none"},
 	}
 	return items
 }
@@ -142,10 +147,14 @@ func (s *Service) panelIPWhitelistStatus() string {
 		return "warn"
 	}
 	all, _ := s.settings.GetAll()
-	if all["panel_ip_whitelist_enabled"] == "true" {
-		return "pass"
+	enabled := all["panel_ip_whitelist_enabled"] == "true"
+	if !enabled {
+		return "warn"
 	}
-	return "warn"
+	if strings.TrimSpace(all["panel_ip_whitelist"]) == "" {
+		return "fail"
+	}
+	return "pass"
 }
 
 func (s *Service) loginAuditStatus() string {
@@ -161,4 +170,78 @@ func (s *Service) strongPasswordStatus() string {
 		return "pass"
 	}
 	return "warn"
+}
+
+func (s *Service) dbRemoteStatus() string {
+	if s.appstore == nil {
+		return "warn"
+	}
+	found := false
+	for _, key := range []string{"mysql", "mariadb"} {
+		app, err := s.appstore.Get(key)
+		if err != nil || !app.Installed {
+			continue
+		}
+		found = true
+		raw, err := s.appstore.ReadConfigRaw(key)
+		if err != nil {
+			return "warn"
+		}
+		bind := parseBindAddress(raw)
+		if bind == "" {
+			return "warn"
+		}
+		if isLocalDBBind(bind) {
+			continue
+		}
+		return "fail"
+	}
+	if !found {
+		return "pass"
+	}
+	return "pass"
+}
+
+func (s *Service) sslStatus() string {
+	if s.settings != nil {
+		all, _ := s.settings.GetAll()
+		if all["panel_ssl"] == "true" {
+			return "pass"
+		}
+	}
+	if s.db != nil {
+		var active int64
+		s.db.Model(&models.SSLCertificate{}).Where("status = ?", "active").Count(&active)
+		if active > 0 {
+			return "pass"
+		}
+	}
+	return "warn"
+}
+
+func parseBindAddress(config string) string {
+	for _, line := range strings.Split(config, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "bind-address") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				return strings.TrimSpace(parts[1])
+			}
+		}
+	}
+	return ""
+}
+
+func isLocalDBBind(addr string) bool {
+	addr = strings.Trim(strings.TrimSpace(addr), "'\"")
+	switch addr {
+	case "127.0.0.1", "localhost", "::1":
+		return true
+	case "0.0.0.0", "*", "::":
+		return false
+	}
+	return strings.HasPrefix(addr, "127.")
 }

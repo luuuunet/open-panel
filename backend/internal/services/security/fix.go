@@ -2,6 +2,7 @@ package security
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/luuuunet/owpanel/internal/models"
 )
@@ -101,13 +102,10 @@ func (s *Service) Fix(key string) (*FixResult, error) {
 			GuideMessage: "请在「面板设置」查看安全入口，或在终端运行 sudo op config 重新生成",
 			RedirectPath: "/settings",
 		}, nil
-	case "panel_ip_whitelist", "strong_password":
-		return &FixResult{
-			Success:      false,
-			NeedsGuide:   true,
-			GuideMessage: "请在安全页「面板访问控制」标签启用 IP 白名单或强密码策略",
-			RedirectPath: "/protection?tab=security",
-		}, nil
+	case "panel_ip_whitelist":
+		return s.fixPanelIPWhitelist()
+	case "strong_password":
+		return s.fixStrongPassword()
 	default:
 		return nil, fmt.Errorf("no fix handler for key: %s", key)
 	}
@@ -208,4 +206,38 @@ func (s *Service) fixFail2ban() (*FixResult, error) {
 		InstallJobKey: "fail2ban",
 		Message:       "Fail2ban 安装已开始",
 	}, nil
+}
+
+func (s *Service) fixStrongPassword() (*FixResult, error) {
+	if s.settings == nil {
+		return nil, fmt.Errorf("settings unavailable")
+	}
+	if err := s.settings.Update(map[string]string{"password_require_strong": "true"}); err != nil {
+		return nil, err
+	}
+	return &FixResult{Success: true, Message: "已启用强密码策略"}, nil
+}
+
+func (s *Service) fixPanelIPWhitelist() (*FixResult, error) {
+	if s.settings == nil {
+		return nil, fmt.Errorf("settings unavailable")
+	}
+	all, _ := s.settings.GetAll()
+	if all["panel_ip_whitelist_enabled"] == "true" && strings.TrimSpace(all["panel_ip_whitelist"]) != "" {
+		return &FixResult{Success: true, Message: "面板 IP 白名单已配置"}, nil
+	}
+	guide := &FixResult{
+		Success:      false,
+		NeedsGuide:   true,
+		GuideMessage: "已启用 IP 白名单，请在「面板访问控制」中添加允许的 IP 地址，否则将无法访问面板",
+		RedirectPath: "/protection?tab=security",
+	}
+	if all["panel_ip_whitelist_enabled"] == "true" {
+		guide.GuideMessage = "IP 白名单已启用但未配置 IP，请在「面板访问控制」中添加允许的 IP 地址，否则将无法访问面板"
+		return guide, nil
+	}
+	if err := s.settings.Update(map[string]string{"panel_ip_whitelist_enabled": "true"}); err != nil {
+		return nil, err
+	}
+	return guide, nil
 }

@@ -27,6 +27,7 @@ func Host(apps *appstore.Service, ws *webserver.Manager, settingsSvc *settings.S
 	log.Println("[bootstrap] preparing host environment (first run)...")
 	start := time.Now()
 
+	TuneMemory(settingsSvc)
 	ensureDataLayout(dataDir)
 	apps.SyncCatalog()
 	apps.ReconcileInstalledFromSystem()

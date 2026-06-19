@@ -44,6 +44,7 @@ import (
 	"github.com/luuuunet/owpanel/internal/services/firewall"
 	"github.com/luuuunet/owpanel/internal/services/ftp"
 	"github.com/luuuunet/owpanel/internal/services/java"
+	"github.com/luuuunet/owpanel/internal/services/k8s"
 	"github.com/luuuunet/owpanel/internal/services/kafkaaccel"
 	"github.com/luuuunet/owpanel/internal/services/logs"
 	"github.com/luuuunet/owpanel/internal/services/mail"
@@ -107,6 +108,7 @@ type Server struct {
 	security    *security.Service
 	kafkaaccel  *kafkaaccel.Service
 	cilium      *cilium.Service
+	k8s         *k8s.Service
 	webserver   *webserver.Manager
 	phpmyadmin  *phpmyadmin.Service
 	autops      *autops.Service
@@ -279,7 +281,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 	sshSvc := sshmgr.NewService(db)
 	bastionSvc := bastion.NewService(db, cfg.DataDir, cfg.JWTSecret, sshSvc)
 	syslogSvc := audit.NewSyslog(settingsSvc)
-	securitySvc := security.NewService(wafSvc, appSvc, settingsSvc)
+	securitySvc := security.NewService(wafSvc, appSvc, settingsSvc, db)
 	enterpriseSvc := enterprise.NewService(db, settingsSvc, clusterSvc, dashSvc, securitySvc, uptimeSvc, syslogSvc)
 	enterpriseSvc.StartRetentionJob()
 	bastionSvc.SetSyslogEmitter(func(eventType, message string) {
@@ -303,10 +305,26 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		},
 	})
 	go func() { _ = dockerSvc.ReconcileBindings() }()
+	authSvc := auth.NewService(db, cfg.JWTSecret)
+	authSvc.SetTokenTTL(func() time.Duration {
+		all, err := settingsSvc.GetAll()
+		if err != nil {
+			return 24 * time.Hour
+		}
+		v := strings.TrimSpace(all["session_timeout"])
+		if v == "" {
+			return 24 * time.Hour
+		}
+		secs, err := strconv.Atoi(v)
+		if err != nil || secs <= 0 {
+			return 24 * time.Hour
+		}
+		return time.Duration(secs) * time.Second
+	})
 	srv := &Server{
 		cfg:       cfg,
 		db:        db,
-		authSvc:   auth.NewService(db, cfg.JWTSecret),
+		authSvc:   authSvc,
 		dashboard: dashSvc,
 		website:   websiteSvc,
 		database:  dbSvc,
@@ -342,6 +360,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		security:   securitySvc,
 		kafkaaccel: kafkaaccel.NewService(db, appSvc),
 		cilium:     cilium.NewService(db, appSvc, cfg.DataDir),
+		k8s:        k8s.NewService(appSvc, settingsSvc, cfg.DataDir),
 		webserver:  wsMgr,
 		phpmyadmin: pmaSvc,
 		autops:     autoOpsSvc,
@@ -409,6 +428,7 @@ func (s *Server) Run() error {
 	go s.startLogCleanupLoop()
 	go s.startSiteExpiryLoop()
 	go s.startAutomationScheduler()
+	go s.runInitialSecurityBootstrap()
 	go bootstrap.Host(s.appstore, s.webserver, s.settings, s.cfg.DataDir)
 	s.emitExtension(extension.EventPanelStartup, map[string]interface{}{"version": "owpanel"})
 	return r.Run(addr)
@@ -479,12 +499,38 @@ func (s *Server) startAutomationScheduler() {
 		s.autops.ScanExpiryAlerts()
 		s.autops.RunSSLAutoRenew(s.ssl.RenewAll)
 		s.autops.ScanWebsiteAudits(false)
+		s.runSecurityAutoFix(false)
 	}
 	run()
 	ticker := time.NewTicker(6 * time.Hour)
 	defer ticker.Stop()
 	for range ticker.C {
 		run()
+	}
+}
+
+const securityBootstrapKey = "security_bootstrap_v1"
+
+func (s *Server) runInitialSecurityBootstrap() {
+	all, err := s.settings.GetAll()
+	if err == nil && all[securityBootstrapKey] == "done" {
+		return
+	}
+	s.runSecurityAutoFix(true)
+	_ = s.settings.Update(map[string]string{securityBootstrapKey: "done"})
+}
+
+func (s *Server) runSecurityAutoFix(initial bool) {
+	if s.security == nil {
+		return
+	}
+	result, err := s.security.FixAll()
+	if err != nil {
+		fmt.Printf("[security] auto-fix: %v\n", err)
+		return
+	}
+	if initial {
+		fmt.Printf("[security] initial bootstrap auto-fix: %d item(s)\n", len(result.Results))
 	}
 }
 
@@ -512,6 +558,13 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 		api.POST("/deploy/hook/:token", s.handleDeployWebhook)
 		api.POST("/deploy/ci/:token", s.handleDeployCI)
 		s.registerEdgeInternalRoutes(api)
+
+		wsShell := api.Group("")
+		wsShell.Use(middleware.AuthAllowQueryToken(s.authSvc))
+		wsShell.Use(middleware.RequireShellAccess())
+		wsShell.Use(middleware.RateLimitStrict("terminal"))
+		wsShell.Use(enterprise.InfraAuditMiddleware(s.enterprise))
+		wsShell.GET("/terminal/ws", s.handleTerminalWSAuth)
 
 		authorized := api.Group("")
 		authorized.Use(middleware.Auth(s.authSvc))
@@ -619,20 +672,13 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 				s.registerClusterRoutes(monitor)
 			}
 
-			shell := authorized.Group("")
-			shell.Use(middleware.RequireShellAccess())
-			shell.Use(middleware.RateLimitStrict("terminal"))
-			shell.Use(enterprise.InfraAuditMiddleware(s.enterprise))
-			{
-				shell.GET("/terminal/ws", s.handleTerminalWSAuth)
-			}
-
 			admin := authorized.Group("")
 			admin.Use(middleware.RequireAdmin())
 			admin.Use(middleware.RateLimitSensitive("admin"))
 			admin.Use(enterprise.AuditMiddleware(s.enterprise))
 			{
 				admin.POST("/dashboard/free-memory", s.handleFreeMemory)
+				admin.POST("/dashboard/memory-tune", s.handleMemoryTune)
 				admin.POST("/dashboard/optimize", s.handleDashboardOptimize)
 				admin.GET("/firewall", s.handleListFirewall)
 				admin.GET("/firewall/status", s.handleFirewallStatus)
@@ -648,6 +694,7 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 				s.registerSecurityRoutes(admin)
 				s.registerKafkaAccelRoutes(admin)
 				s.registerCiliumRoutes(admin)
+				s.registerK8sRoutes(admin)
 				s.registerDevOpsRoutes(admin)
 				s.registerAIHubRoutes(admin)
 				s.registerToolboxRoutes(admin)
@@ -870,6 +917,16 @@ func (s *Server) handleDashboardProcesses(c *gin.Context) {
 
 func (s *Server) handleFreeMemory(c *gin.Context) {
 	result, err := s.dashboard.FreeMemory()
+	if err != nil {
+		response.Error(c, 500, err.Error())
+		return
+	}
+	response.OK(c, result)
+}
+
+func (s *Server) handleMemoryTune(c *gin.Context) {
+	bootstrap.TuneMemoryForce(s.settings, true)
+	result, err := s.dashboard.OneClickOptimize()
 	if err != nil {
 		response.Error(c, 500, err.Error())
 		return
