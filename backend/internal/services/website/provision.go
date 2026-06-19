@@ -67,6 +67,10 @@ func (s *Service) Get(id uint) (*models.Website, error) {
 }
 
 func (s *Service) Create(req *CreateRequest) (*CreateResult, error) {
+	if err := s.ensureWebServerForSite(); err != nil {
+		return nil, err
+	}
+
 	entries := s.parseRequestDomains(req)
 	if len(entries) == 0 {
 		return nil, fmt.Errorf("请输入域名")

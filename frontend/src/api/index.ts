@@ -3,6 +3,9 @@ import axios from 'axios'
 /** AI 助手后端最长可轮询约 5 分钟（Cursor Agent），前端需留足余量 */
 export const AI_REQUEST_TIMEOUT = 360000
 
+/** 首次建站可能自动安装 Nginx，需更长超时 */
+export const SITE_CREATE_TIMEOUT = 180000
+
 export function apiBaseURL(): string {
   const w = window as Window & { __OWPANEL_BASE__?: string }
   const base = w.__OWPANEL_BASE__ || '/'

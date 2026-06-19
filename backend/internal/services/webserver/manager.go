@@ -100,6 +100,9 @@ func (m *Manager) StartExclusive(key string) error {
 	if !app.Installed {
 		return fmt.Errorf("%s 未安装，请先在软件商店安装", app.Name)
 	}
+	if err := m.Bootstrap(key); err != nil {
+		return fmt.Errorf("配置 %s 失败: %w", app.Name, err)
+	}
 
 	for _, other := range webServerKeys {
 		if other == key {

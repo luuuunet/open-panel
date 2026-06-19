@@ -5,6 +5,7 @@ set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/owpanel}"
 PORT="${OWPANEL_PORT:-8888}"
+INSTALL_NGINX="${INSTALL_NGINX:-1}"
 PANEL_USER="${PANEL_USER:-root}"
 FROM_SOURCE="${FROM_SOURCE:-0}"
 REPO_URL="${REPO_URL:-https://github.com/luuuunet/owpanel.git}"
@@ -331,9 +332,63 @@ install_from_github_release() {
 open_firewall() {
   if command -v ufw >/dev/null 2>&1 && ufw status | grep -qi active; then
     ufw allow "$PORT/tcp" || true
+    ufw allow 80/tcp || true
+    ufw allow 443/tcp || true
   elif command -v firewall-cmd >/dev/null 2>&1; then
     firewall-cmd --permanent --add-port="${PORT}/tcp" 2>/dev/null || true
+    firewall-cmd --permanent --add-service=http 2>/dev/null || true
+    firewall-cmd --permanent --add-service=https 2>/dev/null || true
     firewall-cmd --reload 2>/dev/null || true
+  fi
+}
+
+install_web_server() {
+  if [[ "${INSTALL_NGINX}" != "1" ]]; then
+    log "跳过 Nginx 安装 (INSTALL_NGINX=${INSTALL_NGINX})"
+    return 0
+  fi
+  if command -v nginx >/dev/null 2>&1; then
+    log "Nginx 已安装，跳过"
+    return 0
+  fi
+  log "安装 Nginx（网站托管需要 80 端口）..."
+  case "$PKG" in
+    apt)
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get install -y -qq nginx
+      ;;
+    dnf|yum)
+      $PKG install -y nginx
+      ;;
+    *)
+      log "当前包管理器不支持自动安装 Nginx，请安装后在软件商店启动"
+      return 0
+      ;;
+  esac
+
+  local data_dir="$INSTALL_DIR/data"
+  local vhost_dir="$data_dir/nginx/vhosts"
+  local panel_conf="$data_dir/nginx/owpanel.conf"
+  local main_conf="/etc/nginx/nginx.conf"
+  mkdir -p "$vhost_dir" "$data_dir/logs"
+  cat > "$panel_conf" <<EOF
+# OWPanel auto-generated
+include ${vhost_dir}/*.conf;
+EOF
+
+  if [[ -f "$main_conf" ]] && ! grep -q 'owpanel-vhosts' "$main_conf"; then
+    sed -i "/http {/a\\    # owpanel-vhosts\\n    include ${panel_conf};" "$main_conf"
+  fi
+  for f in /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf; do
+    [[ -f "$f" && ! -f "${f}.owpanel-disabled" ]] && mv "$f" "${f}.owpanel-disabled" || true
+  done
+
+  if nginx -t >/dev/null 2>&1; then
+    systemctl enable nginx >/dev/null 2>&1 || true
+    systemctl restart nginx >/dev/null 2>&1 || true
+    log "Nginx 已安装并启动（80 端口）"
+  else
+    log "Nginx 已安装，但配置测试未通过，请在面板软件商店中检查"
   fi
 }
 
@@ -396,6 +451,11 @@ print_install_summary() {
   echo "    op uninstall  Remove panel service and files (sudo)"
   echo ""
   echo "  Change your password after first login."
+  if command -v nginx >/dev/null 2>&1; then
+    echo "  Websites:   http://${ip}/  (Nginx on port 80)"
+  else
+    echo "  Tip: Install Nginx from Software Store before creating websites."
+  fi
   echo "========================================="
 }
 
@@ -419,6 +479,7 @@ main() {
   fi
   install_binary_layout
   write_systemd
+  install_web_server
   open_firewall
   print_install_summary
 }
