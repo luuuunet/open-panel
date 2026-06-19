@@ -6,7 +6,7 @@ import api from '@/api'
 import { categoryLabel } from '@/locales'
 import SoftwareIcon from '@/components/SoftwareIcon.vue'
 import { ElMessage } from 'element-plus'
-import { ArrowRight, Bell, Refresh, Timer, Promotion, Share, FolderOpened, Lock, Document, Box, Histogram, Cpu, Coin, Platform } from '@element-plus/icons-vue'
+import { ArrowRight, Bell, Refresh, Timer, Promotion, Share, FolderOpened, Lock, Document, Box, Histogram, Cpu, Coin, Platform, DataAnalysis } from '@element-plus/icons-vue'
 import { cfTheme } from '@/config/theme'
 
 const route = useRoute()
@@ -52,6 +52,7 @@ const websiteAuditItems = computed(() => websiteAudits.value?.items || [])
 const installedCount = computed(() => watches.value.length)
 
 const quickLinks = computed(() => [
+  { path: '/product-analytics', icon: DataAnalysis, title: t('menu.abTesting'), desc: t('autoOps.linkAbTesting'), stat: 'A/B' },
   { path: '/uptime', icon: Bell, title: t('menu.uptime'), desc: t('autoOps.linkUptime'), stat: overview.value ? `${(overview.value.uptime_total || 0) - (overview.value.uptime_down || 0)}/${overview.value.uptime_total || 0}` : '—' },
   { path: '/cron', icon: Timer, title: t('menu.cron'), desc: t('autoOps.linkCron'), stat: overview.value ? `${overview.value.cron_enabled || 0}/${overview.value.cron_total || 0}` : '—' },
   { path: '/backup', icon: FolderOpened, title: t('menu.backup'), desc: t('autoOps.linkBackup'), stat: overview.value ? `${overview.value.backup_enabled || 0}/${overview.value.backup_total || 0}` : '—' },

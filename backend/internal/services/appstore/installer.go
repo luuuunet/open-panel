@@ -223,6 +223,9 @@ func runSystemUninstall(key, dataDir string) error {
 }
 
 func runServiceAction(key, action, dataDir string) error {
+	if ok, err := tryOpenpanelServiceAction(key, action, dataDir); ok {
+		return err
+	}
 	if ok, err := tryDockerServiceAction(key, action); ok {
 		return err
 	}

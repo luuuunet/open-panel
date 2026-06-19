@@ -29,6 +29,33 @@ func tryOpenpanelUninstall(key, dataDir string) (bool, error) {
 	return true, uninstallOpenpanelAnalytics(dataDir)
 }
 
+func tryOpenpanelServiceAction(key, action, dataDir string) (bool, error) {
+	if key != openpanelAppKey {
+		return false, nil
+	}
+	dir := openpanelAppDir(dataDir)
+	cf := filepath.Join(dir, "docker-compose.yml")
+	if _, err := os.Stat(cf); err != nil {
+		return true, fmt.Errorf("A/B 测试服务尚未安装")
+	}
+	if _, err := exec.LookPath("docker"); err != nil {
+		return true, fmt.Errorf("docker 不可用")
+	}
+	switch action {
+	case "start":
+		return true, runCommandInDir(dir, "docker", "compose", "up", "-d")
+	case "stop":
+		return true, runCommandInDir(dir, "docker", "compose", "stop")
+	case "restart":
+		if err := runCommandInDir(dir, "docker", "compose", "stop"); err != nil {
+			return true, err
+		}
+		return true, runCommandInDir(dir, "docker", "compose", "up", "-d")
+	default:
+		return true, nil
+	}
+}
+
 func tryOpenpanelStatus(key string) (bool, string) {
 	if key != openpanelAppKey {
 		return false, ""

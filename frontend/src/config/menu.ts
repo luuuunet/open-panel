@@ -78,7 +78,6 @@ export const menuGroups: MenuGroup[] = [
     items: [
       { path: '/websites', titleKey: 'menu.website', icon: 'Link', perm: 'websites' },
       { path: '/wordpress', titleKey: 'menu.wpToolkit', icon: 'Reading', perm: 'websites' },
-      { path: '/product-analytics', titleKey: 'menu.productAnalytics', icon: 'DataAnalysis', perm: 'websites' },
       { path: '/runtimes', titleKey: 'menu.runtimes', icon: 'Platform', perm: 'websites' },
       { path: '/ssl', titleKey: 'menu.ssl', icon: 'Lock', perm: 'websites' },
     ],
@@ -102,6 +101,7 @@ export const menuGroups: MenuGroup[] = [
     titleKey: 'menuGroup.automation',
     items: [
       { path: '/auto-ops', titleKey: 'menu.autoOps', icon: 'Refresh', perm: 'monitor' },
+      { path: '/product-analytics', titleKey: 'menu.abTesting', icon: 'DataAnalysis', perm: 'monitor' },
       { path: '/uptime', titleKey: 'menu.uptime', icon: 'Bell', perm: 'monitor' },
       { path: '/cron', titleKey: 'menu.cron', icon: 'Timer', perm: 'backup' },
       { path: '/backup', titleKey: 'menu.backup', icon: 'FolderOpened', perm: 'backup' },

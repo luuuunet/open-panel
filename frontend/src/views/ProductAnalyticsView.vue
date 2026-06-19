@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api, { resolveApiError } from '@/api'
+import SoftwareInstallLogDialog from '@/components/SoftwareInstallLogDialog.vue'
 import { ElMessage } from 'element-plus'
 import {
-  Connection,
+  CircleCheck,
   CopyDocument,
+  DataAnalysis,
   Link,
   RefreshRight,
+  VideoPause,
   VideoPlay,
 } from '@element-plus/icons-vue'
 
+const APP_KEY = 'openpanel-analytics'
+
 const { t } = useI18n()
-const router = useRouter()
 
 const status = ref({
   installed: false,
@@ -24,8 +27,11 @@ const status = ref({
 const websites = ref<any[]>([])
 const selectedSiteId = ref<number | null>(null)
 const loading = ref(false)
-const deploying = ref(false)
 const saving = ref(false)
+const serviceLoading = ref(false)
+
+const installLogVisible = ref(false)
+const installTrigger = ref(false)
 
 const trackingForm = ref({
   product_analytics_enabled: false,
@@ -34,15 +40,41 @@ const trackingForm = ref({
 })
 
 const snippet = ref('')
-const usageSteps = computed(() => [
-  { title: t('productAnalytics.step1Title'), desc: t('productAnalytics.step1Desc') },
-  { title: t('productAnalytics.step2Title'), desc: t('productAnalytics.step2Desc') },
-  { title: t('productAnalytics.step3Title'), desc: t('productAnalytics.step3Desc') },
-  { title: t('productAnalytics.step4Title'), desc: t('productAnalytics.step4Desc') },
-  { title: t('productAnalytics.step5Title'), desc: t('productAnalytics.step5Desc') },
-])
 
 const selectedSite = computed(() => websites.value.find((w) => w.id === selectedSiteId.value) || null)
+const trackedSitesCount = computed(() => websites.value.filter((w) => w.product_analytics_enabled).length)
+const deployReady = computed(() => status.value.installed && status.value.running)
+const configReady = computed(
+  () => !!trackingForm.value.product_analytics_client_id && trackingForm.value.product_analytics_enabled,
+)
+const trackReady = computed(() => configReady.value && !!snippet.value)
+
+const kanbanColumns = computed(() => [
+  {
+    key: 'deploy',
+    title: t('productAnalytics.kanbanDeploy'),
+    done: deployReady.value,
+    active: !deployReady.value,
+  },
+  {
+    key: 'config',
+    title: t('productAnalytics.kanbanConfig'),
+    done: configReady.value,
+    active: deployReady.value && !configReady.value,
+  },
+  {
+    key: 'test',
+    title: t('productAnalytics.kanbanTest'),
+    done: trackReady.value,
+    active: configReady.value && !trackReady.value,
+  },
+  {
+    key: 'track',
+    title: t('productAnalytics.kanbanTrack'),
+    done: trackReady.value,
+    active: configReady.value,
+  },
+])
 
 async function loadStatus() {
   const res: any = await api.get('/product-analytics/status')
@@ -86,35 +118,39 @@ async function refreshAll() {
   }
 }
 
-async function deployFromStore() {
-  deploying.value = true
+function installAbTool() {
+  installLogVisible.value = true
+  installTrigger.value = true
+}
+
+async function onInstallDone() {
+  installTrigger.value = false
+  await refreshAll()
+}
+
+async function startService() {
+  serviceLoading.value = true
   try {
-    await api.post('/software/openpanel-analytics/install', {})
-    ElMessage.success(t('productAnalytics.installStarted'))
-    router.push({ path: '/software', query: { tab: 'installed', key: 'openpanel-analytics' } })
+    await api.post(`/software/${APP_KEY}/start`)
+    ElMessage.success(t('productAnalytics.started'))
+    await loadStatus()
   } catch (e: any) {
-    ElMessage.error(resolveApiError(e, t('productAnalytics.installFailed')))
+    ElMessage.error(resolveApiError(e, t('productAnalytics.startFailed')))
   } finally {
-    deploying.value = false
+    serviceLoading.value = false
   }
 }
 
-async function deployFromCompose() {
-  deploying.value = true
+async function stopService() {
+  serviceLoading.value = true
   try {
-    await api.post('/compose', {
-      name: t('productAnalytics.composeProjectName'),
-      path: '/opt/compose/openpanel-analytics',
-      scaffold: true,
-      template: 'openpanel',
-      auto_start: true,
-    })
-    ElMessage.success(t('productAnalytics.composeStarted'))
-    router.push('/compose')
+    await api.post(`/software/${APP_KEY}/stop`)
+    ElMessage.success(t('productAnalytics.stopped'))
+    await loadStatus()
   } catch (e: any) {
-    ElMessage.error(resolveApiError(e, t('productAnalytics.composeFailed')))
+    ElMessage.error(resolveApiError(e, t('common.failed')))
   } finally {
-    deploying.value = false
+    serviceLoading.value = false
   }
 }
 
@@ -158,16 +194,14 @@ watch(selectedSiteId, (id) => {
 
 watch(
   () => [trackingForm.value.product_analytics_client_id, trackingForm.value.product_analytics_api_url],
-  () => {
-    loadSnippet()
-  },
+  () => loadSnippet(),
 )
 
 onMounted(refreshAll)
 </script>
 
 <template>
-  <div class="product-analytics-page">
+  <div class="ab-board-page" v-loading="loading">
     <div class="page-header">
       <div>
         <h2>{{ t('productAnalytics.title') }}</h2>
@@ -176,102 +210,150 @@ onMounted(refreshAll)
       <el-button :icon="RefreshRight" :loading="loading" @click="refreshAll">{{ t('common.refresh') }}</el-button>
     </div>
 
-    <el-card shadow="never" class="section-card usage-card">
-      <template #header>
-        <span>{{ t('productAnalytics.usageGuide') }}</span>
-      </template>
-      <el-steps direction="vertical" :active="5">
-        <el-step v-for="(step, i) in usageSteps" :key="i" :title="step.title" :description="step.desc" />
-      </el-steps>
-    </el-card>
+    <div class="metric-strip">
+      <div class="metric-card">
+        <span class="metric-label">{{ t('productAnalytics.installed') }}</span>
+        <el-tag :type="status.installed ? 'success' : 'info'" size="large">
+          {{ status.installed ? t('common.yes') : t('common.no') }}
+        </el-tag>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">{{ t('productAnalytics.running') }}</span>
+        <el-tag :type="status.running ? 'success' : 'warning'" size="large">
+          {{ status.running ? t('productAnalytics.runningYes') : t('productAnalytics.runningNo') }}
+        </el-tag>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">{{ t('productAnalytics.trackedSites') }}</span>
+        <strong class="metric-value">{{ trackedSitesCount }}</strong>
+      </div>
+      <div class="metric-card metric-card--wide">
+        <span class="metric-label">{{ t('productAnalytics.dashboardUrl') }}</span>
+        <el-link :href="status.dashboard_url" target="_blank" type="primary">{{ status.dashboard_url }}</el-link>
+      </div>
+    </div>
 
-    <el-row :gutter="16">
-      <el-col :xs="24" :lg="12">
-        <el-card shadow="never" class="section-card">
-          <template #header>
-            <span>{{ t('productAnalytics.installStatus') }}</span>
-          </template>
-          <div class="status-grid">
-            <div class="status-item">
-              <span class="label">{{ t('productAnalytics.installed') }}</span>
-              <el-tag :type="status.installed ? 'success' : 'info'">
-                {{ status.installed ? t('common.yes') : t('common.no') }}
-              </el-tag>
-            </div>
-            <div class="status-item">
-              <span class="label">{{ t('productAnalytics.running') }}</span>
-              <el-tag :type="status.running ? 'success' : 'warning'">
-                {{ status.running ? t('productAnalytics.runningYes') : t('productAnalytics.runningNo') }}
-              </el-tag>
-            </div>
-            <div class="status-item">
-              <span class="label">{{ t('productAnalytics.dashboardUrl') }}</span>
-              <el-link :href="status.dashboard_url" target="_blank" type="primary">{{ status.dashboard_url }}</el-link>
-            </div>
-            <div class="status-item">
-              <span class="label">{{ t('productAnalytics.apiUrl') }}</span>
-              <code>{{ status.api_url }}</code>
-            </div>
-          </div>
-          <div class="action-row">
-            <el-button type="primary" :icon="Link" :disabled="!status.running" @click="openDashboard">
-              {{ t('productAnalytics.openDashboard') }}
-            </el-button>
-            <el-button :icon="VideoPlay" :loading="deploying" @click="deployFromStore">
-              {{ t('productAnalytics.installFromStore') }}
-            </el-button>
-            <el-button :icon="Connection" :loading="deploying" @click="deployFromCompose">
-              {{ t('productAnalytics.deployCompose') }}
-            </el-button>
-          </div>
-        </el-card>
-      </el-col>
+    <div class="kanban-board">
+      <div
+        v-for="col in kanbanColumns"
+        :key="col.key"
+        class="kanban-col"
+        :class="{ 'kanban-col--done': col.done, 'kanban-col--active': col.active }"
+      >
+        <div class="kanban-col-head">
+          <span class="kanban-step">{{ col.title }}</span>
+          <el-tag v-if="col.done" type="success" size="small" :icon="CircleCheck">{{ t('productAnalytics.stepDone') }}</el-tag>
+          <el-tag v-else-if="col.active" type="warning" size="small">{{ t('productAnalytics.stepCurrent') }}</el-tag>
+        </div>
 
-      <el-col :xs="24" :lg="12">
-        <el-card shadow="never" class="section-card">
-          <template #header>
-            <span>{{ t('productAnalytics.websiteTracking') }}</span>
-          </template>
-          <el-form label-width="120px">
+        <!-- Deploy -->
+        <template v-if="col.key === 'deploy'">
+          <p class="kanban-desc">{{ t('productAnalytics.kanbanDeployDesc') }}</p>
+          <div class="kanban-meta">
+            <div><span class="muted">{{ t('productAnalytics.apiUrl') }}</span> <code>{{ status.api_url }}</code></div>
+          </div>
+          <div class="kanban-actions">
+            <el-button
+              v-if="!status.installed"
+              type="primary"
+              size="large"
+              :icon="DataAnalysis"
+              @click="installAbTool"
+            >
+              {{ t('productAnalytics.installOneClick') }}
+            </el-button>
+            <template v-else>
+              <el-button
+                v-if="!status.running"
+                type="primary"
+                :icon="VideoPlay"
+                :loading="serviceLoading"
+                @click="startService"
+              >
+                {{ t('productAnalytics.startService') }}
+              </el-button>
+              <el-button
+                v-else
+                :icon="VideoPause"
+                :loading="serviceLoading"
+                @click="stopService"
+              >
+                {{ t('productAnalytics.stopService') }}
+              </el-button>
+              <el-button type="primary" plain :icon="Link" :disabled="!status.running" @click="openDashboard">
+                {{ t('productAnalytics.openDashboard') }}
+              </el-button>
+            </template>
+          </div>
+        </template>
+
+        <!-- Config -->
+        <template v-else-if="col.key === 'config'">
+          <p class="kanban-desc">{{ t('productAnalytics.kanbanConfigDesc') }}</p>
+          <el-form label-position="top" class="compact-form">
             <el-form-item :label="t('productAnalytics.selectWebsite')">
-              <el-select v-model="selectedSiteId" filterable style="width: 100%">
+              <el-select v-model="selectedSiteId" filterable style="width: 100%" :disabled="!deployReady">
                 <el-option v-for="site in websites" :key="site.id" :label="site.domain" :value="site.id" />
               </el-select>
             </el-form-item>
             <el-form-item :label="t('productAnalytics.enabled')">
-              <el-switch v-model="trackingForm.product_analytics_enabled" />
+              <el-switch v-model="trackingForm.product_analytics_enabled" :disabled="!deployReady" />
             </el-form-item>
             <el-form-item :label="t('productAnalytics.clientId')">
-              <el-input v-model="trackingForm.product_analytics_client_id" :placeholder="t('productAnalytics.clientIdHint')" />
+              <el-input
+                v-model="trackingForm.product_analytics_client_id"
+                :placeholder="t('productAnalytics.clientIdHint')"
+                :disabled="!deployReady"
+              />
             </el-form-item>
             <el-form-item :label="t('productAnalytics.apiUrlField')">
-              <el-input v-model="trackingForm.product_analytics_api_url" placeholder="http://localhost:3333/api" />
+              <el-input v-model="trackingForm.product_analytics_api_url" :disabled="!deployReady" />
             </el-form-item>
-            <el-form-item>
-              <el-button type="primary" :loading="saving" :disabled="!selectedSiteId" @click="saveTracking">
-                {{ t('common.save') }}
-              </el-button>
-            </el-form-item>
+            <el-button type="primary" :loading="saving" :disabled="!deployReady || !selectedSiteId" @click="saveTracking">
+              {{ t('common.save') }}
+            </el-button>
           </el-form>
-        </el-card>
-      </el-col>
-    </el-row>
+        </template>
 
-    <el-card shadow="never" class="section-card snippet-card">
-      <template #header>
-        <div class="snippet-header">
-          <span>{{ t('productAnalytics.trackingSnippet') }}</span>
-          <el-button text type="primary" :icon="CopyDocument" @click="copySnippet">{{ t('productAnalytics.copySnippet') }}</el-button>
-        </div>
-      </template>
-      <p class="snippet-hint">{{ t('productAnalytics.snippetHint') }}</p>
-      <pre class="snippet-box">{{ snippet }}</pre>
-    </el-card>
+        <!-- Test -->
+        <template v-else-if="col.key === 'test'">
+          <p class="kanban-desc">{{ t('productAnalytics.kanbanTestDesc') }}</p>
+          <ul class="feature-list">
+            <li>{{ t('productAnalytics.featureAB') }}</li>
+            <li>{{ t('productAnalytics.featureFunnels') }}</li>
+            <li>{{ t('productAnalytics.featureReplay') }}</li>
+            <li>{{ t('productAnalytics.featureCohorts') }}</li>
+          </ul>
+          <el-button type="primary" plain :icon="Link" :disabled="!deployReady" @click="openDashboard">
+            {{ t('productAnalytics.createExperiment') }}
+          </el-button>
+        </template>
+
+        <!-- Track -->
+        <template v-else>
+          <p class="kanban-desc">{{ t('productAnalytics.kanbanTrackDesc') }}</p>
+          <div class="snippet-toolbar">
+            <el-button text type="primary" :icon="CopyDocument" :disabled="!snippet" @click="copySnippet">
+              {{ t('productAnalytics.copySnippet') }}
+            </el-button>
+          </div>
+          <pre class="snippet-box">{{ snippet || t('productAnalytics.snippetEmpty') }}</pre>
+        </template>
+      </div>
+    </div>
+
+    <SoftwareInstallLogDialog
+      v-model="installLogVisible"
+      :app-key="APP_KEY"
+      :app-name="t('productAnalytics.toolName')"
+      :trigger-install="installTrigger"
+      @done="onInstallDone"
+    />
   </div>
 </template>
 
 <style scoped>
-.product-analytics-page {
+.ab-board-page {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -294,68 +376,150 @@ onMounted(refreshAll)
   font-size: 14px;
 }
 
-.usage-card {
-  margin-bottom: 16px;
-}
-
-.section-card {
-  margin-bottom: 16px;
-}
-
-.status-grid {
+.metric-strip {
   display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
 }
 
-.status-item {
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--el-fill-color-lighter);
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.metric-card--wide {
+  grid-column: span 1;
+}
+
+.metric-label {
+  color: var(--cf-text-muted);
+  font-size: 12px;
+}
+
+.metric-value {
+  font-size: 28px;
+  line-height: 1;
+  color: var(--cf-orange, #f6821f);
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.kanban-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 360px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  box-shadow: var(--apple-shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+
+.kanban-col--active {
+  border-color: rgba(246, 130, 31, 0.45);
+  box-shadow: 0 0 0 1px rgba(246, 130, 31, 0.12);
+}
+
+.kanban-col--done {
+  border-color: rgba(103, 194, 58, 0.35);
+}
+
+.kanban-col-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
-.status-item .label {
+.kanban-step {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.kanban-desc {
+  margin: 0;
   color: var(--cf-text-muted);
   font-size: 13px;
+  line-height: 1.55;
 }
 
-.action-row {
+.kanban-meta {
+  font-size: 12px;
+}
+
+.kanban-meta code {
+  word-break: break-all;
+}
+
+.kanban-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
+  margin-top: auto;
+}
+
+.compact-form :deep(.el-form-item) {
   margin-bottom: 12px;
 }
 
-.docs-alert {
-  margin-top: 8px;
-}
-
-.docs-alert a {
-  color: var(--cf-orange);
-}
-
-.snippet-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.snippet-hint {
-  margin: 0 0 12px;
-  color: var(--cf-text-muted);
+.feature-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--el-text-color-regular);
   font-size: 13px;
+  line-height: 1.7;
+}
+
+.snippet-toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .snippet-box {
+  flex: 1;
   margin: 0;
-  padding: 14px 16px;
+  padding: 12px;
+  min-height: 160px;
   background: var(--cf-bg-muted, #f5f7fa);
   border-radius: 8px;
   overflow: auto;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.muted {
+  color: var(--cf-text-muted);
+}
+
+@media (max-width: 1200px) {
+  .metric-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kanban-board {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .metric-strip,
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
