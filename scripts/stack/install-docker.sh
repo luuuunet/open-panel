@@ -16,14 +16,18 @@ ensure_prereqs
 
 case "$PKG" in
   apt)
-    if try_apt docker.io; then
+    if try_apt_retry docker.io; then
       :
-    elif try_apt docker-ce docker-ce-cli containerd.io; then
-      log "installed docker-ce from apt"
     else
-      log "apt docker packages failed, trying Docker official script …"
-      install_docker_official_script
-      exit 0
+      log "trying Docker official apt repo …"
+      setup_docker_apt_repo
+      if try_apt_retry docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin; then
+        log "installed docker-ce from official repo"
+      else
+        log "Docker apt repo failed, trying get.docker.com script …"
+        install_docker_official_script
+        exit 0
+      fi
     fi
     try_apt docker-compose-plugin || try_apt docker-compose || true
     enable_start docker

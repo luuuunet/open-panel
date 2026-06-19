@@ -13,28 +13,27 @@ if command -v openresty >/dev/null 2>&1; then
 fi
 
 ensure_prereqs
+stop_conflicting_webservers
 
 case "$PKG" in
   apt)
-    if try_apt openresty; then
+    if try_apt_retry openresty; then
       enable_start openresty
       log "openresty installed from default apt"
       exit 0
     fi
-    log "trying OpenResty official repo …"
+    log "default apt openresty unavailable, trying OpenResty official repo …"
     ensure_codename
-    install -d -m 0755 /usr/share/keyrings
-    curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 \
-      https://openresty.org/package/pubkey.gpg \
-      | gpg --dearmor -o /usr/share/keyrings/openresty.gpg
+    rm -f /etc/apt/sources.list.d/openresty-owpanel.list /etc/apt/sources.list.d/openresty.list
+    gpg_dearmor_url "https://openresty.org/package/pubkey.gpg" /usr/share/keyrings/openresty.gpg
     distro="$OS_ID"
-    [[ "$distro" == "debian" || "$distro" == "ubuntu" ]] || distro="debian"
-    cat > /etc/apt/sources.list.d/openresty-owpanel.list <<EOF
-deb [signed-by=/usr/share/keyrings/openresty.gpg] http://openresty.org/package/${distro} ${OS_CODENAME} openresty
-EOF
+    [[ "$distro" == "debian" || "$distro" == "ubuntu" ]] || distro="ubuntu"
+    write_apt_repo /etc/apt/sources.list.d/openresty-owpanel.list \
+      "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/openresty.gpg] https://openresty.org/package/${distro} ${OS_CODENAME} main"
     apt_update
-    try_apt openresty
+    apt_install_retry openresty
     enable_start openresty
+    log "openresty installed from official repo (${OS_CODENAME})"
     ;;
   dnf|yum)
     $PKG install -y openresty 2>/dev/null || $PKG install -y nginx

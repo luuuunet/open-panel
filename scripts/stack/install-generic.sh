@@ -63,7 +63,7 @@ EOF
     fi
     installed=0
     for pkg in "${PKGS[@]}"; do
-      if try_apt "$pkg"; then
+      if try_apt_retry "$pkg"; then
         installed=1
         break
       fi

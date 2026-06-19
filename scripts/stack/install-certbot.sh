@@ -16,7 +16,7 @@ ensure_prereqs
 
 case "$PKG" in
   apt)
-    if try_apt certbot python3-certbot-nginx; then
+    if try_apt_retry certbot python3-certbot-nginx; then
       log "certbot installed from apt"
       exit 0
     fi
@@ -29,7 +29,7 @@ case "$PKG" in
       log "certbot installed via snap"
       exit 0
     fi
-    try_apt python3-pip
+    try_apt_retry python3-pip
     pip3 install --break-system-packages certbot certbot-nginx 2>/dev/null \
       || pip3 install certbot certbot-nginx
     ;;

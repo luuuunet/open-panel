@@ -94,12 +94,120 @@ try_apt() {
   apt_install "$@" 2>/dev/null
 }
 
+apt_fix_broken() {
+  export DEBIAN_FRONTEND=noninteractive
+  dpkg --configure -a 2>/dev/null || true
+  apt-get install -y -f -qq \
+    -o Dpkg::Options::=--force-confdef \
+    -o Dpkg::Options::=--force-confold 2>/dev/null || true
+}
+
+apt_install_retry() {
+  local pkg
+  apt_fix_broken
+  if apt_install "$@"; then
+    return 0
+  fi
+  apt_fix_broken
+  apt_install "$@"
+}
+
+try_apt_retry() {
+  apt_fix_broken
+  try_apt "$@" || {
+    apt_fix_broken
+    try_apt "$@"
+  }
+}
+
+gpg_dearmor_url() {
+  local url="$1" dest="$2"
+  install -d -m 0755 "$(dirname "$dest")"
+  curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 "$url" \
+    | gpg --batch --yes --dearmor -o "$dest"
+}
+
+apt_arch() {
+  dpkg --print-architecture 2>/dev/null || echo "amd64"
+}
+
+write_apt_repo() {
+  local file="$1" content="$2"
+  install -d -m 0755 "$(dirname "$file")"
+  printf '%s\n' "$content" >"$file"
+}
+
+setup_mariadb_official_repo() {
+  local ver="${1:-10.11}"
+  local setup="/tmp/owpanel_mariadb_repo_setup"
+  log "configuring MariaDB ${ver} official repo …"
+  curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 \
+    -o "$setup" https://r.mariadb.com/downloads/mariadb_repo_setup 2>/dev/null || \
+    curl -fsSL -o "$setup" https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+  chmod +x "$setup"
+  if "$setup" --mariadb-server-version="mariadb-${ver}" --skip-maxscale --skip-tools --yes 2>/dev/null; then
+    return 0
+  fi
+  "$setup" --mariadb-server-version="mariadb-${ver}" --skip-maxscale --skip-tools
+}
+
+setup_docker_apt_repo() {
+  local distro="$OS_ID"
+  [[ "$distro" == "debian" || "$distro" == "ubuntu" ]] || distro="ubuntu"
+  ensure_codename
+  gpg_dearmor_url "https://download.docker.com/linux/${distro}/gpg" /usr/share/keyrings/docker.gpg
+  write_apt_repo /etc/apt/sources.list.d/docker-owpanel.list \
+    "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/docker.gpg] https://download.docker.com/linux/${distro} ${OS_CODENAME} stable"
+  apt_update
+}
+
+setup_php_repo() {
+  ensure_codename
+  case "$OS_ID" in
+    ubuntu)
+      apt_install software-properties-common 2>/dev/null || true
+      add-apt-repository -y ppa:ondrej/php
+      apt_update
+      ;;
+    debian)
+      gpg_dearmor_url "https://packages.sury.org/php/apt.gpg" /usr/share/keyrings/sury-php.gpg
+      write_apt_repo /etc/apt/sources.list.d/sury-php.list \
+        "deb [signed-by=/usr/share/keyrings/sury-php.gpg] https://packages.sury.org/php/ ${OS_CODENAME} main"
+      apt_update
+      ;;
+    *)
+      die "unsupported OS for PHP repo: $OS_PRETTY"
+      ;;
+  esac
+}
+
+setup_mongodb_repo() {
+  local ver="${1:-7.0}"
+  ensure_codename
+  gpg_dearmor_url "https://pgp.mongodb.com/server-${ver}.asc" "/usr/share/keyrings/mongodb-server-${ver}.gpg"
+  local suite="$OS_CODENAME"
+  if [[ "$OS_ID" == "ubuntu" ]]; then
+    write_apt_repo "/etc/apt/sources.list.d/mongodb-org-${ver}.list" \
+      "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/mongodb-server-${ver}.gpg] https://repo.mongodb.org/apt/ubuntu ${suite}/mongodb-org/${ver} multiverse"
+  else
+    write_apt_repo "/etc/apt/sources.list.d/mongodb-org-${ver}.list" \
+      "deb [signed-by=/usr/share/keyrings/mongodb-server-${ver}.gpg] https://repo.mongodb.org/apt/debian ${suite}/mongodb-org/${ver} main"
+  fi
+  apt_update
+}
+
 install_docker_official_script() {
   command -v curl >/dev/null 2>&1 || die "curl required for Docker official install"
   log "installing Docker via get.docker.com script …"
   curl -fsSL --connect-timeout 30 --max-time 600 --retry 3 https://get.docker.com | sh
   systemctl enable docker >/dev/null 2>&1 || true
   systemctl start docker
+}
+
+stop_conflicting_webservers() {
+  for svc in nginx apache2 httpd openresty; do
+    systemctl stop "$svc" 2>/dev/null || true
+  done
 }
 
 tune_mariadb_lowmem() {

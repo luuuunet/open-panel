@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -107,10 +108,42 @@ func (m *Manager) EnsureInstalled(key string) error {
 
 // SwitchExclusive installs the target web server if needed, then starts it exclusively.
 func (m *Manager) SwitchExclusive(key string) error {
+	if err := m.stopOtherWebServers(key); err != nil {
+		return err
+	}
 	if err := m.EnsureInstalled(key); err != nil {
 		return err
 	}
 	return m.StartExclusive(key)
+}
+
+func (m *Manager) stopOtherWebServers(except string) error {
+	for _, other := range webServerKeys {
+		if other == except {
+			continue
+		}
+		if m.apps != nil && m.apps.LiveStatus(other) == "running" {
+			_ = m.apps.ServiceAction(other, "stop")
+			continue
+		}
+		if svc := webServerServiceName(other); svc != "" {
+			_ = exec.Command("systemctl", "stop", svc).Run()
+		}
+	}
+	return nil
+}
+
+func webServerServiceName(key string) string {
+	switch key {
+	case "nginx":
+		return "nginx"
+	case "openresty":
+		return "openresty"
+	case "apache":
+		return "apache2"
+	default:
+		return ""
+	}
 }
 
 func (m *Manager) webServerInstalled(key string) bool {

@@ -15,9 +15,9 @@ ensure_prereqs
 
 case "$PKG" in
   apt)
-    if try_apt redis-server; then
+    if try_apt_retry redis-server; then
       :
-    elif try_apt redis; then
+    elif try_apt_retry redis; then
       log "installed redis meta package"
     else
       die "could not install redis from apt"

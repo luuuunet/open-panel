@@ -18,24 +18,22 @@ ensure_prereqs
 
 case "$PKG" in
   apt)
-    if apt_install nginx 2>/dev/null; then
+    stop_conflicting_webservers
+    if try_apt_retry nginx; then
       enable_start nginx
       log "nginx installed from default apt"
       exit 0
     fi
     log "default apt nginx failed, trying nginx.org repo …"
     ensure_codename
-    install -d -m 0755 /usr/share/keyrings
-    curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 \
-      https://nginx.org/keys/nginx_signing.key \
-      | gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg
+    rm -f /etc/apt/sources.list.d/nginx-owpanel.list
+    gpg_dearmor_url "https://nginx.org/keys/nginx_signing.key" /usr/share/keyrings/nginx-archive-keyring.gpg
     distro="$OS_ID"
     [[ "$distro" == "debian" || "$distro" == "ubuntu" ]] || distro="debian"
-    cat > /etc/apt/sources.list.d/nginx-owpanel.list <<EOF
-deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/${distro}/ ${OS_CODENAME} nginx
-EOF
+    write_apt_repo /etc/apt/sources.list.d/nginx-owpanel.list \
+      "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/${distro}/ ${OS_CODENAME} nginx"
     apt_update
-    apt_install nginx
+    apt_install_retry nginx
     enable_start nginx
     log "nginx installed from nginx.org repo"
     ;;

@@ -16,35 +16,26 @@ ensure_prereqs
 
 case "$PKG" in
   apt)
-    if try_apt mongodb; then
+    if try_apt_retry mongodb; then
       enable_start mongod
       log "mongodb installed from default apt"
       exit 0
     fi
     log "default apt mongodb unavailable, trying MongoDB official repo …"
-    ensure_codename
-    install -d -m 0755 /usr/share/keyrings
-    curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 \
-      https://pgp.mongodb.com/server-7.0.asc \
-      | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
-    mongo_codename="$OS_CODENAME"
-    case "$OS_ID" in
-      ubuntu)
-        case "$OS_CODENAME" in
-          noble|mantic) mongo_codename="jammy" ;;
-        esac
-        ;;
-      debian)
-        case "$OS_CODENAME" in
-          bookworm|trixie) mongo_codename="bookworm" ;;
-        esac
-        ;;
-    esac
-    cat > /etc/apt/sources.list.d/mongodb-org-7.0.list <<EOF
-deb [signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] https://repo.mongodb.org/apt/${OS_ID} ${mongo_codename}/mongodb-org/7.0 multiverse
-EOF
-    apt_update
-    try_apt mongodb-org
+    rm -f /etc/apt/sources.list.d/mongodb-org-7.0.list
+    setup_mongodb_repo 7.0
+    if ! try_apt_retry mongodb-org; then
+      if [[ "$OS_ID" == "ubuntu" && "$OS_CODENAME" != "jammy" ]]; then
+        log "retrying MongoDB repo with jammy suite …"
+        gpg_dearmor_url "https://pgp.mongodb.com/server-7.0.asc" /usr/share/keyrings/mongodb-server-7.0.gpg
+        write_apt_repo /etc/apt/sources.list.d/mongodb-org-7.0.list \
+          "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse"
+        apt_update
+        try_apt_retry mongodb-org || die "mongodb install failed"
+      else
+        die "mongodb install failed"
+      fi
+    fi
     enable_start mongod
     ;;
   dnf|yum)

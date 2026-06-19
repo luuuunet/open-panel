@@ -24,21 +24,13 @@ case "$PKG" in
 mariadb-server mariadb-server/root_password password owpanel
 mariadb-server mariadb-server/root_password_again password owpanel
 EOF
-    if apt_install mariadb-server 2>/dev/null; then
+    if try_apt_retry mariadb-server; then
       :
-    elif apt_install default-mysql-server 2>/dev/null; then
+    elif try_apt_retry default-mysql-server; then
       log "installed default-mysql-server (MariaDB-compatible)"
     else
-      log "trying MariaDB upstream repo …"
-      ensure_codename
-      curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 \
-        https://mariadb.org/mariadb_release_signing_key.pgp \
-        | gpg --dearmor -o /usr/share/keyrings/mariadb-keyring.gpg
-      cat > /etc/apt/sources.list.d/mariadb-owpanel.list <<EOF
-deb [signed-by=/usr/share/keyrings/mariadb-keyring.gpg] https://mirrors.aliyun.com/mariadb/mariadb-10.11/repo/debian ${OS_CODENAME} main
-EOF
-      apt_update
-      apt_install mariadb-server || apt_install mariadb-server-10.11
+      setup_mariadb_official_repo 10.11
+      apt_install_retry mariadb-server || apt_install_retry mariadb-server-10.11
     fi
     tune_mariadb_lowmem
     ;;

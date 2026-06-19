@@ -16,29 +16,26 @@ ensure_prereqs
 
 case "$PKG" in
   apt)
-    if try_apt postgresql postgresql-contrib; then
+    if try_apt_retry postgresql postgresql-contrib; then
       enable_start postgresql
       log "postgresql installed from default apt"
       exit 0
     fi
     log "default apt postgresql failed, trying PGDG repo …"
     ensure_codename
-    install -d -m 0755 /usr/share/keyrings
-    curl -fsSL --connect-timeout 30 --max-time 120 --retry 3 \
-      https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-      | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
-    cat > /etc/apt/sources.list.d/pgdg-owpanel.list <<EOF
-deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${OS_CODENAME}-pgdg main
-EOF
+    rm -f /etc/apt/sources.list.d/pgdg-owpanel.list
+    gpg_dearmor_url "https://www.postgresql.org/media/keys/ACCC4CF8.asc" /usr/share/keyrings/postgresql.gpg
+    write_apt_repo /etc/apt/sources.list.d/pgdg-owpanel.list \
+      "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${OS_CODENAME}-pgdg main"
     apt_update
     for ver in 16 15 14; do
-      if try_apt "postgresql-${ver}" "postgresql-client-${ver}"; then
+      if try_apt_retry "postgresql-${ver}" "postgresql-client-${ver}"; then
         enable_start postgresql
         log "postgresql ${ver} installed from PGDG"
         exit 0
       fi
     done
-    try_apt postgresql postgresql-contrib
+    apt_install_retry postgresql postgresql-contrib
     enable_start postgresql
     ;;
   dnf|yum)

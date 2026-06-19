@@ -29,20 +29,16 @@ case "$PKG" in
       "$(php_pkg fpm)" "$(php_pkg mysql)" "$(php_pkg cli)" "$(php_pkg common)"
       "$(php_pkg xml)" "$(php_pkg curl)" "$(php_pkg mbstring)" "$(php_pkg gd)" "$(php_pkg zip)"
     )
-    if apt_install "${pkgs[@]}" 2>/dev/null; then
+    if try_apt_retry "${pkgs[@]}"; then
       enable_start "$php_svc"
       log "PHP ${PHP_VERSION} installed from default apt"
       exit 0
     fi
-    log "default apt PHP ${PHP_VERSION} unavailable, trying ondrej/php PPA …"
-    if ! command -v add-apt-repository >/dev/null 2>&1; then
-      apt_install software-properties-common
-    fi
-    add-apt-repository -y ppa:ondrej/php
-    apt_update
-    apt_install "${pkgs[@]}"
+    log "default apt PHP ${PHP_VERSION} unavailable, trying third-party repo …"
+    setup_php_repo
+    apt_install_retry "${pkgs[@]}"
     enable_start "$php_svc"
-    log "PHP ${PHP_VERSION} installed from ondrej/php"
+    log "PHP ${PHP_VERSION} installed from third-party repo"
     ;;
   dnf|yum)
     $PKG install -y php-fpm php-mysqlnd php-cli php-xml php-mbstring php-gd php-zip
