@@ -14,7 +14,8 @@ type PresetResult struct {
 
 // ApplyPreset creates scheduled backup tasks for all websites or databases that do not already have a task.
 // websiteIDs limits website preset to specific sites when non-empty.
-func (s *Service) ApplyPreset(preset, schedule string, websiteIDs []uint) (*PresetResult, error) {
+// ossStorageID attaches remote OSS upload when set on newly created tasks.
+func (s *Service) ApplyPreset(preset, schedule string, websiteIDs []uint, ossStorageID *uint) (*PresetResult, error) {
 	if schedule == "" {
 		schedule = "0 2 * * *"
 	}
@@ -45,6 +46,9 @@ func (s *Service) ApplyPreset(preset, schedule string, websiteIDs []uint) (*Pres
 				Enabled:   true,
 				WebsiteID: &wid,
 			}
+			if ossStorageID != nil && *ossStorageID > 0 {
+				task.OSSStorageID = ossStorageID
+			}
 			if err := s.Create(task); err != nil {
 				return res, err
 			}
@@ -70,6 +74,9 @@ func (s *Service) ApplyPreset(preset, schedule string, websiteIDs []uint) (*Pres
 				Schedule:   schedule,
 				Enabled:    true,
 				DatabaseID: &did,
+			}
+			if ossStorageID != nil && *ossStorageID > 0 {
+				task.OSSStorageID = ossStorageID
 			}
 			if err := s.Create(task); err != nil {
 				return res, err

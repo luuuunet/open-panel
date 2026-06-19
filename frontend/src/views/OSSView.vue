@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 
 const tab = ref('storages')
 const loading = ref(false)
@@ -328,7 +331,17 @@ function formatSize(n: number) {
   return `${(n / 1024 / 1024).toFixed(2)} MB`
 }
 
-onMounted(loadAll)
+onMounted(async () => {
+  await loadAll()
+  const provider = String(route.query.provider || '').toLowerCase()
+  if (route.query.add === '1' && provider) {
+    resetStorageForm()
+    storageForm.value.provider = provider
+    applyPresetDefaults(provider)
+    storageDialog.value = true
+    router.replace({ path: route.path, query: {} })
+  }
+})
 onUnmounted(() => { if (logTimer) clearInterval(logTimer) })
 </script>
 

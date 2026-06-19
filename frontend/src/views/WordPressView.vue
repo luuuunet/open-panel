@@ -4,8 +4,9 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import api, { resolveApiError } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, Download, EditPen, FolderOpened, RefreshRight, Setting } from '@element-plus/icons-vue'
+import { Delete, Download, EditPen, FolderOpened, Promotion, RefreshRight, Setting } from '@element-plus/icons-vue'
 import WordPressBackupDialog from '@/components/WordPressBackupDialog.vue'
+import WordPressSEOPushDialog from '@/components/WordPressSEOPushDialog.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -36,6 +37,10 @@ const backupDialogVisible = ref(false)
 const backupSiteId = ref<number | null>(null)
 const backupDomain = ref('')
 
+const seoDialogVisible = ref(false)
+const seoSiteId = ref<number | null>(null)
+const seoDomain = ref('')
+
 const settingsVisible = ref(false)
 const settingsSaving = ref(false)
 const settingsForm = ref({
@@ -60,6 +65,7 @@ const form = ref({
   auto_ssl: true,
   ssl_email: '',
   cloudflare_cdn: false,
+  seo_push_enabled: true,
   database_mode: 'auto' as 'auto' | 'custom' | 'existing',
   database_id: undefined as number | undefined,
   db_name: '',
@@ -326,6 +332,18 @@ async function backup(row: any) {
   backupDialogVisible.value = true
 }
 
+function openSEOPush(row: any) {
+  seoSiteId.value = row.id
+  seoDomain.value = row.domain
+  seoDialogVisible.value = true
+}
+
+function seoPushLabel(row: any) {
+  if (row.last_seo_push_status) return row.last_seo_push_status
+  if (row.seo_push_enabled) return t('wp.seoPushOn')
+  return t('wp.seoPushOff')
+}
+
 function backupLabel(row: any) {
   if (row.backup_status && row.backup_status !== 'none') return row.backup_status
   return t('wpBackup.none')
@@ -404,7 +422,10 @@ onMounted(load)
       <el-button type="primary" @click="dialogVisible = true">{{ t('wp.deploy') }}</el-button>
     </div>
 
-    <el-alert :title="t('wp.hint')" type="info" show-icon :closable="false" style="margin-bottom: 16px" />
+    <el-alert type="info" show-icon :closable="false" style="margin-bottom: 16px">
+      <template #title>{{ t('wp.hint') }}</template>
+      <template #default>{{ t('wp.seoPushDocHint') }}</template>
+    </el-alert>
 
     <el-table :data="sites" stripe>
       <el-table-column :label="t('wp.primaryDomain')" min-width="140">
@@ -475,7 +496,21 @@ onMounted(load)
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.actions')" width="200" fixed="right" align="center">
+      <el-table-column :label="t('wp.seoPush')" width="90" align="center">
+        <template #default="{ row }">
+          <el-tag
+            size="small"
+            class="backup-tag-clickable"
+            :type="row.last_seo_push_status === 'success' ? 'success' : row.seo_push_enabled ? 'primary' : 'info'"
+            effect="plain"
+            :title="t('wp.seoPushClickHint')"
+            @click="openSEOPush(row)"
+          >
+            {{ seoPushLabel(row) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column :label="t('common.actions')" width="230" fixed="right" align="center">
         <template #default="{ row }">
           <div class="wp-actions">
             <el-tooltip :content="t('wp.siteSettings')" placement="top">
@@ -495,6 +530,9 @@ onMounted(load)
             </el-tooltip>
             <el-tooltip :content="t('wpBackup.runNow')" placement="top">
               <el-button text type="success" :icon="Download" @click="backup(row)" />
+            </el-tooltip>
+            <el-tooltip :content="t('wp.seoPushNow')" placement="top">
+              <el-button text type="primary" :icon="Promotion" @click="openSEOPush(row)" />
             </el-tooltip>
             <el-tooltip :content="t('common.delete')" placement="top">
               <el-button text type="danger" :icon="Delete" @click="handleDelete(row.id)" />
@@ -529,6 +567,10 @@ onMounted(load)
         </el-form-item>
         <el-form-item v-if="form.auto_ssl" :label="t('wp.sslEmail')">
           <el-input v-model="form.ssl_email" placeholder="admin@example.com" />
+        </el-form-item>
+        <el-form-item :label="t('wp.seoPush')">
+          <el-switch v-model="form.seo_push_enabled" />
+          <p class="form-hint">{{ t('wp.seoPushDeployHint') }}</p>
         </el-form-item>
         <el-form-item :label="t('wp.database')">
           <el-radio-group v-model="form.database_mode">
@@ -702,6 +744,12 @@ onMounted(load)
       v-model:visible="backupDialogVisible"
       :site-id="backupSiteId"
       :domain="backupDomain"
+      @updated="load"
+    />
+    <WordPressSEOPushDialog
+      v-model="seoDialogVisible"
+      :site-id="seoSiteId"
+      :domain="seoDomain"
       @updated="load"
     />
   </div>

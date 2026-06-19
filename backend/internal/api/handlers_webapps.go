@@ -62,6 +62,9 @@ func (s *Server) registerWordPressRoutes(authorized *gin.RouterGroup) {
 	authorized.DELETE("/wordpress/:id/backups/:backupId", s.handleDeleteWordPressBackup)
 	authorized.GET("/wordpress/:id/backups/:backupId/download", s.handleDownloadWordPressBackup)
 	authorized.GET("/wordpress/:id/backup/config", s.handleWordPressBackupConfig)
+	authorized.GET("/wordpress/:id/seo-push", s.handleGetWordPressSEOPush)
+	authorized.PUT("/wordpress/:id/seo-push", s.handleUpdateWordPressSEOPush)
+	authorized.POST("/wordpress/:id/seo-push", s.handlePushWordPressSEO)
 }
 
 func (s *Server) registerNodeJSRoutes(authorized *gin.RouterGroup) {
@@ -572,6 +575,38 @@ func (s *Server) handleDownloadWordPressBackup(c *gin.Context) {
 
 func (s *Server) handleWordPressBackupConfig(c *gin.Context) {
 	response.OK(c, s.wordpress.BackupConfig())
+}
+
+func (s *Server) handleGetWordPressSEOPush(c *gin.Context) {
+	cfg, err := s.wordpress.GetSEOPushSettings(parseID(c))
+	if err != nil {
+		response.Error(c, 500, err.Error())
+		return
+	}
+	response.OK(c, cfg)
+}
+
+func (s *Server) handleUpdateWordPressSEOPush(c *gin.Context) {
+	var req wordpress.SEOPushUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, 400, err.Error())
+		return
+	}
+	cfg, err := s.wordpress.UpdateSEOPushSettings(parseID(c), &req)
+	if err != nil {
+		response.Error(c, 500, err.Error())
+		return
+	}
+	response.OK(c, cfg)
+}
+
+func (s *Server) handlePushWordPressSEO(c *gin.Context) {
+	res, err := s.wordpress.PushToSearchEngines(parseID(c))
+	if err != nil {
+		response.Error(c, 500, err.Error())
+		return
+	}
+	response.OK(c, res)
 }
 
 func (s *Server) handleListNodeJS(c *gin.Context) {

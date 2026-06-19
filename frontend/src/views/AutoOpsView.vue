@@ -6,7 +6,7 @@ import api from '@/api'
 import { categoryLabel } from '@/locales'
 import SoftwareIcon from '@/components/SoftwareIcon.vue'
 import { ElMessage } from 'element-plus'
-import { ArrowRight, Bell, Refresh, Timer, Promotion, Share, FolderOpened, Lock, Document, Box, Histogram, Cpu, Coin, Platform, DataAnalysis, CircleCheck } from '@element-plus/icons-vue'
+import { ArrowRight, Bell, Refresh, Timer, Promotion, Share, FolderOpened, Lock, Document, Box, Histogram, Cpu, Coin, Platform, DataAnalysis, CircleCheck, Upload } from '@element-plus/icons-vue'
 import { cfTheme } from '@/config/theme'
 import { useAuthStore } from '@/stores/auth'
 
@@ -47,6 +47,13 @@ const configForm = ref({
 
 const applyingPreset = ref('')
 
+const cloudHub = ref<any>(null)
+const cloudLoading = ref(false)
+const applyingCloud = ref('')
+const cloudStoragePick = ref<Record<string, number | null>>({})
+const cloudTodosVisible = ref(false)
+const cloudTodosList = ref<string[]>([])
+
 const quickImporting = ref('')
 const websiteAudits = ref<any>(null)
 const auditDetail = ref<any>(null)
@@ -63,6 +70,7 @@ const quickLinks = computed(() => [
   { path: '/uptime', icon: Bell, title: t('menu.uptime'), desc: t('autoOps.linkUptime'), audience: t('autoOps.audienceSite'), stat: overview.value ? `${(overview.value.uptime_total || 0) - (overview.value.uptime_down || 0)}/${overview.value.uptime_total || 0}` : '—' },
   { path: '/cron', icon: Timer, title: t('menu.cron'), desc: t('autoOps.linkCron'), audience: t('autoOps.audienceAll'), stat: overview.value ? `${overview.value.cron_enabled || 0}/${overview.value.cron_total || 0}` : '—' },
   { path: '/backup', icon: FolderOpened, title: t('menu.backup'), desc: t('autoOps.linkBackup'), audience: t('autoOps.audienceSite'), stat: overview.value ? `${overview.value.backup_enabled || 0}/${overview.value.backup_total || 0}` : '—' },
+  { path: '/oss', icon: Upload, title: t('menu.oss'), desc: t('autoOps.linkOSS'), audience: t('autoOps.audienceOps'), stat: cloudHub.value?.summary?.oss_storages ? String(cloudHub.value.summary.oss_storages) : '—' },
   { path: '/devops', icon: Promotion, title: t('menu.devops'), desc: t('autoOps.linkDevops'), audience: t('autoOps.audienceDev'), stat: 'CI/CD', adminOnly: true },
   { path: '/cluster', icon: Share, title: t('menu.cluster'), desc: t('autoOps.linkCluster'), audience: t('autoOps.audienceOps'), stat: t('autoOps.multiNode') },
   { path: '/k8s', icon: Platform, title: t('menu.k8s'), desc: t('autoOps.linkK8s'), audience: t('autoOps.audienceContainer'), stat: overview.value?.k8s_ready ? t('k8s.ready') : (overview.value?.k8s_installed ? t('k8s.notReady') : '—'), adminOnly: true },
@@ -118,11 +126,11 @@ const beginnerPaths = computed(() => [
     title: t('autoOps.pathCloudTitle'),
     desc: t('autoOps.pathCloudDesc'),
     steps: [
-      { text: t('autoOps.pathCloud1'), path: '/auto-ops', tab: 'guide' },
-      { text: t('autoOps.pathCloud2'), path: '/auto-ops', tab: 'settings' },
-      { text: t('autoOps.pathCloud3'), path: '/backup' },
-      { text: t('autoOps.pathCloud4'), path: '/uptime' },
-      { text: t('autoOps.pathCloud5'), path: '/cron' },
+      { text: t('autoOps.pathCloud1'), path: '/auto-ops', tab: 'cloud' },
+      { text: t('autoOps.pathCloud2'), path: '/oss' },
+      { text: t('autoOps.pathCloud3'), path: '/dns' },
+      { text: t('autoOps.pathCloud4'), path: '/backup' },
+      { text: t('autoOps.pathCloud5'), path: '/auto-ops', tab: 'settings' },
     ],
   },
 ])
@@ -166,13 +174,44 @@ const glossaryItems = computed(() => [
   { term: t('autoOps.glossaryK8s'), def: t('autoOps.glossaryK8sDef') },
 ])
 
-function goPath(path: string, tabName?: string) {
+const cloudSummaryTags = computed(() => {
+  const s = cloudHub.value?.summary
+  if (!s) return []
+  return [
+    { label: t('autoOps.cloudStatOSS'), value: s.oss_storages },
+    { label: t('autoOps.cloudStatDNS'), value: s.dns_providers },
+    { label: t('autoOps.cloudStatBackup'), value: s.backup_tasks },
+    { label: t('autoOps.cloudStatBackupOSS'), value: s.backup_with_oss },
+    { label: t('autoOps.cloudStatUptime'), value: s.uptime_monitors },
+  ]
+})
+
+function cloudFeatureLabel(key: string) {
+  const map: Record<string, string> = {
+    oss: 'autoOps.cloudFeatureOss',
+    dns: 'autoOps.cloudFeatureDns',
+    backup: 'autoOps.cloudFeatureBackup',
+    uptime: 'autoOps.cloudFeatureUptime',
+    autops: 'autoOps.cloudFeatureAutops',
+    sync: 'autoOps.cloudFeatureSync',
+    mail: 'autoOps.cloudFeatureMail',
+    cluster: 'autoOps.cloudFeatureCluster',
+    monitor: 'autoOps.cloudFeatureAutops',
+  }
+  return t(map[key] || key)
+}
+
+function goPath(path: string, tabName?: string, query?: Record<string, string>) {
   if (path === '/auto-ops' && tabName) {
     tab.value = tabName
-    router.replace({ path, query: { tab: tabName } })
+    router.replace({ path, query: { tab: tabName, ...query } })
     return
   }
-  router.push(path)
+  router.push({ path, query })
+}
+
+function goOSSProvider(provider: string) {
+  router.push({ path: '/oss', query: { provider, add: '1' } })
 }
 
 async function applyBeginnerPreset() {
@@ -235,6 +274,55 @@ async function quickImportBackup() {
     ElMessage.error(e?.error || e?.message || t('autoOps.updateFailed'))
   } finally {
     quickImporting.value = ''
+  }
+}
+
+async function loadCloudHub() {
+  cloudLoading.value = true
+  try {
+    const res: any = await api.get('/cloud/hub')
+    cloudHub.value = res.data
+    for (const v of res.data?.vendors || []) {
+      if (cloudStoragePick.value[v.key] === undefined) {
+        cloudStoragePick.value[v.key] = v.storages?.[0]?.id ?? null
+      }
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('autoOps.updateFailed'))
+  } finally {
+    cloudLoading.value = false
+  }
+}
+
+async function applyCloudPreset(vendorKey: string) {
+  applyingCloud.value = vendorKey
+  try {
+    const storageId = cloudStoragePick.value[vendorKey]
+    const res: any = await api.post(`/cloud/presets/${vendorKey}`, {
+      oss_storage_id: storageId || undefined,
+      include_ops: true,
+      link_backup: true,
+      create_sync: !!storageId,
+    })
+    const d = res.data || {}
+    const backupN = (d.backup_websites?.created ?? 0) + (d.backup_databases?.created ?? 0)
+    ElMessage.success(t('autoOps.cloudPresetApplied', {
+      watch: d.autops?.watch_count ?? 0,
+      uptime: d.uptime?.created ?? 0,
+      backup: backupN,
+      linked: d.backup_linked ?? 0,
+    }))
+    if (d.todos?.length) {
+      cloudTodosList.value = d.todos
+      cloudTodosVisible.value = true
+    }
+    await load()
+    await loadOverview()
+    await loadCloudHub()
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('autoOps.updateFailed'))
+  } finally {
+    applyingCloud.value = ''
   }
 }
 
@@ -454,7 +542,9 @@ onMounted(() => {
   if (route.query.tab === 'settings') tab.value = 'settings'
   if (route.query.tab === 'websites') tab.value = 'websites'
   if (route.query.tab === 'guide') tab.value = 'guide'
+  if (route.query.tab === 'cloud') tab.value = 'cloud'
   loadWebsiteAudits()
+  loadCloudHub()
   timer = setInterval(() => {
     load()
     if (tab.value === 'overview') loadOverview()
@@ -487,7 +577,7 @@ onUnmounted(() => clearInterval(timer))
       </div>
     </div>
 
-    <el-tabs v-model="tab" @tab-change="(name: string) => { if (name === 'websites') loadWebsiteAudits() }">
+    <el-tabs v-model="tab" @tab-change="(name: string) => { if (name === 'websites') loadWebsiteAudits(); if (name === 'cloud') loadCloudHub() }">
       <el-tab-pane :label="t('autoOps.guideTab')" name="guide">
         <el-alert type="info" :closable="false" show-icon class="guide-intro">
           <template #title>{{ t('autoOps.guideIntroTitle') }}</template>
@@ -589,6 +679,82 @@ onUnmounted(() => clearInterval(timer))
             </dl>
           </template>
         </el-alert>
+      </el-tab-pane>
+
+      <el-tab-pane :label="t('autoOps.cloudTab')" name="cloud">
+        <div v-loading="cloudLoading">
+          <el-alert type="info" :closable="false" show-icon class="guide-intro">
+            <template #title>{{ t('autoOps.cloudIntroTitle') }}</template>
+            <template #default>{{ t('autoOps.cloudIntroBody') }}</template>
+          </el-alert>
+
+          <div v-if="cloudHub?.summary" class="cloud-summary">
+            <el-tag v-for="s in cloudSummaryTags" :key="s.label" type="info" effect="plain">{{ s.label }}: {{ s.value }}</el-tag>
+          </div>
+
+          <h3 class="section-title">{{ t('autoOps.cloudIntegrationsTitle') }}</h3>
+          <p class="section-desc">{{ t('autoOps.cloudIntegrationsDesc') }}</p>
+          <div class="cloud-int-grid">
+            <el-card v-for="item in cloudHub?.integrations || []" :key="item.key" shadow="never" class="cloud-int-card" @click="goPath(item.route, item.key === 'autops' ? 'overview' : undefined, item.key === 'sync' ? { tab: 'tasks' } : undefined)">
+              <div class="cloud-int-head">
+                <span>{{ cloudFeatureLabel(item.key) }}</span>
+                <el-tag size="small" :type="item.configured ? 'success' : 'info'">{{ item.configured ? t('autoOps.cloudConfigured') : t('autoOps.cloudNotConfigured') }}</el-tag>
+              </div>
+              <p class="cloud-int-desc">{{ t(`autoOps.cloudFeatureDesc_${item.key}`) }}</p>
+              <div class="cloud-int-foot">{{ t('autoOps.cloudCount', { n: item.count }) }} · {{ t('autoOps.cloudOpen') }} →</div>
+            </el-card>
+          </div>
+
+          <h3 class="section-title">{{ t('autoOps.cloudVendorsTitle') }}</h3>
+          <p class="section-desc">{{ t('autoOps.cloudVendorsDesc') }}</p>
+          <div class="cloud-vendor-grid">
+            <el-card v-for="v in cloudHub?.vendors || []" :key="v.key" shadow="never" class="cloud-vendor-card">
+              <div class="preset-head">{{ v.name }}</div>
+              <p class="preset-body">{{ v.description }}</p>
+              <div class="cloud-vendor-tags">
+                <el-tag v-if="v.oss_count" size="small" type="success">OSS ×{{ v.oss_count }}</el-tag>
+                <el-tag v-if="v.dns_ready" size="small" type="success">DNS</el-tag>
+                <el-tag v-if="v.mail_ready" size="small" type="success">{{ t('autoOps.cloudMail') }}</el-tag>
+              </div>
+              <el-form v-if="v.storages?.length" label-width="80px" class="cloud-storage-pick">
+                <el-form-item :label="t('autoOps.cloudStorage')">
+                  <el-select v-model="cloudStoragePick[v.key]" style="width: 100%">
+                    <el-option v-for="st in v.storages" :key="st.id" :label="`${st.name} (${st.bucket || st.provider})`" :value="st.id" />
+                  </el-select>
+                </el-form-item>
+              </el-form>
+              <ul class="preset-list">
+                <li v-for="f in v.features" :key="f.key">{{ cloudFeatureLabel(f.key) }} — {{ f.configured ? '✓' : '—' }}</li>
+              </ul>
+              <el-alert v-if="!v.storages?.length" type="warning" :closable="false" show-icon class="cloud-setup-hint">
+                <template #default>
+                  {{ t('autoOps.cloudSetupOssHint', { name: v.name }) }}
+                  <el-button link type="primary" @click="goOSSProvider(v.key)">{{ t('autoOps.cloudSetupOssBtn') }}</el-button>
+                </template>
+              </el-alert>
+              <div class="cloud-vendor-actions">
+                <el-button type="primary" :loading="applyingCloud === v.key" @click="applyCloudPreset(v.key)">
+                  {{ t('autoOps.cloudPresetBtn', { name: v.name }) }}
+                </el-button>
+                <el-button @click="goOSSProvider(v.key)">{{ t('autoOps.cloudLinkOSS') }}</el-button>
+                <el-button v-if="v.key === 'aliyun' || v.key === 'tencent'" @click="goPath('/dns')">{{ t('autoOps.cloudLinkDNS') }}</el-button>
+              </div>
+            </el-card>
+          </div>
+
+          <el-alert type="success" :closable="false" show-icon class="guide-doc">
+            <template #title>{{ t('autoOps.cloudPackTitle') }}</template>
+            <template #default>
+              <ul class="preset-list">
+                <li>{{ t('autoOps.cloudPackItem1') }}</li>
+                <li>{{ t('autoOps.cloudPackItem2') }}</li>
+                <li>{{ t('autoOps.cloudPackItem3') }}</li>
+                <li>{{ t('autoOps.cloudPackItem4') }}</li>
+                <li>{{ t('autoOps.cloudPackItem5') }}</li>
+              </ul>
+            </template>
+          </el-alert>
+        </div>
       </el-tab-pane>
 
       <el-tab-pane :label="t('autoOps.overview')" name="overview">
@@ -961,6 +1127,17 @@ onUnmounted(() => clearInterval(timer))
         <el-empty v-if="!auditDetail.findings?.length" :description="t('autoOps.websiteNoIssues')" />
       </div>
     </el-drawer>
+
+    <el-dialog v-model="cloudTodosVisible" :title="t('autoOps.cloudTodosTitle')" width="520px">
+      <p class="cloud-todos-intro">{{ t('autoOps.cloudTodosIntro') }}</p>
+      <ol class="cloud-todos-list">
+        <li v-for="(item, i) in cloudTodosList" :key="i">{{ item }}</li>
+      </ol>
+      <template #footer>
+        <el-button @click="goPath('/auto-ops', 'settings')">{{ t('autoOps.cloudTodosWebhook') }}</el-button>
+        <el-button type="primary" @click="cloudTodosVisible = false">{{ t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -1116,4 +1293,19 @@ onUnmounted(() => clearInterval(timer))
 .link-title { font-weight: 600; font-size: 14px; }
 .link-desc { font-size: 12px; color: var(--el-text-color-secondary); margin-top: 2px; }
 .link-stat { font-size: 12px; color: var(--el-text-color-secondary); }
+.cloud-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.cloud-int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.cloud-int-card { cursor: pointer; border: 1px solid var(--el-border-color-lighter); transition: border-color 0.15s; }
+.cloud-int-card:hover { border-color: var(--el-color-primary-light-5); }
+.cloud-int-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 6px; }
+.cloud-int-desc { margin: 0 0 8px; font-size: 12px; color: var(--el-text-color-secondary); line-height: 1.5; min-height: 36px; }
+.cloud-int-foot { font-size: 12px; color: var(--el-color-primary); }
+.cloud-vendor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.cloud-vendor-card { border: 1px solid var(--el-border-color-lighter); }
+.cloud-vendor-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.cloud-storage-pick { margin: 8px 0; }
+.cloud-vendor-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.cloud-setup-hint { margin: 8px 0; }
+.cloud-todos-intro { margin: 0 0 12px; font-size: 13px; color: var(--el-text-color-secondary); }
+.cloud-todos-list { margin: 0; padding-left: 20px; line-height: 1.8; font-size: 13px; }
 </style>

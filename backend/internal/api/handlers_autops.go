@@ -161,12 +161,12 @@ func (s *Server) handleAutoOpsPresetSite(c *gin.Context) {
 		response.Error(c, 500, err.Error())
 		return
 	}
-	webBackup, err := s.backup.ApplyPreset("websites", "0 2 * * *", nil)
+	webBackup, err := s.backup.ApplyPreset("websites", "0 2 * * *", nil, nil)
 	if err != nil {
 		response.Error(c, 500, err.Error())
 		return
 	}
-	dbBackup, err := s.backup.ApplyPreset("databases", "0 3 * * *", nil)
+	dbBackup, err := s.backup.ApplyPreset("databases", "0 3 * * *", nil, nil)
 	if err != nil {
 		response.Error(c, 500, err.Error())
 		return

@@ -68,7 +68,7 @@ OWPanel is an open-source Linux server management panel with a modern Vue 3 UI a
 | Menu | Features |
 |------|----------|
 | **Websites** | Nginx/OpenResty vhosts, domains, PHP/proxy, rewrites |
-| **WP Toolkit** | WordPress install, migration, full backup |
+| **WP Toolkit** | WordPress install, migration, full backup, [search engine push](./WORDPRESS_SEO.md) |
 | **Runtimes** | Node.js / Java project management |
 | **SSL** | Let's Encrypt, manual certs, deploy to sites |
 | **PHP** | versions, extensions, config |

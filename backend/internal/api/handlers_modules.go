@@ -533,9 +533,10 @@ func (s *Server) handleRunBackupTask(c *gin.Context) {
 
 func (s *Server) handleBackupPresets(c *gin.Context) {
 	var req struct {
-		Preset     string `json:"preset"`
-		Schedule   string `json:"schedule"`
-		WebsiteIDs []uint `json:"website_ids"`
+		Preset       string `json:"preset"`
+		Schedule     string `json:"schedule"`
+		WebsiteIDs   []uint `json:"website_ids"`
+		OSSStorageID *uint  `json:"oss_storage_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, 400, err.Error())
@@ -545,7 +546,7 @@ func (s *Server) handleBackupPresets(c *gin.Context) {
 		response.Error(c, 400, "preset required")
 		return
 	}
-	res, err := s.backup.ApplyPreset(req.Preset, req.Schedule, req.WebsiteIDs)
+	res, err := s.backup.ApplyPreset(req.Preset, req.Schedule, req.WebsiteIDs, req.OSSStorageID)
 	if err != nil {
 		response.Error(c, 500, err.Error())
 		return

@@ -14,6 +14,7 @@ const websites = ref<any[]>([])
 const databases = ref<any[]>([])
 const dialogVisible = ref(false)
 const applyingPreset = ref('')
+const defaultOssId = ref<number | null>(null)
 
 const quickTemplates = [
   { key: 'websites', title: 'backup.templateAllSites', desc: 'backup.templateAllSitesDesc', schedule: '0 2 * * *', icon: '🌐' },
@@ -64,12 +65,20 @@ async function load() {
   ossList.value = oss.data || []
   websites.value = sites.data || []
   databases.value = dbs.data || []
+  if (!defaultOssId.value && ossList.value.length) {
+    const cloud = ossList.value.find((o: any) => o.provider !== 'local')
+    defaultOssId.value = cloud?.id ?? ossList.value[0]?.id ?? null
+  }
 }
 
 async function applyPreset(key: string, schedule: string) {
   applyingPreset.value = key
   try {
-    const res: any = await api.post('/backup/presets', { preset: key, schedule })
+    const res: any = await api.post('/backup/presets', {
+      preset: key,
+      schedule,
+      oss_storage_id: defaultOssId.value || undefined,
+    })
     const d = res.data || {}
     ElMessage.success(t('backup.presetApplied', { created: d.created || 0, skipped: d.skipped || 0 }))
     await load()
@@ -155,6 +164,12 @@ onMounted(load)
     <el-tabs v-model="tab">
       <el-tab-pane :label="t('backup.tabTasks')" name="tasks">
         <h3 class="section-title">{{ t('backup.quickTitle') }}</h3>
+        <div v-if="ossList.length" class="oss-pick-row">
+          <span class="oss-pick-label">{{ t('backup.defaultOss') }}</span>
+          <el-select v-model="defaultOssId" clearable :placeholder="t('backup.defaultOssHint')" style="width: 280px">
+            <el-option v-for="o in ossList" :key="o.id" :label="`${o.name} (${o.provider})`" :value="o.id" />
+          </el-select>
+        </div>
         <div class="template-grid">
           <el-card v-for="tpl in quickTemplates" :key="tpl.key" shadow="never" class="template-card">
             <div class="template-head">
@@ -294,6 +309,8 @@ onMounted(load)
 .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .hint { margin-bottom: 16px; }
 .section-title { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+.oss-pick-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.oss-pick-label { font-size: 13px; color: var(--el-text-color-secondary); }
 .template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 16px; }
 .template-card { border: 1px solid var(--el-border-color-lighter); }
 .template-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }

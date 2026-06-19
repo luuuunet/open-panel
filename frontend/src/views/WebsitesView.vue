@@ -25,6 +25,8 @@ const crossSiteLoadingId = ref<number | null>(null)
 const phpAccelLoadingId = ref<number | null>(null)
 const phpVersionLoadingId = ref<number | null>(null)
 const automationLoading = ref(false)
+const ossStorages = ref<any[]>([])
+const backupOssId = ref<number | null>(null)
 
 const ACTIONS_COL_MIN = 320
 const ACTIONS_COL_MAX = 460
@@ -535,6 +537,7 @@ async function createBackupScheduleForSites(rows?: any[]) {
       preset: 'websites',
       schedule: '0 2 * * *',
       website_ids: sites.map((s) => s.id),
+      oss_storage_id: backupOssId.value || undefined,
     })
     const d = res.data || {}
     ElMessage.success(t('websites.backupPresetDone', { created: d.created || 0, skipped: d.skipped || 0 }))
@@ -542,6 +545,23 @@ async function createBackupScheduleForSites(rows?: any[]) {
     ElMessage.error(resolveApiError(e, t('common.failed')))
   } finally {
     automationLoading.value = false
+  }
+}
+
+function goCloudHub() {
+  router.push({ path: '/auto-ops', query: { tab: 'cloud' } })
+}
+
+async function loadOssStorages() {
+  try {
+    const res: any = await api.get('/oss/storages')
+    ossStorages.value = (res.data || []).filter((o: any) => o.enabled !== false)
+    if (!backupOssId.value && ossStorages.value.length) {
+      const cloud = ossStorages.value.find((o: any) => o.provider !== 'local')
+      backupOssId.value = cloud?.id ?? ossStorages.value[0]?.id ?? null
+    }
+  } catch {
+    ossStorages.value = []
   }
 }
 
@@ -722,6 +742,7 @@ function backupTagType(row: any) {
 
 onMounted(() => {
   load()
+  loadOssStorages()
   bindActionsColLayoutObserver()
   scheduleActionsColWidthSync()
   window.addEventListener('resize', scheduleActionsColWidthSync)
@@ -795,6 +816,16 @@ async function handleCreateJava() {
         </el-dropdown>
         <el-button :loading="automationLoading" @click="importUptimeForSites()">{{ t('websites.allAddUptime') }}</el-button>
         <el-button :loading="automationLoading" @click="createBackupScheduleForSites()">{{ t('websites.allAddBackup') }}</el-button>
+        <el-select
+          v-if="ossStorages.length"
+          v-model="backupOssId"
+          clearable
+          class="toolbar-oss-select"
+          :placeholder="t('websites.backupOssHint')"
+        >
+          <el-option v-for="o in ossStorages" :key="o.id" :label="`${o.name} (${o.provider})`" :value="o.id" />
+        </el-select>
+        <el-button @click="goCloudHub">{{ t('websites.cloudHub') }}</el-button>
         <div v-if="activeServer" class="webserver-badge" :class="{ running: activeServer.status === 'running' }">
           <span class="dot" />
           <span>{{ activeServer.name }} {{ activeServer.version }}</span>
@@ -1381,6 +1412,7 @@ async function handleCreateJava() {
   gap: 10px;
   flex-wrap: wrap;
 }
+.toolbar-oss-select { width: 200px; }
 .webserver-badge {
   display: inline-flex;
   align-items: center;

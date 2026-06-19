@@ -131,6 +131,7 @@ OWPanel 是开源 Linux 服务器运维管理面板，提供 Web 界面统一管
 路径：**网站 → WP 工具包**
 
 - WordPress 站点一键安装、迁移
+- **搜索引擎推送**：部署后自动或手动提交站点地图到 Google、Bing、IndexNow、百度等（详见 [WORDPRESS_SEO.md](./WORDPRESS_SEO.md)）
 - 完整备份（文件 + 数据库）
 - 常见维护操作（缓存、权限、配置等）
 

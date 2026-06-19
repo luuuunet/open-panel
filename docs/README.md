@@ -6,8 +6,11 @@ OWPanel 完整使用与运维文档。
 |------|------|
 | [中文用户手册](./zh-CN/USER_GUIDE.md) | 全模块功能说明、权限、安全与常见问题 |
 | [自动化指南（小白版）](./zh-CN/AUTOMATION.md) | 与宝塔/1Panel/阿里云/AWS/GCP 对比、一键预设、迁移对照 |
+| [WordPress 搜索引擎推送](./zh-CN/WORDPRESS_SEO.md) | 自动/手动提交 Google、Bing、IndexNow、百度等 |
+| [云厂商整合指南](./zh-CN/CLOUD.md) | OSS/DNS/备份/监控多云接入与一键迁移包 |
 | [English User Guide](./en/USER_GUIDE.md) | Full module reference (English) |
 | [Automation Guide (beginner)](./en/AUTOMATION.md) | Cloud comparison, presets, migration cheat sheet |
+| [WordPress SEO Push (English)](./en/WORDPRESS_SEO.md) | Submit sitemaps to search engines |
 | [安装与部署](../README.md) | 一键安装、源码开发、远程部署（见项目 README） |
 | [贡献指南](../CONTRIBUTING.md) | 开发环境与 PR 规范 |
 

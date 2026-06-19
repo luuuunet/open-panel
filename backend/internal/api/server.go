@@ -27,6 +27,7 @@ import (
 	"github.com/luuuunet/owpanel/internal/services/bastion"
 	"github.com/luuuunet/owpanel/internal/services/cache"
 	"github.com/luuuunet/owpanel/internal/services/cilium"
+	"github.com/luuuunet/owpanel/internal/services/cloudhub"
 	"github.com/luuuunet/owpanel/internal/services/cluster"
 	"github.com/luuuunet/owpanel/internal/services/compose"
 	"github.com/luuuunet/owpanel/internal/services/cron"
@@ -112,6 +113,7 @@ type Server struct {
 	webserver   *webserver.Manager
 	phpmyadmin  *phpmyadmin.Service
 	autops      *autops.Service
+	cloudhub    *cloudhub.Service
 	cluster     *cluster.Service
 	ossstorage  *ossstorage.Service
 	uptime      *uptime.Service
@@ -271,6 +273,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 	cronSvc.Start()
 	uptimeSvc := uptime.NewService(db, perfSvc)
 	uptimeSvc.Start()
+	cloudhubSvc := cloudhub.NewService(db, cfg.DataDir, autoOpsSvc, backupSvc, uptimeSvc, ossSvc)
 	composeSvc := compose.NewService(db)
 	devopsSvc := devops.NewService(db, cfg.DataDir, composeSvc, wsMgr, appSvc, settingsSvc)
 	aihubSvc := aihub.NewService(cfg.DataDir, appSvc, settingsSvc)
@@ -364,6 +367,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		webserver:  wsMgr,
 		phpmyadmin: pmaSvc,
 		autops:     autoOpsSvc,
+		cloudhub:   cloudhubSvc,
 		cluster:    clusterSvc,
 		ossstorage: ossSvc,
 		uptime:     uptimeSvc,
@@ -670,6 +674,7 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 			{
 				s.registerUptimeRoutes(monitor)
 				s.registerAutoOpsRoutes(monitor)
+				s.registerCloudRoutes(monitor)
 				s.registerClusterRoutes(monitor)
 			}
 

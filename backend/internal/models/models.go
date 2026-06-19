@@ -692,6 +692,20 @@ type WordPressSite struct {
 	SSLStatus    string         `gorm:"size:32;default:none" json:"ssl_status"` // none | active | failed | skipped
 	Remark       string         `gorm:"size:255" json:"remark"`
 	Domains      []WordPressDomain `gorm:"foreignKey:SiteID" json:"domains,omitempty"`
+	// SEO push to search engines (sitemap ping / IndexNow)
+	SEOPushEnabled    bool       `gorm:"default:true" json:"seo_push_enabled"`
+	SEOPushOnDeploy   bool       `gorm:"default:true" json:"seo_push_on_deploy"`
+	SEOPushGoogle     bool       `gorm:"default:true" json:"seo_push_google"`
+	SEOPushBing       bool       `gorm:"default:true" json:"seo_push_bing"`
+	SEOPushIndexNow   bool       `gorm:"default:true" json:"seo_push_indexnow"`
+	SEOPushBaidu      bool       `gorm:"default:false" json:"seo_push_baidu"`
+	SEOPushYandex     bool       `gorm:"default:false" json:"seo_push_yandex"`
+	IndexNowKey       string     `gorm:"size:64" json:"indexnow_key"`
+	SitemapURL        string     `gorm:"size:512" json:"sitemap_url"`
+	BaiduPushToken    string     `gorm:"size:128" json:"baidu_push_token"`
+	LastSEOPushAt     *time.Time `json:"last_seo_push_at"`
+	LastSEOPushStatus string     `gorm:"size:32" json:"last_seo_push_status"`
+	LastSEOPushLog    string     `gorm:"type:text" json:"last_seo_push_log"`
 }
 
 type WordPressBackup struct {

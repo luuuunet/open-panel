@@ -250,4 +250,5 @@ func (s *Service) runDeploy(site *models.WordPressSite, extras []string, dbOpts 
 	}
 
 	logger.finish("success", "")
+	go s.PushSEOIfEnabled(site.ID)
 }
