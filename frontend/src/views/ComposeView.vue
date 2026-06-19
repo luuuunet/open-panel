@@ -79,7 +79,7 @@ const templateMeta: Record<string, { icon: string; color: string }> = {
   mysql: { icon: 'DB', color: '#00758f' },
   redis: { icon: 'R', color: '#dc382d' },
   wordpress: { icon: 'WP', color: '#21759b' },
-  portainer: { icon: 'P', color: '#13bef9' },
+  openpanel: { icon: 'OP', color: '#6366f1' },
 }
 
 const stats = computed(() => {

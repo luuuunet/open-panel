@@ -30,6 +30,7 @@ const router = createRouter({
         { path: 'docker', name: 'docker', component: () => import('@/views/DockerView.vue'), meta: { titleKey: 'page.docker' } },
         { path: 'compose', name: 'compose', component: () => import('@/views/ComposeView.vue'), meta: { titleKey: 'page.compose' } },
         { path: 'websites', name: 'websites', component: () => import('@/views/WebsitesView.vue'), meta: { titleKey: 'page.websites' } },
+        { path: 'product-analytics', name: 'product-analytics', component: () => import('@/views/ProductAnalyticsView.vue'), meta: { titleKey: 'page.productAnalytics' } },
         { path: 'ssl', name: 'ssl', component: () => import('@/views/SSLView.vue'), meta: { titleKey: 'page.ssl' } },
         { path: 'ftp', name: 'ftp', component: () => import('@/views/FTPView.vue'), meta: { titleKey: 'page.ftp' } },
         { path: 'nginx', redirect: { path: 'protection', query: { tab: 'nginx' } } },

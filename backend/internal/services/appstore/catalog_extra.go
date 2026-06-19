@@ -165,6 +165,7 @@ var catalogExtraApps = []catalogItem{
 	panelApp("it-tools", "IT-Tools", "开发工具", "开发者在线工具集", 3017, "Tools"),
 	panelApp("umami", "Umami", "BI", "隐私友好网站分析", 3018, "TrendCharts"),
 	panelApp("matomo", "Matomo", "BI", "开源网站统计", 3019, "TrendCharts"),
+	panelApp("openpanel-analytics", "OpenPanel Analytics", "BI", "开源产品分析：漏斗、会话回放、A/B 测试（Mixpanel 替代）", 3300, "DataAnalysis"),
 	panelApp("searxng", "SearXNG", "工具", "元搜索引擎", 3020, "Search"),
 	panelApp("nocodb", "NocoDB", "开发工具", "Airtable 替代，连接现有数据库", 3021, "Grid"),
 	panelApp("bookstack", "BookStack", "网站", "简单易用的 Wiki 文档", 3022, "Document"),

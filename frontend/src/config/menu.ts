@@ -78,6 +78,7 @@ export const menuGroups: MenuGroup[] = [
     items: [
       { path: '/websites', titleKey: 'menu.website', icon: 'Link', perm: 'websites' },
       { path: '/wordpress', titleKey: 'menu.wpToolkit', icon: 'Reading', perm: 'websites' },
+      { path: '/product-analytics', titleKey: 'menu.productAnalytics', icon: 'DataAnalysis', perm: 'websites' },
       { path: '/runtimes', titleKey: 'menu.runtimes', icon: 'Platform', perm: 'websites' },
       { path: '/ssl', titleKey: 'menu.ssl', icon: 'Lock', perm: 'websites' },
     ],

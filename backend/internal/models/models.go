@@ -101,6 +101,9 @@ type Website struct {
 	ExpiresAt      *time.Time     `json:"expires_at"`
 	Aliases        []WebsiteAlias `gorm:"foreignKey:WebsiteID" json:"aliases,omitempty"`
 	Subdirs        []WebsiteSubdir `gorm:"foreignKey:WebsiteID" json:"subdirs,omitempty"`
+	ProductAnalyticsEnabled  bool   `gorm:"default:false" json:"product_analytics_enabled"`
+	ProductAnalyticsClientID string `gorm:"size:128" json:"product_analytics_client_id"`
+	ProductAnalyticsAPIURL   string `gorm:"size:512" json:"product_analytics_api_url"`
 }
 
 // WebsiteSubdir 子目录绑定

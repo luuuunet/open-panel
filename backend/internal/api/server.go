@@ -53,6 +53,7 @@ import (
 	"github.com/luuuunet/owpanel/internal/services/phpmyadmin"
 	"github.com/luuuunet/owpanel/internal/services/performance"
 	"github.com/luuuunet/owpanel/internal/services/process"
+	"github.com/luuuunet/owpanel/internal/services/productanalytics"
 	"github.com/luuuunet/owpanel/internal/services/security"
 	"github.com/luuuunet/owpanel/internal/services/settings"
 	"github.com/luuuunet/owpanel/internal/services/ssl"
@@ -95,6 +96,7 @@ type Server struct {
 	edged1      *edged1.Service
 	cache       *cache.Service
 	analytics   *analytics.Service
+	productAnalytics *productanalytics.Service
 	mail        *mail.Service
 	dns         *dns.Service
 	wordpress   *wordpress.Service
@@ -329,6 +331,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		edged1:     edgeD1Svc,
 		cache:      cacheSvc,
 		analytics: analytics.NewService(db, cfg.DataDir, wafSvc, perfSvc),
+		productAnalytics: productanalytics.NewService(db, cfg.DataDir),
 		mail:      mailSvc,
 		dns:       dnsSvc,
 		wordpress: wpSvc,
@@ -540,6 +543,7 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 				s.registerRuntimeRoutes(web)
 				s.registerWebserverRoutes(web)
 				s.registerAnalyticsRoutes(web)
+				s.registerProductAnalyticsRoutes(web)
 			}
 
 			dbRoutes := authorized.Group("")
