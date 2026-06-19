@@ -226,18 +226,22 @@ func (s *Service) fixPanelIPWhitelist() (*FixResult, error) {
 	if all["panel_ip_whitelist_enabled"] == "true" && strings.TrimSpace(all["panel_ip_whitelist"]) != "" {
 		return &FixResult{Success: true, Message: "面板 IP 白名单已配置"}, nil
 	}
-	guide := &FixResult{
+	// Never auto-enable an empty whitelist — that locks everyone out.
+	if all["panel_ip_whitelist_enabled"] == "true" && strings.TrimSpace(all["panel_ip_whitelist"]) == "" {
+		if err := s.settings.Update(map[string]string{"panel_ip_whitelist_enabled": "false"}); err != nil {
+			return nil, err
+		}
+		return &FixResult{
+			Success:      false,
+			NeedsGuide:   true,
+			GuideMessage: "IP 白名单已关闭（此前启用但未配置 IP 会导致无法访问）。请在「面板访问控制」中添加 IP 后再启用",
+			RedirectPath: "/protection?tab=security",
+		}, nil
+	}
+	return &FixResult{
 		Success:      false,
 		NeedsGuide:   true,
-		GuideMessage: "已启用 IP 白名单，请在「面板访问控制」中添加允许的 IP 地址，否则将无法访问面板",
+		GuideMessage: "请在「面板访问控制」中添加允许的 IP 地址后再启用白名单",
 		RedirectPath: "/protection?tab=security",
-	}
-	if all["panel_ip_whitelist_enabled"] == "true" {
-		guide.GuideMessage = "IP 白名单已启用但未配置 IP，请在「面板访问控制」中添加允许的 IP 地址，否则将无法访问面板"
-		return guide, nil
-	}
-	if err := s.settings.Update(map[string]string{"panel_ip_whitelist_enabled": "true"}); err != nil {
-		return nil, err
-	}
-	return guide, nil
+	}, nil
 }
