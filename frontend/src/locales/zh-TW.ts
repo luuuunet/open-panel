@@ -2220,6 +2220,7 @@ export default {
     webServerAutoInstallHint: '網站需透過 80 埠存取。建立站點時將自動安裝並設定 Nginx（約 1–2 分鐘）；也可手動安裝：',
     webServerInstallAction: '前往軟體商店安裝 Nginx',
     webServerSwitchConfirm: '啓動 {name} 將自動停止另一個 Web 服務器（Nginx 與 Apache 不能同時運行），是否繼續？',
+    webServerSwitchInstallConfirm: '將自動安裝並啓動 {name}，同時停止當前 Web 服務器（約 1–2 分鐘），是否繼續？',
     webServerSwitched: '已切換到 {name}',
     webServerSwitchFailed: '切換 Web 服務器失敗',
     webServerNotInstalled: '{name} 未安裝，請先在軟件商店安裝',

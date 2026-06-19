@@ -329,7 +329,7 @@ func (s *Service) StartWebServer(key string) error {
 	if s.ws == nil {
 		return errNoWebServerMgr
 	}
-	return s.ws.StartExclusive(key)
+	return s.ws.SwitchExclusive(key)
 }
 
 var errNoWebServerMgr = &siteError{msg: "web server manager unavailable"}

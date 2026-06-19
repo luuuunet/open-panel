@@ -127,6 +127,26 @@ curl -sf -o /dev/null -w "HTTP %{{http_code}}\\n" "http://127.0.0.1:{port}/" || 
     return run(client, f"bash -s <<'EOF'\n{script}\nEOF")
 
 
+def deploy_stack(client: paramiko.SSHClient, install_dir: str) -> int:
+    stack = ROOT / "scripts" / "stack"
+    if not stack.is_dir():
+        log(f"Missing {stack} — skip stack scripts upload")
+        return 0
+    remote_tar = "/tmp/owpanel-stack.tar.gz"
+    upload_bytes(client, tarball_dir(stack), remote_tar)
+    script = f"""
+set -euo pipefail
+rm -rf /tmp/owpanel-stack-new && mkdir -p /tmp/owpanel-stack-new
+tar -xzf {remote_tar} -C /tmp/owpanel-stack-new
+mkdir -p {install_dir}/scripts
+rm -rf {install_dir}/scripts/stack
+cp -a /tmp/owpanel-stack-new {install_dir}/scripts/stack
+find {install_dir}/scripts/stack -name '*.sh' -exec chmod +x {{}} \\;
+find {install_dir}/scripts/stack -name '*.sh' -exec sed -i 's/\\r$//' {{}} \\; 2>/dev/null || true
+"""
+    return run(client, f"bash -s <<'EOF'\n{script}\nEOF")
+
+
 def deploy_binary(client: paramiko.SSHClient, install_dir: str, binary: Path) -> int:
     remote = "/tmp/owpanel-bin.new"
     upload_file(client, binary, remote)
@@ -175,6 +195,8 @@ def main() -> int:
                 log(f"Binary not found: {binary}")
                 return 1
             code = deploy_binary(client, install_dir, binary)
+            if code == 0:
+                code = deploy_stack(client, install_dir)
             if code == 0:
                 code = deploy_web(client, install_dir, port)
         else:

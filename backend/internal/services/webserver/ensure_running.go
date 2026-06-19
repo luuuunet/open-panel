@@ -79,6 +79,70 @@ func (m *Manager) EnsureRunning(steps *[]string) (string, error) {
 	return "", fmt.Errorf("未能安装或启动 Nginx/OpenResty，请先在软件商店安装 Web 服务器")
 }
 
+// EnsureInstalled installs the given web server if it is not present on the host.
+func (m *Manager) EnsureInstalled(key string) error {
+	if !IsWebServerKey(key) {
+		return fmt.Errorf("unsupported web server: %s", key)
+	}
+	if m.apps == nil {
+		return fmt.Errorf("应用商店不可用")
+	}
+	m.apps.ReconcileInstalledFromSystem()
+	app, err := m.apps.Get(key)
+	if err != nil {
+		return err
+	}
+	if m.webServerInstalled(key) {
+		return nil
+	}
+	if err := m.installWebServer(key, app.Name); err != nil {
+		return err
+	}
+	m.apps.ReconcileInstalledFromSystem()
+	if !m.webServerInstalled(key) {
+		return fmt.Errorf("%s 安装后仍不可用，请查看软件商店安装日志", app.Name)
+	}
+	return nil
+}
+
+// SwitchExclusive installs the target web server if needed, then starts it exclusively.
+func (m *Manager) SwitchExclusive(key string) error {
+	if err := m.EnsureInstalled(key); err != nil {
+		return err
+	}
+	return m.StartExclusive(key)
+}
+
+func (m *Manager) webServerInstalled(key string) bool {
+	if m.apps == nil {
+		return false
+	}
+	m.apps.ClearSimulatedIfRealPresent(key)
+	app, err := m.apps.Get(key)
+	if err != nil {
+		return false
+	}
+	if app.Installed && !appstore.IsSimulatedInstall(key, m.dataDir) {
+		if webServerBinary(key) != "" {
+			return true
+		}
+		if m.apps.LiveStatus(key) == "running" {
+			return true
+		}
+	}
+	return appstore.SystemPackagePresent(key, m.dataDir) && webServerBinary(key) != ""
+}
+
+func (m *Manager) installWebServer(key, name string) error {
+	if err := m.apps.Install(key, ""); err != nil && !installInProgress(err) {
+		return fmt.Errorf("安装 %s 失败: %w", name, err)
+	}
+	if err := m.apps.WaitInstall(key, 15*time.Minute); err != nil {
+		return fmt.Errorf("等待 %s 安装: %w", name, err)
+	}
+	return nil
+}
+
 func (m *Manager) isWebServerRunning(key string) bool {
 	if m.apps != nil {
 		m.apps.ClearSimulatedIfRealPresent(key)

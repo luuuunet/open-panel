@@ -2271,6 +2271,7 @@ export default {
     webServerAutoInstallHint: '网站需通过 80 端口访问。创建站点时将自动安装并配置 Nginx（约 1–2 分钟）；也可手动安装：',
     webServerInstallAction: '去软件商店安装 Nginx',
     webServerSwitchConfirm: '启动 {name} 将自动停止另一个 Web 服务器（Nginx 与 Apache 不能同时运行），是否继续？',
+    webServerSwitchInstallConfirm: '将自动安装并启动 {name}，同时停止当前 Web 服务器（约 1–2 分钟），是否继续？',
     webServerSwitched: '已切换到 {name}',
     webServerSwitchFailed: '切换 Web 服务器失败',
     webServerNotInstalled: '{name} 未安装，请先在软件商店安装',

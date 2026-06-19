@@ -79,6 +79,29 @@ enable_start() {
   systemctl start "$svc"
 }
 
+enable_start_any() {
+  local svc
+  for svc in "$@"; do
+    if systemctl list-unit-files "${svc}.service" >/dev/null 2>&1; then
+      enable_start "$svc"
+      return 0
+    fi
+  done
+  return 1
+}
+
+try_apt() {
+  apt_install "$@" 2>/dev/null
+}
+
+install_docker_official_script() {
+  command -v curl >/dev/null 2>&1 || die "curl required for Docker official install"
+  log "installing Docker via get.docker.com script …"
+  curl -fsSL --connect-timeout 30 --max-time 600 --retry 3 https://get.docker.com | sh
+  systemctl enable docker >/dev/null 2>&1 || true
+  systemctl start docker
+}
+
 tune_mariadb_lowmem() {
   local ram_mb
   ram_mb="$(awk '/MemTotal/{printf "%d", $2/1024}' /proc/meminfo 2>/dev/null || echo 0)"

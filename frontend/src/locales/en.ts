@@ -2269,6 +2269,7 @@ export default {
     webServerAutoInstallHint: 'Sites are served on port 80. Creating a site will auto-install and configure Nginx (~1–2 min), or install manually:',
     webServerInstallAction: 'Install Nginx in Software Store',
     webServerSwitchConfirm: 'Starting {name} will stop the other web server. Nginx and Apache cannot run together. Continue?',
+    webServerSwitchInstallConfirm: '{name} is not installed yet. Install and start it now? The current web server will be stopped (about 1–2 minutes).',
     webServerSwitched: 'Switched to {name}',
     webServerSwitchFailed: 'Failed to switch web server',
     webServerNotInstalled: '{name} is not installed',

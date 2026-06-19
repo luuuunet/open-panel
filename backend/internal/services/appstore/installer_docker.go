@@ -139,9 +139,12 @@ func installDockerEngineLinux() error {
 			return fmt.Errorf("apt update: %w", err)
 		}
 		if err := runCommand("apt-get", "install", "-y", "docker.io"); err != nil {
-			logInstallLine("apt 安装 docker.io 失败，尝试 Docker 官方脚本 …")
-			if err2 := installDockerViaOfficialScript(); err2 != nil {
-				return fmt.Errorf("apt install docker.io: %w; 官方脚本: %v", err, err2)
+			logInstallLine("apt 安装 docker.io 失败，尝试 stack 脚本 …")
+			if err2 := runStackFallback("docker"); err2 != nil {
+				logInstallLine("stack 脚本失败，尝试 Docker 官方脚本 …")
+				if err3 := installDockerViaOfficialScript(); err3 != nil {
+					return fmt.Errorf("apt install docker.io: %w; stack: %v; 官方脚本: %v", err, err2, err3)
+				}
 			}
 		}
 		installDockerComposeOptional(mgr)

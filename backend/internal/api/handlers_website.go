@@ -283,7 +283,7 @@ func (s *Server) handleStartWebServer(c *gin.Context) {
 		response.Error(c, 400, "仅支持 nginx、openresty 或 apache")
 		return
 	}
-	if err := s.webserver.StartExclusive(key); err != nil {
+	if err := s.webserver.SwitchExclusive(key); err != nil {
 		response.Error(c, 500, err.Error())
 		return
 	}

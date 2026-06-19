@@ -522,13 +522,11 @@ async function toggleSite(row: any) {
 async function switchWebServer(key: string) {
   if (webserver.value?.active === key) return
   const target = (webserver.value?.servers || []).find((s: any) => s.key === key)
-  if (!target?.installed) {
-    ElMessage.warning(t('websites.webServerNotInstalled', { name: target?.name || key }))
-    return
-  }
+  const name = target?.name || key
+  const confirmKey = target?.installed ? 'websites.webServerSwitchConfirm' : 'websites.webServerSwitchInstallConfirm'
   try {
     await ElMessageBox.confirm(
-      t('websites.webServerSwitchConfirm', { name: target.name }),
+      t(confirmKey, { name }),
       t('common.confirm'),
       { type: 'warning' }
     )
@@ -537,9 +535,9 @@ async function switchWebServer(key: string) {
   }
   switchingWebServer.value = true
   try {
-    const res: any = await api.post(`/websites/webserver/${key}/start`)
+    const res: any = await api.post(`/websites/webserver/${key}/start`, {}, { timeout: SITE_CREATE_TIMEOUT })
     webserver.value = res.data
-    ElMessage.success(t('websites.webServerSwitched', { name: target.name }))
+    ElMessage.success(t('websites.webServerSwitched', { name }))
     load()
   } catch (e: any) {
     ElMessage.error(resolveApiError(e, t('websites.webServerSwitchFailed')))

@@ -883,7 +883,7 @@ func (s *Server) handleNginxStart(c *gin.Context) {
 		response.Error(c, 400, "unsupported web server")
 		return
 	}
-	if err := s.webserver.StartExclusive(key); err != nil {
+	if err := s.webserver.SwitchExclusive(key); err != nil {
 		response.Error(c, 500, err.Error())
 		return
 	}

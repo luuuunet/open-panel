@@ -232,6 +232,23 @@ install_binary_layout() {
   chmod +x "$INSTALL_DIR/owpanel" 2>/dev/null || true
   ln -sf "$INSTALL_DIR/op" /usr/local/bin/op 2>/dev/null || true
   rm -f /usr/local/bin/bt "$INSTALL_DIR/bt" 2>/dev/null || true
+  local stack_src=""
+  for candidate in \
+    "$(dirname "$0")/stack" \
+    "$(cd "$(dirname "$0")/.." && pwd)/scripts/stack"; do
+    if [[ -f "$candidate/fallback.sh" ]]; then
+      stack_src="$candidate"
+      break
+    fi
+  done
+  if [[ -n "$stack_src" ]]; then
+    mkdir -p "$INSTALL_DIR/scripts"
+    rm -rf "$INSTALL_DIR/scripts/stack"
+    cp -a "$stack_src" "$INSTALL_DIR/scripts/stack"
+    find "$INSTALL_DIR/scripts/stack" -name '*.sh' -exec chmod +x {} \;
+    find "$INSTALL_DIR/scripts/stack" -name '*.sh' -exec sed -i 's/\r$//' {} \; 2>/dev/null || true
+    log "已安装 stack 备用脚本 → $INSTALL_DIR/scripts/stack"
+  fi
 }
 
 write_systemd() {

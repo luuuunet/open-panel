@@ -40,6 +40,9 @@ build_backend_linux() {
     go build -ldflags="-s -w" -o "$DIST/op" ./cmd/op
   rm -rf "$DIST/web"
   cp -a "$ROOT/backend/web" "$DIST/web"
+  rm -rf "$DIST/scripts"
+  cp -a "$ROOT/scripts/stack" "$DIST/scripts/stack"
+  find "$DIST/scripts/stack" -name '*.sh' -exec chmod +x {} \;
   log "发布包: $DIST"
 }
 

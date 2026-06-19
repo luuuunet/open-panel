@@ -11,8 +11,14 @@ import (
 
 const stackFallbackRemoteBase = "https://raw.githubusercontent.com/luuuunet/owpanel/main/scripts/stack"
 
+// stackFallbackComponents lists apps that have multi-channel stack install scripts.
 var stackFallbackComponents = map[string]bool{
-	"nginx": true, "mariadb": true, "mysql": true,
+	"nginx": true, "openresty": true, "apache": true,
+	"mariadb": true, "mysql": true,
+	"postgresql": true, "redis": true, "mongodb": true,
+	"docker": true, "certbot": true,
+	"memcached": true, "fail2ban": true, "supervisor": true,
+	"pureftpd": true, "postfix": true, "dovecot": true,
 }
 
 func stackFallbackSupported(key string) bool {
@@ -53,7 +59,7 @@ func runStackFallback(key string) error {
 		return fmt.Errorf("stack fallback only supported on Linux")
 	}
 	component := stackFallbackComponent(key)
-	logInstallLine(fmt.Sprintf("apt 安装失败，尝试 stack 脚本安装 %s …", component))
+	logInstallLine(fmt.Sprintf("apt 安装失败，尝试 stack 多通道安装 %s …", component))
 
 	scriptDir := resolveStackScriptDir()
 	if scriptDir != "" {
