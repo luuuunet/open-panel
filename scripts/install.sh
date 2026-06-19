@@ -280,16 +280,31 @@ EOF
   systemctl restart owpanel
 }
 
+store_app_count() {
+  local db="$1"
+  [[ -f "$db" ]] || { echo 0; return; }
+  if command -v sqlite3 >/dev/null 2>&1; then
+    sqlite3 "$db" 'SELECT COUNT(*) FROM apps WHERE deleted_at IS NULL;' 2>/dev/null || echo 0
+    return
+  fi
+  python3 - "$db" <<'PY' 2>/dev/null || echo 0
+import sqlite3, sys
+try:
+    con = sqlite3.connect(sys.argv[1])
+    print(con.execute('SELECT COUNT(*) FROM apps WHERE deleted_at IS NULL').fetchone()[0])
+except Exception:
+    print(0)
+PY
+}
+
 wait_for_store_catalog() {
   local db="$INSTALL_DIR/data/panel.db" n=0
   log "等待软件商店目录初始化..."
-  for _ in $(seq 1 45); do
-    if [[ -f "$db" ]]; then
-      n="$(sqlite3 "$db" 'SELECT COUNT(*) FROM apps WHERE deleted_at IS NULL;' 2>/dev/null || echo 0)"
-      if [[ "${n:-0}" -ge 50 ]]; then
-        log "软件商店已就绪（${n} 个软件）"
-        return 0
-      fi
+  for _ in $(seq 1 60); do
+    n="$(store_app_count "$db")"
+    if [[ "${n:-0}" -ge 50 ]]; then
+      log "软件商店已就绪（${n} 个软件）"
+      return 0
     fi
     sleep 2
   done

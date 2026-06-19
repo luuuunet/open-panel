@@ -403,18 +403,21 @@ func (s *Service) SyncCatalog() int {
 
 // WarmStoreCatalog ensures the built-in catalog is seeded and refreshes upstream version metadata after startup.
 func (s *Service) WarmStoreCatalog() {
-	time.Sleep(2 * time.Second)
 	n := s.SyncCatalog()
 	if n == 0 {
-		log.Println("[appstore] catalog empty after startup — retrying sync")
+		time.Sleep(time.Second)
 		n = s.SyncCatalog()
 	}
 	if n > 0 {
 		log.Printf("[appstore] store catalog ready (%d apps)", n)
+	} else {
+		log.Println("[appstore] catalog empty after startup — check database permissions/migrations")
 	}
-	if _, err := s.RefreshStoreVersions(); err != nil {
-		log.Printf("[appstore] warm refresh store versions: %v", err)
-	}
+	go func() {
+		if _, err := s.RefreshStoreVersions(); err != nil {
+			log.Printf("[appstore] warm refresh store versions: %v", err)
+		}
+	}()
 }
 
 type PHPVersionInfo struct {

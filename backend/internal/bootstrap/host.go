@@ -29,10 +29,17 @@ func Host(apps *appstore.Service, ws *webserver.Manager, settingsSvc *settings.S
 
 	TuneMemory(settingsSvc)
 	ensureDataLayout(dataDir)
-	if n := apps.SyncCatalog(); n > 0 {
-		log.Printf("[bootstrap] software store catalog ready (%d apps)", n)
+	catalogCount := 0
+	for attempt := 0; attempt < 5 && catalogCount == 0; attempt++ {
+		catalogCount = apps.SyncCatalog()
+		if catalogCount == 0 && attempt < 4 {
+			time.Sleep(time.Second)
+		}
+	}
+	if catalogCount > 0 {
+		log.Printf("[bootstrap] software store catalog ready (%d apps)", catalogCount)
 	} else {
-		log.Println("[bootstrap] software store catalog empty — will retry on next sync")
+		log.Println("[bootstrap] software store catalog empty — leaving bootstrap pending for retry")
 	}
 	go func() {
 		if _, err := apps.RefreshStoreVersions(); err != nil {
@@ -46,10 +53,13 @@ func Host(apps *appstore.Service, ws *webserver.Manager, settingsSvc *settings.S
 	}
 	startInstalledServices(apps)
 
-	if err := settingsSvc.Update(map[string]string{
-		hostBootstrapKey: "done",
-		"website_path":   filepath.Join(dataDir, "wwwroot"),
-	}); err != nil {
+	settingsPatch := map[string]string{
+		"website_path": filepath.Join(dataDir, "wwwroot"),
+	}
+	if catalogCount > 0 {
+		settingsPatch[hostBootstrapKey] = "done"
+	}
+	if err := settingsSvc.Update(settingsPatch); err != nil {
 		log.Printf("[bootstrap] save settings: %v", err)
 	} else {
 		log.Printf("[bootstrap] host ready in %s", time.Since(start).Round(time.Millisecond))

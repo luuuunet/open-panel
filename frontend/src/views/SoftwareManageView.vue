@@ -156,16 +156,11 @@ async function ensureStoreCatalog() {
       try {
         await api.post('/software/store/sync')
       } catch {
-        /* sync may fail on older backends — fall back to version refresh */
-      }
-      try {
-        await api.post('/software/store/refresh-versions')
-      } catch {
-        /* best effort */
+        /* best effort — built-in catalog is seeded at panel install/startup */
       }
       await loadStore()
       if (storeApps.value.length === 0 && attempt < 2) {
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
   } finally {
@@ -177,7 +172,9 @@ async function loadAll() {
   loading.value = true
   try {
     await Promise.all([loadStore(), loadInstalled()])
-    await ensureStoreCatalog()
+    if (storeApps.value.length === 0 && !storeLoadFailed.value) {
+      await ensureStoreCatalog()
+    }
     if (!versionsRefreshedThisSession.value && storeApps.value.length > 0) {
       versionsRefreshedThisSession.value = true
       api.post('/software/store/refresh-versions').then(() => loadStore()).catch(() => {})

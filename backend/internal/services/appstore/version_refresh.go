@@ -68,17 +68,12 @@ func phpCatalogItem(ver string) catalogItem {
 	if port == 0 {
 		port = 9020
 	}
-	patch := fetchPHPLatestPatch(ver)
-	displayVer := ver
-	if patch != "" && patch != ver {
-		displayVer = patch
-	}
 	return catalogItem{
 		App: models.App{
 			Key:         key,
 			Name:        fmt.Sprintf("PHP-%s", ver),
 			Category:    "运行环境",
-			Versions:    displayVer,
+			Versions:    ver,
 			Version:     ver,
 			Description: fmt.Sprintf("PHP %s 运行环境", ver),
 			Port:        port,
@@ -174,16 +169,16 @@ func (s *Service) RefreshStoreVersions() (*VersionRefreshResult, error) {
 	}
 	result.Added = len(dynamic)
 
+	nginxLatest := fetchNginxLatestStable()
+
 	s.catalogMu.Lock()
 	s.catalogSyncedAt = time.Time{}
 	s.syncCatalogLocked()
 	s.catalogSyncedAt = time.Now()
 
 	for key, versions := range multiVersionUpdates {
-		if key == "nginx" {
-			if latest := fetchNginxLatestStable(); latest != "" && !strings.Contains(versions, latest) {
-				versions = latest + "," + versions
-			}
+		if key == "nginx" && nginxLatest != "" && !strings.Contains(versions, nginxLatest) {
+			versions = nginxLatest + "," + versions
 		}
 		res := s.db.Model(&models.App{}).Where("app_key = ?", key).Update("versions", versions)
 		if res.Error == nil && res.RowsAffected > 0 {
