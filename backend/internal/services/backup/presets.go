@@ -13,7 +13,8 @@ type PresetResult struct {
 }
 
 // ApplyPreset creates scheduled backup tasks for all websites or databases that do not already have a task.
-func (s *Service) ApplyPreset(preset, schedule string) (*PresetResult, error) {
+// websiteIDs limits website preset to specific sites when non-empty.
+func (s *Service) ApplyPreset(preset, schedule string, websiteIDs []uint) (*PresetResult, error) {
 	if schedule == "" {
 		schedule = "0 2 * * *"
 	}
@@ -21,7 +22,11 @@ func (s *Service) ApplyPreset(preset, schedule string) (*PresetResult, error) {
 	switch preset {
 	case "websites":
 		var sites []models.Website
-		if err := s.db.Find(&sites).Error; err != nil {
+		q := s.db
+		if len(websiteIDs) > 0 {
+			q = q.Where("id IN ?", websiteIDs)
+		}
+		if err := q.Find(&sites).Error; err != nil {
 			return nil, err
 		}
 		for _, site := range sites {

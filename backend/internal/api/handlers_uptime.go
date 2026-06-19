@@ -74,10 +74,11 @@ func (s *Server) handleCheckUptime(c *gin.Context) {
 
 func (s *Server) handleUptimeImportWebsites(c *gin.Context) {
 	var req struct {
-		IntervalSec int `json:"interval_sec"`
+		IntervalSec int    `json:"interval_sec"`
+		WebsiteIDs  []uint `json:"website_ids"`
 	}
 	_ = c.ShouldBindJSON(&req)
-	res, err := s.uptime.ImportFromWebsites(req.IntervalSec)
+	res, err := s.uptime.ImportFromWebsites(req.IntervalSec, req.WebsiteIDs)
 	if err != nil {
 		response.Error(c, 500, err.Error())
 		return

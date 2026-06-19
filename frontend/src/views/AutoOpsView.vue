@@ -46,6 +46,8 @@ const configForm = ref({
 })
 
 const applyingPreset = ref('')
+
+const quickImporting = ref('')
 const websiteAudits = ref<any>(null)
 const auditDetail = ref<any>(null)
 const auditDrawer = ref(false)
@@ -205,6 +207,34 @@ async function applyOpsPreset() {
     ElMessage.error(e?.error || e?.message || t('autoOps.updateFailed'))
   } finally {
     applyingPreset.value = ''
+  }
+}
+
+async function quickImportUptime() {
+  quickImporting.value = 'uptime'
+  try {
+    const res: any = await api.post('/uptime/import-websites', { interval_sec: 300 })
+    const d = res.data || {}
+    ElMessage.success(t('autoOps.quickImportUptimeDone', { created: d.created || 0, skipped: d.skipped || 0 }))
+    await loadOverview()
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('autoOps.updateFailed'))
+  } finally {
+    quickImporting.value = ''
+  }
+}
+
+async function quickImportBackup() {
+  quickImporting.value = 'backup'
+  try {
+    const res: any = await api.post('/backup/presets', { preset: 'websites', schedule: '0 2 * * *' })
+    const d = res.data || {}
+    ElMessage.success(t('autoOps.quickImportBackupDone', { created: d.created || 0, skipped: d.skipped || 0 }))
+    await loadOverview()
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('autoOps.updateFailed'))
+  } finally {
+    quickImporting.value = ''
   }
 }
 
@@ -661,6 +691,11 @@ onUnmounted(() => clearInterval(timer))
         </div>
 
         <h3 class="section-title">{{ t('autoOps.quickLinks') }}</h3>
+        <div class="overview-quick">
+          <el-button :loading="quickImporting === 'uptime'" @click="quickImportUptime">{{ t('autoOps.quickImportUptime') }}</el-button>
+          <el-button type="success" :loading="quickImporting === 'backup'" @click="quickImportBackup">{{ t('autoOps.quickImportBackup') }}</el-button>
+          <span class="overview-quick-hint">{{ t('autoOps.quickImportHint') }}</span>
+        </div>
         <div class="link-grid">
           <button v-for="link in quickLinks" :key="link.path" type="button" class="link-card" @click="router.push(link.path)">
             <el-icon class="link-icon"><component :is="link.icon" /></el-icon>
@@ -975,6 +1010,8 @@ onUnmounted(() => clearInterval(timer))
 .faq-list dd { margin: 4px 0 0; font-size: 13px; color: var(--el-text-color-secondary); line-height: 1.6; }
 .link-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .link-audience { margin-top: 4px; font-size: 11px; color: var(--el-color-primary); }
+.overview-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.overview-quick-hint { font-size: 12px; color: var(--el-text-color-secondary); }
 .auto-ops-page { width: 100%; }
 .page-header {
   display: flex;

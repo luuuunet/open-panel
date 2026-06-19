@@ -22,12 +22,17 @@ func websiteProbeURL(site models.Website) string {
 }
 
 // ImportFromWebsites creates uptime monitors for running websites that are not already monitored.
-func (s *Service) ImportFromWebsites(intervalSec int) (*ImportResult, error) {
+// When websiteIDs is non-empty, only those sites are considered (still must be running).
+func (s *Service) ImportFromWebsites(intervalSec int, websiteIDs []uint) (*ImportResult, error) {
 	if intervalSec < 15 {
 		intervalSec = 300
 	}
 	var sites []models.Website
-	if err := s.db.Where("status = ?", "running").Find(&sites).Error; err != nil {
+	q := s.db.Where("status = ?", "running")
+	if len(websiteIDs) > 0 {
+		q = q.Where("id IN ?", websiteIDs)
+	}
+	if err := q.Find(&sites).Error; err != nil {
 		return nil, err
 	}
 	existing, err := s.List()

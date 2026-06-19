@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import api, { resolveApiError, SITE_CREATE_TIMEOUT } from '@/api'
 import { formatBytes } from '@/utils/formatBytes'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Folder, VideoPlay, VideoPause, Delete, Search, EditPen, FolderOpened, RefreshRight, Download, Setting, Odometer, Lock, Check, ArrowDown } from '@element-plus/icons-vue'
+import { Folder, VideoPlay, VideoPause, Delete, Search, EditPen, FolderOpened, RefreshRight, Download, Setting, Odometer, Lock, Check, ArrowDown, Bell, Timer } from '@element-plus/icons-vue'
 import SiteModifyDialog from '@/components/SiteModifyDialog.vue'
 import SiteBackupDialog from '@/components/SiteBackupDialog.vue'
 
@@ -24,9 +24,10 @@ const cacheAccelLoadingId = ref<number | null>(null)
 const crossSiteLoadingId = ref<number | null>(null)
 const phpAccelLoadingId = ref<number | null>(null)
 const phpVersionLoadingId = ref<number | null>(null)
+const automationLoading = ref(false)
 
-const ACTIONS_COL_MIN = 280
-const ACTIONS_COL_MAX = 420
+const ACTIONS_COL_MIN = 320
+const ACTIONS_COL_MAX = 460
 const actionsColWidth = ref(320)
 const sitesTableRef = ref<{ doLayout?: () => void }>()
 let actionsLayoutObserver: ResizeObserver | undefined
@@ -492,6 +493,58 @@ async function handleDelete(row: any) {
   load()
 }
 
+function websiteRowsForAutomation(rows?: any[]) {
+  const list = rows?.length ? rows : projects.value
+  return list.filter((r) => r.source === 'website')
+}
+
+function runningWebsiteRows(rows?: any[]) {
+  return websiteRowsForAutomation(rows).filter((r) => r.status === 'running')
+}
+
+async function importUptimeForSites(rows?: any[], intervalSec = 300) {
+  const sites = runningWebsiteRows(rows)
+  if (!sites.length) {
+    ElMessage.warning(t('websites.automationNoRunning'))
+    return
+  }
+  automationLoading.value = true
+  try {
+    const res: any = await api.post('/uptime/import-websites', {
+      interval_sec: intervalSec,
+      website_ids: sites.map((s) => s.id),
+    })
+    const d = res.data || {}
+    ElMessage.success(t('websites.uptimeImportDone', { created: d.created || 0, skipped: d.skipped || 0 }))
+  } catch (e: any) {
+    ElMessage.error(resolveApiError(e, t('common.failed')))
+  } finally {
+    automationLoading.value = false
+  }
+}
+
+async function createBackupScheduleForSites(rows?: any[]) {
+  const sites = websiteRowsForAutomation(rows)
+  if (!sites.length) {
+    ElMessage.warning(t('websites.automationNoSites'))
+    return
+  }
+  automationLoading.value = true
+  try {
+    const res: any = await api.post('/backup/presets', {
+      preset: 'websites',
+      schedule: '0 2 * * *',
+      website_ids: sites.map((s) => s.id),
+    })
+    const d = res.data || {}
+    ElMessage.success(t('websites.backupPresetDone', { created: d.created || 0, skipped: d.skipped || 0 }))
+  } catch (e: any) {
+    ElMessage.error(resolveApiError(e, t('common.failed')))
+  } finally {
+    automationLoading.value = false
+  }
+}
+
 async function batchDelete() {
   const websiteIds = selectedRows.value.filter((r) => r.source === 'website').map((r) => r.id)
   if (!websiteIds.length) {
@@ -728,12 +781,20 @@ async function handleCreateJava() {
           <el-button>{{ t('websites.batchOps') }}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item :disabled="!selectedRows.length" @click="batchDelete">
+              <el-dropdown-item :disabled="!selectedRows.length" @click="importUptimeForSites(selectedRows)">
+                {{ t('websites.batchAddUptime') }}
+              </el-dropdown-item>
+              <el-dropdown-item :disabled="!selectedRows.length" @click="createBackupScheduleForSites(selectedRows)">
+                {{ t('websites.batchAddBackup') }}
+              </el-dropdown-item>
+              <el-dropdown-item divided :disabled="!selectedRows.length" @click="batchDelete">
                 {{ t('websites.batchDelete') }}
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        <el-button :loading="automationLoading" @click="importUptimeForSites()">{{ t('websites.allAddUptime') }}</el-button>
+        <el-button :loading="automationLoading" @click="createBackupScheduleForSites()">{{ t('websites.allAddBackup') }}</el-button>
         <div v-if="activeServer" class="webserver-badge" :class="{ running: activeServer.status === 'running' }">
           <span class="dot" />
           <span>{{ activeServer.name }} {{ activeServer.version }}</span>
@@ -969,6 +1030,31 @@ async function handleCreateJava() {
               <el-tooltip :content="t('wp.openInFiles')" placement="top">
                 <span class="site-op-btn site-op-btn--neutral">
                   <el-button circle size="small" :icon="FolderOpened" :disabled="!canUseSiteFiles(row)" @click="openSiteFiles(row)" />
+                </span>
+              </el-tooltip>
+            </div>
+            <span class="site-actions-sep" aria-hidden="true" />
+            <div class="site-actions-group">
+              <el-tooltip :content="t('websites.addUptime')" placement="top">
+                <span class="site-op-btn site-op-btn--neutral">
+                  <el-button
+                    circle
+                    size="small"
+                    :icon="Bell"
+                    :disabled="row.source !== 'website' || row.status !== 'running'"
+                    @click="importUptimeForSites([row])"
+                  />
+                </span>
+              </el-tooltip>
+              <el-tooltip :content="t('websites.addBackupSchedule')" placement="top">
+                <span class="site-op-btn site-op-btn--neutral">
+                  <el-button
+                    circle
+                    size="small"
+                    :icon="Timer"
+                    :disabled="row.source !== 'website'"
+                    @click="createBackupScheduleForSites([row])"
+                  />
                 </span>
               </el-tooltip>
             </div>
