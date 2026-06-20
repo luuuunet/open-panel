@@ -1093,13 +1093,53 @@ onUnmounted(() => {
 }
 .system-monitor.dashboard :deep(.overview-divider) {
   height: 1px;
-  margin: 12px 0;
-  background: var(--el-border-color-lighter);
+  margin: 14px 0;
+  background: linear-gradient(90deg, transparent, var(--el-border-color-lighter), transparent);
 }
 .system-monitor.dashboard :deep(.dash-unified-monitor-head) {
-  padding-bottom: 10px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--el-border-color-extra-light);
+  padding-bottom: 12px;
+  margin-bottom: 6px;
+  border-bottom: none;
+}
+.system-monitor.dashboard :deep(.dash-title) {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cf-text-muted);
+}
+.system-monitor.dashboard :deep(.status-chip) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  white-space: nowrap;
+}
+.system-monitor.dashboard :deep(.metric-pill) {
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--el-fill-color-light);
+}
+.system-monitor.dashboard :deep(.metric-pill.active) {
+  background: linear-gradient(135deg, var(--cf-orange), #e56f10);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(246, 130, 31, 0.25);
+}
+.system-monitor.dashboard :deep(.status-chip em) {
+  font-style: normal;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--el-text-color-secondary);
 }
 .system-monitor.dashboard :deep(.dash-stats-body) {
   padding-top: 4px;
@@ -1118,11 +1158,6 @@ onUnmounted(() => {
   gap: 12px;
   flex-wrap: wrap;
 }
-.system-monitor.dashboard :deep(.dash-title) {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--el-text-color-primary);
-}
 .system-monitor.dashboard :deep(.dash-meta-chips) {
   display: flex;
   flex-wrap: wrap;
@@ -1130,23 +1165,11 @@ onUnmounted(() => {
 }
 .system-monitor.dashboard :deep(.dash-trend-header) {
   align-items: center;
-}
-.system-monitor.dashboard :deep(.status-chip) {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--el-text-color-regular);
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--el-fill-color-light);
-  border: 1px solid var(--el-border-color-lighter);
-  white-space: nowrap;
-}
-.system-monitor.dashboard :deep(.status-chip em) {
-  font-style: normal;
-  font-weight: 600;
-  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cf-text-muted);
 }
 .system-monitor.dashboard :deep(.dash-header-tools) {
   display: flex;

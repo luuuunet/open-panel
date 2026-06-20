@@ -256,10 +256,11 @@ function handleLogout() {
 }
 
 .page-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--cf-text);
-  letter-spacing: -0.022em;
+  color: var(--cf-text-muted);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

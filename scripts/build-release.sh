@@ -5,6 +5,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/dist"
 VERSION="${VERSION:-$(git -C "$ROOT" describe --tags --always --dirty 2>/dev/null || echo dev)}"
+GIT_COMMIT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+LDFLAGS="-s -w -X github.com/luuuunet/owpanel/internal/version.Version=${VERSION} -X github.com/luuuunet/owpanel/internal/version.BuildDate=${BUILD_DATE} -X github.com/luuuunet/owpanel/internal/version.GitCommit=${GIT_COMMIT}"
 
 log() { echo "[build] $*"; }
 
@@ -12,11 +15,11 @@ build_one() {
   local goos="$1" goarch="$2" ext="$3" name="$4"
   local dir="$OUT/$name"
   mkdir -p "$dir"
-  log "Building $goos/$goarch -> $dir"
+  log "Building $goos/$goarch -> $dir (version=$VERSION)"
   (cd "$ROOT/backend" && GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
-    go build -ldflags="-s -w" -o "$dir/owpanel$ext" ./cmd/server)
+    go build -ldflags="$LDFLAGS" -o "$dir/owpanel$ext" ./cmd/server)
   (cd "$ROOT/backend" && GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
-    go build -ldflags="-s -w" -o "$dir/op$ext" ./cmd/op)
+    go build -ldflags="$LDFLAGS" -o "$dir/op$ext" ./cmd/op)
   rm -rf "$dir/web"
   cp -a "$ROOT/backend/web" "$dir/web"
   mkdir -p "$dir/data"

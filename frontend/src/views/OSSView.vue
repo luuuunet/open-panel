@@ -60,6 +60,34 @@ const browseStorageId = ref<number | null>(null)
 const browsePrefix = ref('')
 const browseItems = ref<any[]>([])
 
+const lifecycleRules = ref<any[]>([])
+const archiveRules = ref<any[]>([])
+const lifecycleDialog = ref(false)
+const archiveDialog = ref(false)
+const editingLifecycleId = ref<number | null>(null)
+const editingArchiveId = ref<number | null>(null)
+const lifecycleForm = ref({
+  name: '',
+  storage_id: null as number | null,
+  prefix: 'backups/',
+  max_age_days: 30,
+  keep_min_count: 1,
+  dry_run: false,
+  schedule: '0 6 * * *',
+  enabled: true,
+})
+const archiveForm = ref({
+  name: '',
+  local_path: '',
+  min_size_mb: 100,
+  file_patterns: '*',
+  target_storage_id: null as number | null,
+  target_prefix: 'archives/',
+  delete_local_after: false,
+  schedule: '0 7 * * *',
+  enabled: true,
+})
+
 const isLocalProvider = computed(() => storageForm.value.provider === 'local')
 
 const modeOptions = computed(() => [
@@ -83,14 +111,18 @@ function statusTag(status: string) {
 async function loadAll() {
   loading.value = true
   try {
-    const [p, s, tk]: any[] = await Promise.all([
+    const [p, s, tk, lc, ar]: any[] = await Promise.all([
       api.get('/oss/providers'),
       api.get('/oss/storages'),
       api.get('/oss/sync-tasks'),
+      api.get('/oss/lifecycle-rules').catch(() => ({ data: [] })),
+      api.get('/oss/archive-rules').catch(() => ({ data: [] })),
     ])
     providers.value = p.data || []
     storages.value = s.data || []
     tasks.value = tk.data || []
+    lifecycleRules.value = lc.data || []
+    archiveRules.value = ar.data || []
   } finally {
     loading.value = false
   }
@@ -331,6 +363,90 @@ function formatSize(n: number) {
   return `${(n / 1024 / 1024).toFixed(2)} MB`
 }
 
+function openLifecycle(row?: any) {
+  editingLifecycleId.value = row?.id ?? null
+  lifecycleForm.value = row ? {
+    name: row.name,
+    storage_id: row.storage_id,
+    prefix: row.prefix || 'backups/',
+    max_age_days: row.max_age_days || 30,
+    keep_min_count: row.keep_min_count ?? 1,
+    dry_run: !!row.dry_run,
+    schedule: row.schedule || '0 6 * * *',
+    enabled: row.enabled !== false,
+  } : {
+    name: '', storage_id: storages.value[0]?.id ?? null, prefix: 'backups/', max_age_days: 30,
+    keep_min_count: 1, dry_run: false, schedule: '0 6 * * *', enabled: true,
+  }
+  lifecycleDialog.value = true
+}
+
+async function saveLifecycle() {
+  const payload = { ...lifecycleForm.value }
+  if (editingLifecycleId.value) {
+    await api.put(`/oss/lifecycle-rules/${editingLifecycleId.value}`, payload)
+  } else {
+    await api.post('/oss/lifecycle-rules', payload)
+  }
+  lifecycleDialog.value = false
+  loadAll()
+}
+
+async function runLifecycle(row: any, dry = false) {
+  await api.post(`/oss/lifecycle-rules/${row.id}/${dry ? 'dry-run' : 'run'}`)
+  ElMessage.success(t('common.success'))
+  loadAll()
+}
+
+async function deleteLifecycle(row: any) {
+  await ElMessageBox.confirm(t('common.deleteConfirm'), t('common.warning'), { type: 'warning' })
+  await api.delete(`/oss/lifecycle-rules/${row.id}`)
+  loadAll()
+}
+
+function openArchive(row?: any) {
+  editingArchiveId.value = row?.id ?? null
+  archiveForm.value = row ? {
+    name: row.name,
+    local_path: row.local_path || '',
+    min_size_mb: row.min_size_mb || 100,
+    file_patterns: row.file_patterns || '*',
+    target_storage_id: row.target_storage_id,
+    target_prefix: row.target_prefix || 'archives/',
+    delete_local_after: !!row.delete_local_after,
+    schedule: row.schedule || '0 7 * * *',
+    enabled: row.enabled !== false,
+  } : {
+    name: '', local_path: '', min_size_mb: 100, file_patterns: '*.zip,*.gz,*.sql',
+    target_storage_id: storages.value.find((s: any) => s.provider !== 'local')?.id ?? null,
+    target_prefix: 'archives/', delete_local_after: false, schedule: '0 7 * * *', enabled: true,
+  }
+  archiveDialog.value = true
+}
+
+async function saveArchive() {
+  const payload = { ...archiveForm.value }
+  if (editingArchiveId.value) {
+    await api.put(`/oss/archive-rules/${editingArchiveId.value}`, payload)
+  } else {
+    await api.post('/oss/archive-rules', payload)
+  }
+  archiveDialog.value = false
+  loadAll()
+}
+
+async function runArchive(row: any) {
+  await api.post(`/oss/archive-rules/${row.id}/run`)
+  ElMessage.success(t('common.success'))
+  loadAll()
+}
+
+async function deleteArchive(row: any) {
+  await ElMessageBox.confirm(t('common.deleteConfirm'), t('common.warning'), { type: 'warning' })
+  await api.delete(`/oss/archive-rules/${row.id}`)
+  loadAll()
+}
+
 onMounted(async () => {
   await loadAll()
   const provider = String(route.query.provider || '').toLowerCase()
@@ -436,6 +552,46 @@ onUnmounted(() => { if (logTimer) clearInterval(logTimer) })
           <el-table-column prop="last_modified" :label="t('ossPage.modified')" width="180" />
         </el-table>
       </el-tab-pane>
+
+      <el-tab-pane :label="t('lifecyclePage.tabLifecycle')" name="lifecycle">
+        <div class="toolbar">
+          <el-button type="primary" @click="openLifecycle()">{{ t('lifecyclePage.addRule') }}</el-button>
+        </div>
+        <el-table :data="lifecycleRules" stripe>
+          <el-table-column prop="name" :label="t('common.name')" />
+          <el-table-column prop="prefix" label="Prefix" />
+          <el-table-column prop="max_age_days" :label="t('lifecyclePage.maxAgeDays')" width="100" />
+          <el-table-column prop="keep_min_count" :label="t('lifecyclePage.keepMin')" width="90" />
+          <el-table-column prop="last_status" :label="t('common.status')" width="90" />
+          <el-table-column :label="t('common.actions')" width="220">
+            <template #default="{ row }">
+              <el-button text @click="runLifecycle(row, true)">{{ t('lifecyclePage.dryRun') }}</el-button>
+              <el-button text type="primary" @click="runLifecycle(row)">{{ t('backup.runNow') }}</el-button>
+              <el-button text @click="openLifecycle(row)">{{ t('common.edit') }}</el-button>
+              <el-button text type="danger" @click="deleteLifecycle(row)">{{ t('common.delete') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
+      <el-tab-pane :label="t('lifecyclePage.tabArchive')" name="archive">
+        <div class="toolbar">
+          <el-button type="primary" @click="openArchive()">{{ t('lifecyclePage.addArchive') }}</el-button>
+        </div>
+        <el-table :data="archiveRules" stripe>
+          <el-table-column prop="name" :label="t('common.name')" />
+          <el-table-column prop="local_path" :label="t('ossPage.localPath')" show-overflow-tooltip />
+          <el-table-column prop="min_size_mb" :label="t('lifecyclePage.minSizeMB')" width="100" />
+          <el-table-column prop="last_status" :label="t('common.status')" width="90" />
+          <el-table-column :label="t('common.actions')" width="200">
+            <template #default="{ row }">
+              <el-button text type="primary" @click="runArchive(row)">{{ t('backup.runNow') }}</el-button>
+              <el-button text @click="openArchive(row)">{{ t('common.edit') }}</el-button>
+              <el-button text type="danger" @click="deleteArchive(row)">{{ t('common.delete') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
     </el-tabs>
 
     <el-dialog v-model="storageDialog" :title="editingStorageId ? t('ossPage.editStorage') : t('ossPage.addStorage')" width="560px">
@@ -524,6 +680,51 @@ onUnmounted(() => { if (logTimer) clearInterval(logTimer) })
       <template #footer>
         <el-button @click="importDialog = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :disabled="!importText.trim()" @click="runImport">{{ t('ossPage.importRun') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="lifecycleDialog" :title="editingLifecycleId ? t('lifecyclePage.editRule') : t('lifecyclePage.addRule')" width="520px">
+      <el-form label-width="120px">
+        <el-form-item :label="t('common.name')"><el-input v-model="lifecycleForm.name" /></el-form-item>
+        <el-form-item :label="t('ossPage.selectStorage')">
+          <el-select v-model="lifecycleForm.storage_id" style="width:100%">
+            <el-option v-for="s in storages" :key="s.id" :label="s.name" :value="s.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Prefix"><el-input v-model="lifecycleForm.prefix" /></el-form-item>
+        <el-form-item :label="t('lifecyclePage.maxAgeDays')"><el-input-number v-model="lifecycleForm.max_age_days" :min="1" /></el-form-item>
+        <el-form-item :label="t('lifecyclePage.keepMin')"><el-input-number v-model="lifecycleForm.keep_min_count" :min="0" /></el-form-item>
+        <el-form-item :label="t('cron.schedule')"><el-input v-model="lifecycleForm.schedule" /></el-form-item>
+        <el-form-item :label="t('lifecyclePage.dryRun')"><el-switch v-model="lifecycleForm.dry_run" /></el-form-item>
+        <el-form-item :label="t('common.enabled')"><el-switch v-model="lifecycleForm.enabled" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="lifecycleDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveLifecycle">{{ t('common.save') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="archiveDialog" :title="editingArchiveId ? t('lifecyclePage.editArchive') : t('lifecyclePage.addArchive')" width="560px">
+      <el-form label-width="130px">
+        <el-form-item :label="t('common.name')"><el-input v-model="archiveForm.name" /></el-form-item>
+        <el-form-item :label="t('ossPage.localPath')"><el-input v-model="archiveForm.local_path" /></el-form-item>
+        <el-form-item :label="t('lifecyclePage.minSizeMB')"><el-input-number v-model="archiveForm.min_size_mb" :min="1" /></el-form-item>
+        <el-form-item :label="t('lifecyclePage.filePatterns')"><el-input v-model="archiveForm.file_patterns" /></el-form-item>
+        <el-form-item :label="t('ossPage.targetStorage')">
+          <el-select v-model="archiveForm.target_storage_id" style="width:100%">
+            <el-option v-for="s in storages" :key="s.id" :label="s.name" :value="s.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Target prefix"><el-input v-model="archiveForm.target_prefix" /></el-form-item>
+        <el-form-item :label="t('cron.schedule')"><el-input v-model="archiveForm.schedule" /></el-form-item>
+        <el-form-item :label="t('lifecyclePage.deleteLocalAfter')">
+          <el-switch v-model="archiveForm.delete_local_after" />
+        </el-form-item>
+        <el-form-item :label="t('common.enabled')"><el-switch v-model="archiveForm.enabled" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="archiveDialog = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveArchive">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 

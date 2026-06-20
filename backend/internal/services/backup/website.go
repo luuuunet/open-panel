@@ -127,8 +127,13 @@ func (s *Service) RunWebsiteBackup(websiteID uint, remoteID *uint) (*models.Webs
 		_ = s.db.Save(rec).Error
 		var remote models.BackupRemote
 		if s.db.First(&remote, *useRemote).Error == nil && remote.OSSStorageID != nil && s.oss != nil {
-			if err := s.uploadToOSS(*remote.OSSStorageID, dest, filepath.Base(dest)); err != nil {
+			key, err := s.uploadToOSSWithKey(*remote.OSSStorageID, dest, filepath.Base(dest), "backups")
+			if err != nil {
 				rec.RemoteError = strings.TrimSpace(rec.RemoteError + "; oss: " + err.Error())
+				_ = s.db.Save(rec).Error
+			} else {
+				rec.RemoteKey = key
+				rec.OSSStorageID = remote.OSSStorageID
 				_ = s.db.Save(rec).Error
 			}
 		}
@@ -146,6 +151,9 @@ func (s *Service) DeleteWebsiteBackup(websiteID, backupID uint) error {
 	}
 	if rec.FilePath != "" {
 		_ = os.Remove(rec.FilePath)
+	}
+	if rec.RemoteKey != "" && rec.OSSStorageID != nil && *rec.OSSStorageID > 0 {
+		s.deleteOSSObject(*rec.OSSStorageID, rec.RemoteKey)
 	}
 	if err := s.db.Delete(&rec).Error; err != nil {
 		return err

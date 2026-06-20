@@ -25,8 +25,14 @@ type OverviewResponse struct {
 	WebsiteAudited    int            `json:"website_audited"`
 	WebsiteIssues     int            `json:"website_issues"`
 	WebsiteAvgScore   int            `json:"website_avg_score"`
-	LogAutoCleanup   bool            `json:"log_auto_cleanup"`
-	LogRetentionDays int             `json:"log_retention_days"`
+	LogAutoCleanup    bool            `json:"log_auto_cleanup"`
+	LogRetentionDays  int             `json:"log_retention_days"`
+	LogMaxSizeMB      int             `json:"log_max_size_mb"`
+	LogRotationOn     bool            `json:"log_rotation_on"`
+	PanelBackupLastAt *time.Time      `json:"panel_backup_last_at"`
+	OSSLifecycleRules int             `json:"oss_lifecycle_rules"`
+	OSSArchiveRules   int             `json:"oss_archive_rules"`
+	DiskSavedBytes    int64           `json:"disk_saved_bytes"`
 	CPU              float64         `json:"cpu_percent"`
 	Memory           float64         `json:"memory_percent"`
 	Disk             float64         `json:"disk_percent"`
@@ -101,6 +107,17 @@ func (s *Service) GetOverview() (*OverviewResponse, error) {
 
 	out.loadLogRetention(s.dataDir)
 
+	var panelRec models.PanelBackupRecord
+	if err := s.db.Order("id desc").First(&panelRec).Error; err == nil {
+		t := panelRec.CreatedAt
+		out.PanelBackupLastAt = &t
+	}
+	var lifecycleCount, archiveCount int64
+	s.db.Model(&models.OSSLifecycleRule{}).Where("enabled = ?", true).Count(&lifecycleCount)
+	s.db.Model(&models.OSSArchiveRule{}).Where("enabled = ?", true).Count(&archiveCount)
+	out.OSSLifecycleRules = int(lifecycleCount)
+	out.OSSArchiveRules = int(archiveCount)
+
 	out.K8sInstalled = appstore.K3sRunning()
 	if !out.K8sInstalled {
 		if app, err := s.apps.Get("k3s"); err == nil && app.Installed {
@@ -123,8 +140,10 @@ func (s *Service) GetOverview() (*OverviewResponse, error) {
 }
 
 type logViewConfig struct {
-	RetentionDays int  `json:"retention_days"`
-	AutoCleanup   bool `json:"auto_cleanup"`
+	RetentionDays   int  `json:"retention_days"`
+	AutoCleanup     bool `json:"auto_cleanup"`
+	MaxSizeMB       int  `json:"max_size_mb"`
+	MaxRotatedFiles int  `json:"max_rotated_files"`
 }
 
 func (out *OverviewResponse) loadLogRetention(dataDir string) {
@@ -140,6 +159,10 @@ func (out *OverviewResponse) loadLogRetention(dataDir string) {
 	if json.Unmarshal(data, &cfg) == nil {
 		out.LogAutoCleanup = cfg.AutoCleanup
 		out.LogRetentionDays = cfg.RetentionDays
+		if cfg.MaxSizeMB > 0 {
+			out.LogMaxSizeMB = cfg.MaxSizeMB
+			out.LogRotationOn = true
+		}
 	}
 }
 

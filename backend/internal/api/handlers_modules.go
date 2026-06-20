@@ -70,6 +70,12 @@ func (s *Server) registerBackupRoutes(authorized *gin.RouterGroup) {
 	authorized.PUT("/backup/remotes/:id", s.handleUpdateBackupRemote)
 	authorized.DELETE("/backup/remotes/:id", s.handleDeleteBackupRemote)
 	authorized.POST("/backup/remotes/:id/test", s.handleTestBackupRemote)
+
+	authorized.GET("/backup/panel/history", s.handlePanelBackupHistory)
+	authorized.GET("/backup/panel/config", s.handlePanelBackupConfigGet)
+	authorized.PUT("/backup/panel/config", s.handlePanelBackupConfigPut)
+	authorized.POST("/backup/panel/run", s.handlePanelBackupRun)
+	authorized.POST("/backup/panel/restore", s.handlePanelBackupRestore)
 }
 
 func (s *Server) registerComposeRoutes(authorized *gin.RouterGroup) {

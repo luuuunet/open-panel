@@ -837,6 +837,18 @@ onUnmounted(() => clearInterval(timer))
             <div class="stat-label">{{ t('autoOps.backupTasks') }}</div>
             <div class="stat-big">{{ overview?.backup_enabled ?? 0 }} / {{ overview?.backup_total ?? 0 }}</div>
           </el-card>
+          <el-card shadow="never" class="stat-card clickable" @click="router.push('/settings')">
+            <div class="stat-label">{{ t('autoOps.panelCloudBackup') }}</div>
+            <div class="stat-big">{{ overview?.panel_backup_last_at ? new Date(overview.panel_backup_last_at).toLocaleDateString() : '—' }}</div>
+          </el-card>
+          <el-card shadow="never" class="stat-card clickable" @click="router.push('/logs')">
+            <div class="stat-label">{{ t('autoOps.logRotation') }}</div>
+            <div class="stat-big">{{ overview?.log_rotation_on ? `${overview.log_max_size_mb}MB` : t('autoOps.logCleanupOff') }}</div>
+          </el-card>
+          <el-card shadow="never" class="stat-card clickable" @click="router.push('/oss')">
+            <div class="stat-label">{{ t('autoOps.ossLifecycle') }}</div>
+            <div class="stat-big">{{ (overview?.oss_lifecycle_rules ?? 0) + (overview?.oss_archive_rules ?? 0) }}</div>
+          </el-card>
           <el-card shadow="never" class="stat-card clickable" @click="router.push('/ssl')">
             <div class="stat-label">{{ t('autoOps.sslExpiring') }}</div>
             <div class="stat-big">{{ overview?.ssl_expiring_soon ?? 0 }}</div>

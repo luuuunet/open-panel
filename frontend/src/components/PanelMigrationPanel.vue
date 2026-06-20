@@ -16,6 +16,21 @@ const importMode = ref('replace')
 const importFile = ref<File | null>(null)
 const lastExport = ref<{ filename: string; size: number } | null>(null)
 
+const cloudLoading = ref(false)
+const cloudSaving = ref(false)
+const cloudRunning = ref(false)
+const cloudRestoring = ref(false)
+const ossList = ref<any[]>([])
+const cloudHistory = ref<any[]>([])
+const cloudConfig = ref({
+  enabled: false,
+  schedule: '0 4 * * *',
+  keep_count: 5,
+  oss_storage_id: null as number | null,
+  include_logs: false,
+})
+const cloudRestoreMode = ref('replace')
+
 const countRows = computed(() => {
   const counts = preview.value?.manifest?.counts || {}
   return [
@@ -132,7 +147,96 @@ async function runImport() {
   }
 }
 
-onMounted(loadPreview)
+onMounted(async () => {
+  await loadPreview()
+  await loadCloudSection()
+})
+
+async function loadCloudSection() {
+  cloudLoading.value = true
+  try {
+    const [oss, cfg, hist]: any[] = await Promise.all([
+      api.get('/oss/storages').catch(() => ({ data: [] })),
+      api.get('/backup/panel/config').catch(() => ({ data: {} })),
+      api.get('/backup/panel/history').catch(() => ({ data: [] })),
+    ])
+    ossList.value = (oss.data || []).filter((o: any) => o.provider !== 'local')
+    const c = cfg.data || {}
+    cloudConfig.value = {
+      enabled: !!c.enabled,
+      schedule: c.schedule || '0 4 * * *',
+      keep_count: c.keep_count || 5,
+      oss_storage_id: c.oss_storage_id ?? null,
+      include_logs: !!c.include_logs,
+    }
+    cloudHistory.value = hist.data || []
+  } finally {
+    cloudLoading.value = false
+  }
+}
+
+async function saveCloudConfig() {
+  cloudSaving.value = true
+  try {
+    await api.put('/backup/panel/config', cloudConfig.value)
+    ElMessage.success(t('panelBackup.configSaved'))
+    await loadCloudSection()
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('common.failed'))
+  } finally {
+    cloudSaving.value = false
+  }
+}
+
+async function runCloudBackup() {
+  if (!cloudConfig.value.oss_storage_id) {
+    ElMessage.warning(t('panelBackup.needOss'))
+    return
+  }
+  cloudRunning.value = true
+  try {
+    await api.post('/backup/panel/run', {
+      oss_storage_id: cloudConfig.value.oss_storage_id,
+      include_logs: cloudConfig.value.include_logs,
+      keep_count: cloudConfig.value.keep_count,
+    }, { timeout: 600000 })
+    ElMessage.success(t('panelBackup.runDone'))
+    await loadCloudSection()
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('common.failed'))
+  } finally {
+    cloudRunning.value = false
+  }
+}
+
+async function restoreFromCloud(row: any) {
+  try {
+    await ElMessageBox.confirm(
+      cloudRestoreMode.value === 'replace'
+        ? t('settings.migrationImportReplaceConfirm')
+        : t('settings.migrationImportMergeConfirm'),
+      t('common.warning'),
+      { type: 'warning' }
+    )
+  } catch {
+    return
+  }
+  cloudRestoring.value = true
+  try {
+    const res: any = await api.post('/backup/panel/restore', {
+      record_id: row.id,
+      mode: cloudRestoreMode.value,
+    }, { timeout: 600000 })
+    ElMessage.success(t('panelBackup.restoreDone'))
+    if (res.data?.requires_restart) {
+      ElMessage.warning(t('settings.migrationRestartHint'))
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.error || e?.message || t('common.failed'))
+  } finally {
+    cloudRestoring.value = false
+  }
+}
 </script>
 
 <template>
@@ -185,6 +289,55 @@ onMounted(loadPreview)
     </el-form>
 
     <el-alert type="warning" show-icon :closable="false" :title="t('settings.migrationLimitations')" class="migration-alert" />
+
+    <el-divider>{{ t('panelBackup.section') }}</el-divider>
+    <el-alert type="info" show-icon :closable="false" :title="t('panelBackup.intro')" class="migration-alert" />
+
+    <el-form v-loading="cloudLoading" label-width="130px" class="cloud-form">
+      <el-form-item :label="t('panelBackup.ossTarget')">
+        <el-select v-model="cloudConfig.oss_storage_id" clearable style="width: 100%">
+          <el-option v-for="o in ossList" :key="o.id" :label="`${o.name} (${o.provider})`" :value="o.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="t('cron.schedule')">
+        <el-input v-model="cloudConfig.schedule" />
+      </el-form-item>
+      <el-form-item :label="t('panelBackup.keepCount')">
+        <el-input-number v-model="cloudConfig.keep_count" :min="1" :max="30" />
+      </el-form-item>
+      <el-form-item :label="t('common.status')">
+        <el-switch v-model="cloudConfig.enabled" :active-text="t('panelBackup.scheduledOn')" />
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="cloudConfig.include_logs">{{ t('settings.migrationIncludeLogs') }}</el-checkbox>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" :loading="cloudRunning" @click="runCloudBackup">{{ t('panelBackup.runNow') }}</el-button>
+        <el-button :loading="cloudSaving" @click="saveCloudConfig">{{ t('panelBackup.saveSchedule') }}</el-button>
+      </el-form-item>
+    </el-form>
+
+    <el-table v-if="cloudHistory.length" :data="cloudHistory" size="small" stripe class="cloud-history">
+      <el-table-column prop="filename" :label="t('common.name')" show-overflow-tooltip />
+      <el-table-column prop="size" :label="t('common.size')" width="100">
+        <template #default="{ row }">{{ row.size }} B</template>
+      </el-table-column>
+      <el-table-column prop="status" :label="t('common.status')" width="90" />
+      <el-table-column :label="t('common.time')" width="170">
+        <template #default="{ row }">{{ new Date(row.created_at).toLocaleString() }}</template>
+      </el-table-column>
+      <el-table-column :label="t('common.actions')" width="120">
+        <template #default="{ row }">
+          <el-button text type="primary" :loading="cloudRestoring" @click="restoreFromCloud(row)">{{ t('panelBackup.restore') }}</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-form-item v-if="cloudHistory.length" :label="t('settings.migrationImportMode')" label-width="130px">
+      <el-radio-group v-model="cloudRestoreMode">
+        <el-radio value="replace">{{ t('settings.migrationImportReplace') }}</el-radio>
+        <el-radio value="merge">{{ t('settings.migrationImportMerge') }}</el-radio>
+      </el-radio-group>
+    </el-form-item>
   </el-card>
 </template>
 
@@ -214,9 +367,11 @@ onMounted(loadPreview)
   color: var(--cf-text-muted);
 }
 
-.hint {
-  margin-top: 6px;
-  color: var(--cf-text-muted);
-  font-size: 12px;
+.cloud-form {
+  margin-top: 8px;
+}
+
+.cloud-history {
+  margin-bottom: 12px;
 }
 </style>

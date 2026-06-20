@@ -83,6 +83,25 @@ func (s *Service) ApplyPreset(preset, schedule string, websiteIDs []uint, ossSto
 			}
 			res.Created++
 		}
+	case "panel":
+		var count int64
+		s.db.Model(&models.BackupTask{}).Where("type = ?", "panel").Count(&count)
+		if count > 0 {
+			res.Skipped++
+			break
+		}
+		task := &models.BackupTask{
+			Name:         "面板云备份",
+			Type:         "panel",
+			Schedule:     schedule,
+			Enabled:      true,
+			KeepCount:    5,
+			OSSStorageID: ossStorageID,
+		}
+		if err := s.Create(task); err != nil {
+			return res, err
+		}
+		res.Created++
 	default:
 		return nil, fmt.Errorf("unknown preset: %s", preset)
 	}

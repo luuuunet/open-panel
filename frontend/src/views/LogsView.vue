@@ -53,6 +53,9 @@ const cleanupLoading = ref(false)
 const clearAllLoading = ref(false)
 const retentionDays = ref(7)
 const autoCleanup = ref(false)
+const maxSizeMB = ref(50)
+const maxRotatedFiles = ref(5)
+const compressRotated = ref(true)
 const loggingEnabled = ref(true)
 const savingRetention = ref(false)
 const savingLogging = ref(false)
@@ -187,6 +190,9 @@ async function loadRetention() {
     const data = res.data || {}
     retentionDays.value = data.retention_days ?? 7
     autoCleanup.value = !!data.auto_cleanup
+    maxSizeMB.value = data.max_size_mb ?? 50
+    maxRotatedFiles.value = data.max_rotated_files ?? 5
+    compressRotated.value = data.compress_rotated !== false
     loggingEnabled.value = data.logging_enabled !== false
     if (!loggingEnabled.value) {
       autoRefresh.value = false
@@ -211,6 +217,9 @@ async function saveLoggingEnabled(enabled: boolean) {
       retention_days: retentionDays.value,
       auto_cleanup: autoCleanup.value,
       logging_enabled: enabled,
+      max_size_mb: maxSizeMB.value,
+      max_rotated_files: maxRotatedFiles.value,
+      compress_rotated: compressRotated.value,
     })
     const data = res.data || {}
     loggingEnabled.value = data.logging_enabled !== false
@@ -239,6 +248,9 @@ async function saveRetention() {
       retention_days: retentionDays.value,
       auto_cleanup: autoCleanup.value,
       logging_enabled: loggingEnabled.value,
+      max_size_mb: maxSizeMB.value,
+      max_rotated_files: maxRotatedFiles.value,
+      compress_rotated: compressRotated.value,
     })
     const data = res.data || {}
     retentionDays.value = data.retention_days ?? retentionDays.value
@@ -523,6 +535,17 @@ onUnmounted(() => {
         <el-switch
           v-model="autoCleanup"
           :active-text="t('logsPage.autoCleanup')"
+          :loading="savingRetention"
+          :disabled="!loggingEnabled"
+          @change="saveRetention"
+        />
+        <span class="retention-label">{{ t('logsPage.maxSizeMB') }}</span>
+        <el-input-number v-model="maxSizeMB" :min="10" :max="10240" size="small" @change="saveRetention" />
+        <span class="retention-label">{{ t('logsPage.maxRotatedFiles') }}</span>
+        <el-input-number v-model="maxRotatedFiles" :min="1" :max="20" size="small" @change="saveRetention" />
+        <el-switch
+          v-model="compressRotated"
+          :active-text="t('logsPage.compressRotated')"
           :loading="savingRetention"
           :disabled="!loggingEnabled"
           @change="saveRetention"

@@ -15,10 +15,13 @@ const databases = ref<any[]>([])
 const dialogVisible = ref(false)
 const applyingPreset = ref('')
 const defaultOssId = ref<number | null>(null)
+const localRules = ref<any[]>([])
+const localPresets = ref<any[]>([])
 
 const quickTemplates = [
   { key: 'websites', title: 'backup.templateAllSites', desc: 'backup.templateAllSitesDesc', schedule: '0 2 * * *', icon: '🌐' },
   { key: 'databases', title: 'backup.templateAllDbs', desc: 'backup.templateAllDbsDesc', schedule: '0 3 * * *', icon: '🗄️' },
+  { key: 'panel', title: 'backup.templatePanel', desc: 'backup.templatePanelDesc', schedule: '0 4 * * *', icon: '🛡️' },
 ]
 
 const form = ref({
@@ -53,18 +56,22 @@ const presets = [
 ]
 
 async function load() {
-  const [tasks, rem, oss, sites, dbs]: any[] = await Promise.all([
+  const [tasks, rem, oss, sites, dbs, rules, presets]: any[] = await Promise.all([
     api.get('/backup'),
     api.get('/backup/remotes').catch(() => ({ data: [] })),
     api.get('/oss/storages').catch(() => ({ data: [] })),
     api.get('/websites').catch(() => ({ data: [] })),
     api.get('/databases').catch(() => ({ data: [] })),
+    api.get('/lifecycle/local-rules').catch(() => ({ data: [] })),
+    api.get('/lifecycle/local-rules/presets').catch(() => ({ data: [] })),
   ])
   list.value = tasks.data || []
   remotes.value = rem.data || []
   ossList.value = oss.data || []
   websites.value = sites.data || []
   databases.value = dbs.data || []
+  localRules.value = rules.data || []
+  localPresets.value = presets.data || []
   if (!defaultOssId.value && ossList.value.length) {
     const cloud = ossList.value.find((o: any) => o.provider !== 'local')
     defaultOssId.value = cloud?.id ?? ossList.value[0]?.id ?? null
@@ -129,6 +136,29 @@ async function testRemote(id: number) {
 async function deleteRemote(id: number) {
   await ElMessageBox.confirm(t('backup.deleteRemoteConfirm'), t('common.warning'), { type: 'warning' })
   await api.delete(`/backup/remotes/${id}`)
+  load()
+}
+
+async function addLocalPreset(preset: any) {
+  await api.post('/lifecycle/local-rules', {
+    name: preset.name,
+    preset: preset.key,
+    max_age_days: 7,
+    schedule: '0 5 * * *',
+    enabled: true,
+  })
+  ElMessage.success(t('common.success'))
+  load()
+}
+
+async function runLocalRule(id: number) {
+  await api.post(`/lifecycle/local-rules/${id}/run`)
+  ElMessage.success(t('common.success'))
+  load()
+}
+
+async function deleteLocalRule(id: number) {
+  await api.delete(`/lifecycle/local-rules/${id}`)
   load()
 }
 
@@ -224,6 +254,28 @@ onMounted(load)
           </el-table-column>
         </el-table>
       </el-tab-pane>
+
+      <el-tab-pane :label="t('lifecyclePage.tabLocalCleanup')" name="local">
+        <div class="template-grid">
+          <el-card v-for="p in localPresets" :key="p.key" shadow="never" class="template-card">
+            <strong>{{ p.name }}</strong>
+            <p class="template-desc">{{ p.path }}</p>
+            <el-button size="small" @click="addLocalPreset(p)">{{ t('backup.templateApply') }}</el-button>
+          </el-card>
+        </div>
+        <el-table :data="localRules" stripe>
+          <el-table-column prop="name" :label="t('common.name')" />
+          <el-table-column prop="preset" :label="t('common.type')" width="120" />
+          <el-table-column prop="max_age_days" :label="t('lifecyclePage.maxAgeDays')" width="100" />
+          <el-table-column prop="last_status" :label="t('common.status')" width="90" />
+          <el-table-column :label="t('common.actions')" width="160">
+            <template #default="{ row }">
+              <el-button text type="primary" @click="runLocalRule(row.id)">{{ t('backup.runNow') }}</el-button>
+              <el-button text type="danger" @click="deleteLocalRule(row.id)">{{ t('common.delete') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
     </el-tabs>
 
     <el-dialog v-model="dialogVisible" :title="t('backup.addTitle')" width="580px">
@@ -234,6 +286,7 @@ onMounted(load)
             <el-option :label="t('backup.typeWebsite')" value="website" />
             <el-option :label="t('backup.typeDatabase')" value="database" />
             <el-option :label="t('backup.typeDirectory')" value="directory" />
+            <el-option :label="t('backup.typePanel')" value="panel" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="form.type === 'website'" :label="t('menu.website')">

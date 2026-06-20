@@ -58,6 +58,20 @@ func (s *Service) runTask(task *models.BackupTask) error {
 		localFile, err = s.runDatabaseTask(task)
 	case "directory":
 		localFile, err = s.runDirectoryTask(task)
+	case "panel":
+		localFile, err = s.runPanelTask(task)
+		if err != nil {
+			s.db.Model(task).Updates(map[string]interface{}{
+				"last_status": "failed",
+				"last_error":  err.Error(),
+			})
+			return err
+		}
+		s.db.Model(task).Updates(map[string]interface{}{
+			"last_status": "success",
+			"last_error":  "",
+		})
+		return nil
 	default:
 		err = fmt.Errorf("unsupported backup type: %s", task.Type)
 	}
@@ -172,9 +186,11 @@ func (s *Service) uploadTaskOutputs(task *models.BackupTask, localFile string) e
 		}
 	}
 	if task.OSSStorageID != nil && *task.OSSStorageID > 0 {
-		if err := s.uploadToOSS(*task.OSSStorageID, localFile, filepath.Base(localFile)); err != nil {
+		key, err := s.uploadToOSSWithKey(*task.OSSStorageID, localFile, filepath.Base(localFile), "backups")
+		if err != nil {
 			errs = append(errs, "oss: "+err.Error())
 		}
+		_ = key
 	}
 	if len(errs) > 0 {
 		return fmt.Errorf("%s", strings.Join(errs, "; "))
@@ -183,8 +199,6 @@ func (s *Service) uploadTaskOutputs(task *models.BackupTask, localFile string) e
 }
 
 func (s *Service) uploadToOSS(storageID uint, localFile, remoteName string) error {
-	if s.oss == nil {
-		return fmt.Errorf("oss service not configured")
-	}
-	return s.oss.UploadFile(storageID, localFile, "backups/"+remoteName)
+	_, err := s.uploadToOSSWithKey(storageID, localFile, remoteName, "backups")
+	return err
 }

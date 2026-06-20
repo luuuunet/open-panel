@@ -21,9 +21,11 @@ const props = withDefaults(defineProps<{
   } | null
   pollSec?: number
   compact?: boolean
+  showOk?: boolean
 }>(), {
   pollSec: 15,
   compact: false,
+  showOk: false,
 })
 
 const { t } = useI18n()
@@ -120,14 +122,20 @@ defineExpose({ refresh, alerts, hasCritical })
 </script>
 
 <template>
-  <div v-if="visible" class="alert-center" :class="{ compact, critical: hasCritical }">
+  <div
+    v-if="visible || (showOk && compact)"
+    class="alert-center"
+    :class="{ compact, critical: hasCritical, ok: !visible && showOk }"
+  >
     <div class="alert-center-head">
-      <span class="alert-center-title">{{ t('alertCenter.title') }}</span>
-      <el-button v-if="!compact" link type="primary" size="small" @click="goSettings">
+      <span class="alert-center-title">
+        {{ visible ? t('alertCenter.title') : t('dashboard.allSystemsOk') }}
+      </span>
+      <el-button v-if="!compact && visible" link type="primary" size="small" @click="goSettings">
         {{ t('alertCenter.configure') }}
       </el-button>
     </div>
-    <div v-loading="loading && !alerts.length" class="alert-list">
+    <div v-if="visible" v-loading="loading && !alerts.length" class="alert-list">
       <div
         v-for="(a, i) in alerts"
         :key="`${a.type}-${i}`"
@@ -144,15 +152,17 @@ defineExpose({ refresh, alerts, hasCritical })
         </div>
       </div>
     </div>
+    <p v-else-if="showOk" class="alert-ok-msg">{{ t('dashboard.allSystemsOkHint') }}</p>
   </div>
 </template>
 
 <style scoped>
 .alert-center {
-  border-radius: 10px;
+  border-radius: 16px;
   border: 1px solid var(--el-color-warning-light-5);
   background: var(--el-color-warning-light-9);
-  padding: 10px 12px;
+  padding: 14px 16px;
+  box-shadow: var(--apple-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.04));
 }
 .alert-center.critical {
   border-color: var(--el-color-danger-light-5);
@@ -160,6 +170,22 @@ defineExpose({ refresh, alerts, hasCritical })
 }
 .alert-center.compact {
   padding: 8px 10px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.alert-center.ok {
+  border-color: rgba(34, 197, 94, 0.25);
+  background: linear-gradient(145deg, rgba(34, 197, 94, 0.08), rgba(255, 255, 255, 0.92));
+}
+.alert-ok-msg {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.45;
 }
 .alert-center-head {
   display: flex;

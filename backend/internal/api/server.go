@@ -48,11 +48,13 @@ import (
 	"github.com/luuuunet/owpanel/internal/services/k8s"
 	"github.com/luuuunet/owpanel/internal/services/kafkaaccel"
 	"github.com/luuuunet/owpanel/internal/services/logs"
+	"github.com/luuuunet/owpanel/internal/services/lifecycle"
 	"github.com/luuuunet/owpanel/internal/services/mail"
 	"github.com/luuuunet/owpanel/internal/services/migration"
 	"github.com/luuuunet/owpanel/internal/services/nodejs"
 	"github.com/luuuunet/owpanel/internal/services/runtime"
 	"github.com/luuuunet/owpanel/internal/services/ossstorage"
+	"github.com/luuuunet/owpanel/internal/services/panelupdate"
 	"github.com/luuuunet/owpanel/internal/services/phpmyadmin"
 	"github.com/luuuunet/owpanel/internal/services/performance"
 	"github.com/luuuunet/owpanel/internal/services/process"
@@ -60,6 +62,7 @@ import (
 	"github.com/luuuunet/owpanel/internal/services/security"
 	"github.com/luuuunet/owpanel/internal/services/settings"
 	"github.com/luuuunet/owpanel/internal/services/ssl"
+	"github.com/luuuunet/owpanel/internal/version"
 	"github.com/luuuunet/owpanel/internal/services/sshmgr"
 	"github.com/luuuunet/owpanel/internal/services/toolbox"
 	"github.com/luuuunet/owpanel/internal/services/uptime"
@@ -116,6 +119,7 @@ type Server struct {
 	cloudhub    *cloudhub.Service
 	cluster     *cluster.Service
 	ossstorage  *ossstorage.Service
+	lifecycle   *lifecycle.Service
 	uptime      *uptime.Service
 	devops      *devops.Service
 	aihub       *aihub.Service
@@ -124,6 +128,7 @@ type Server struct {
 	bastion     *bastion.Service
 	syslog      *audit.Syslog
 	migration   *migration.Service
+	panelupdate *panelupdate.Service
 	enterprise  *enterprise.Service
 
 	monitorExtrasMu sync.Mutex
@@ -371,6 +376,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		cloudhub:   cloudhubSvc,
 		cluster:    clusterSvc,
 		ossstorage: ossSvc,
+		lifecycle:  lifecycle.NewService(db, cfg.DataDir, settingsSvc),
 		uptime:     uptimeSvc,
 		devops:     devopsSvc,
 		aihub:      aihubSvc,
@@ -379,6 +385,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		bastion:    bastionSvc,
 		syslog:     syslogSvc,
 		migration:  migration.NewService(db, cfg.DataDir, settingsSvc),
+		panelupdate: panelupdate.NewService(db, cfg.DataDir, settingsSvc),
 		enterprise: enterpriseSvc,
 	}
 	appSvc.SetPostInstallHook(func(key string) error {
@@ -431,12 +438,14 @@ func (s *Server) Run() error {
 	go s.startAutoBackupLoop()
 	go s.startTrashPurgeLoop()
 	go s.startLogCleanupLoop()
+	go s.startLifecycleLoop()
+	go s.startPanelUpdateLoop()
 	go s.startSiteExpiryLoop()
 	go s.startAutomationScheduler()
 	go s.runInitialSecurityBootstrap()
 	go bootstrap.Host(s.appstore, s.webserver, s.settings, s.cfg.DataDir)
 	go s.appstore.WarmStoreCatalog()
-	s.emitExtension(extension.EventPanelStartup, map[string]interface{}{"version": "owpanel"})
+	s.emitExtension(extension.EventPanelStartup, map[string]interface{}{"version": version.Version})
 	return r.Run(addr)
 }
 
@@ -482,7 +491,33 @@ func (s *Server) runLogAutoCleanup() {
 	if !settings.LoggingEnabled || !settings.AutoCleanup || settings.RetentionDays <= 0 {
 		return
 	}
+	_, _ = s.logs.RotateOversizedLogs()
 	_, _ = s.logs.CleanOlderThan(settings.RetentionDays)
+}
+
+func (s *Server) startLifecycleLoop() {
+	s.runLifecycleJobs()
+	ticker := time.NewTicker(24 * time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		s.runLifecycleJobs()
+	}
+}
+
+func (s *Server) runLifecycleJobs() {
+	_, _ = s.logs.RotateOversizedLogs()
+	s.lifecycle.RunDueRules()
+	s.ossstorage.RunDueLifecycleRules()
+	s.ossstorage.RunDueArchiveRules()
+}
+
+func (s *Server) startPanelUpdateLoop() {
+	s.panelupdate.RunAutoUpdateIfDue()
+	ticker := time.NewTicker(time.Hour)
+	defer ticker.Stop()
+	for range ticker.C {
+		s.panelupdate.RunAutoUpdateIfDue()
+	}
 }
 
 func (s *Server) startSiteExpiryLoop() {
@@ -668,6 +703,7 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 				backup.GET("/cron/:id/logs", s.handleCronLogs)
 				backup.POST("/cron/reload", s.handleReloadCron)
 				s.registerBackupRoutes(backup)
+				s.registerLifecycleRoutes(backup)
 			}
 
 			monitor := authorized.Group("")
@@ -721,6 +757,10 @@ func (s *Server) registerRoutes(r gin.IRouter, engine *gin.Engine, safePath stri
 				admin.POST("/settings/migration/export", s.handleMigrationExport)
 				admin.GET("/settings/migration/download", s.handleMigrationDownload)
 				admin.POST("/settings/migration/import", s.handleMigrationImport)
+				admin.GET("/settings/update/status", s.handleUpdateStatus)
+				admin.POST("/settings/update/check", s.handleUpdateCheck)
+				admin.PUT("/settings/update/config", s.handleUpdateConfig)
+				admin.POST("/settings/update/apply", s.handleUpdateApply)
 				s.registerEnterpriseRoutes(admin)
 				s.registerAdminSystemRoutes(admin)
 			}

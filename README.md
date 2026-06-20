@@ -99,6 +99,7 @@ Legacy `OPEN_PANEL_*` environment variables are still accepted for compatibility
 
 - [English User Guide](docs/en/USER_GUIDE.md)
 - [中文用户手册](docs/zh-CN/USER_GUIDE.md)
+- [存储生命周期与云备份](docs/zh-CN/LIFECYCLE.md) · [Storage Lifecycle (EN)](docs/en/LIFECYCLE.md)
 - [Docs index](docs/README.md)
 
 ### License

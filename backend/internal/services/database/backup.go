@@ -94,11 +94,14 @@ func (s *Service) RunBackup(databaseID uint, opts ...BackupOptions) (*models.Dat
 	}
 	rec.OSSStorageID = useOSS
 	if useOSS != nil && *useOSS > 0 {
-		if err := s.uploadBackupOSS(*useOSS, dest); err != nil {
+		if key, err := s.uploadBackupOSS(*useOSS, dest); err != nil {
 			rec.RemoteStatus = "failed"
 			rec.RemoteError = "oss: " + err.Error()
-		} else if rec.RemoteStatus == "" || rec.RemoteStatus == "none" {
-			rec.RemoteStatus = "synced"
+		} else {
+			rec.RemoteKey = key
+			if rec.RemoteStatus == "" || rec.RemoteStatus == "none" {
+				rec.RemoteStatus = "synced"
+			}
 		}
 	}
 	useRemote := opt.RemoteID
@@ -176,6 +179,9 @@ func (s *Service) DeleteBackup(databaseID, backupID uint) error {
 	}
 	if rec.FilePath != "" {
 		_ = os.Remove(rec.FilePath)
+	}
+	if rec.RemoteKey != "" && rec.OSSStorageID != nil && *rec.OSSStorageID > 0 && s.oss != nil {
+		_ = s.oss.DeleteObject(*rec.OSSStorageID, rec.RemoteKey)
 	}
 	if err := s.db.Delete(&rec).Error; err != nil {
 		return err

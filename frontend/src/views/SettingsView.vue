@@ -10,6 +10,7 @@ import { ElMessage } from 'element-plus'
 
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import PanelMigrationPanel from '@/components/PanelMigrationPanel.vue'
+import PanelUpdatePanel from '@/components/PanelUpdatePanel.vue'
 import PerformanceModePanel from '@/components/PerformanceModePanel.vue'
 
 import { DARK_VARIANT_OPTIONS, THEME_MODE_OPTIONS } from '@/config/themes'
@@ -519,6 +520,8 @@ onMounted(() => {
     <PerformanceModePanel />
 
     <PanelMigrationPanel />
+
+    <PanelUpdatePanel />
 
     <el-button type="primary" :loading="loading" @click="save">{{ t('settings.saveSettings') }}</el-button>
 

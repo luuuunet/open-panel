@@ -186,6 +186,7 @@ func printHelp() {
 	fmt.Println("  op stop         Stop the panel service")
 	fmt.Println("  op start        Start the panel service")
 	fmt.Println("  op repair       Run panel repair checks")
+	fmt.Println("  op update       Check for panel updates (--apply to install)")
 	fmt.Println("  op uninstall    Remove panel service and files (sudo)")
 	fmt.Println("  op help         Show this help")
 	fmt.Println()
@@ -220,6 +221,8 @@ func RunCommand(arg string) error {
 		return ShowPanelErrorLog(ctx)
 	case "repair", "11":
 		return RepairPanel(ctx)
+	case "update", "12":
+		return RunUpdateCommand(os.Args[2:])
 	case "uninstall", "13":
 		return UninstallPanel(ctx)
 	default:

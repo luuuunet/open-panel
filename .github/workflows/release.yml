@@ -25,6 +25,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Build release packages
+        env:
+          VERSION: ${{ github.ref_name }}
         run: bash scripts/build-release.sh
 
       - name: Upload release assets

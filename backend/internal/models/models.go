@@ -179,6 +179,7 @@ type DatabaseBackup struct {
 	RemoteError  string         `gorm:"size:512" json:"remote_error,omitempty"`
 	OSSStorageID *uint          `json:"oss_storage_id"`
 	RemoteID     *uint          `json:"remote_id"`
+	RemoteKey    string         `gorm:"size:512" json:"remote_key,omitempty"`
 }
 
 // CacheSnapshot CDN 缓存存储快照（用于命中率趋势）
@@ -319,6 +320,7 @@ type BackupTask struct {
 	DatabaseID   *uint          `json:"database_id"`
 	RemoteID     *uint          `json:"remote_id"`
 	OSSStorageID *uint          `json:"oss_storage_id"`
+	KeepCount    int            `gorm:"default:5" json:"keep_count"`
 }
 
 // WebsiteBackup 站点备份记录
@@ -335,6 +337,8 @@ type WebsiteBackup struct {
 	RemoteStatus string         `gorm:"size:32;default:none" json:"remote_status"`
 	RemoteError  string         `gorm:"size:512" json:"remote_error,omitempty"`
 	RemoteID     *uint          `json:"remote_id"`
+	RemoteKey    string         `gorm:"size:512" json:"remote_key,omitempty"`
+	OSSStorageID *uint          `json:"oss_storage_id"`
 }
 
 // BackupRemote 远程备份目标（FTP / SFTP / WebDAV / Google Drive / OneDrive 等）
@@ -953,6 +957,90 @@ type OSSSyncTask struct {
 	LastError       string         `gorm:"size:1024" json:"last_error,omitempty"`
 	LastLog           string         `gorm:"type:text" json:"last_log,omitempty"`
 	LastRunAt         *time.Time     `json:"last_run_at"`
+}
+
+// PanelUpdateRecord 面板版本更新记录
+type PanelUpdateRecord struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	FromVersion string    `gorm:"size:64" json:"from_version"`
+	ToVersion   string    `gorm:"size:64" json:"to_version"`
+	Status      string    `gorm:"size:32;default:pending" json:"status"`
+	ErrorMsg    string    `gorm:"size:512" json:"error_msg,omitempty"`
+	Trigger     string    `gorm:"size:32;default:manual" json:"trigger"`
+}
+
+// PanelBackupRecord 面板云备份记录
+type PanelBackupRecord struct {
+	ID           uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
+	Filename     string         `gorm:"size:256" json:"filename"`
+	LocalPath    string         `gorm:"size:1024" json:"local_path"`
+	RemoteKey    string         `gorm:"size:512" json:"remote_key,omitempty"`
+	OSSStorageID *uint          `json:"oss_storage_id"`
+	RemoteID     *uint          `json:"remote_id"`
+	Size         int64          `json:"size"`
+	Status       string         `gorm:"size:32;default:done" json:"status"`
+	ErrorMsg     string         `gorm:"size:512" json:"error_msg,omitempty"`
+}
+
+// LocalCleanupRule 本地文件过期清理规则
+type LocalCleanupRule struct {
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	Name        string         `gorm:"size:128" json:"name"`
+	Preset      string         `gorm:"size:64" json:"preset"`
+	PathGlob    string         `gorm:"size:512" json:"path_glob"`
+	MaxAgeDays  int            `gorm:"default:7" json:"max_age_days"`
+	MaxTotalMB  int            `gorm:"default:0" json:"max_total_mb"`
+	Schedule    string         `gorm:"size:64" json:"schedule"`
+	Enabled     bool           `gorm:"default:true" json:"enabled"`
+	LastRunAt   *time.Time     `json:"last_run_at"`
+	LastStatus  string         `gorm:"size:32;default:idle" json:"last_status"`
+	LastResult  string         `gorm:"type:text" json:"last_result,omitempty"`
+}
+
+// OSSLifecycleRule 对象存储生命周期规则
+type OSSLifecycleRule struct {
+	ID            uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+	Name          string         `gorm:"size:128" json:"name"`
+	StorageID     uint           `gorm:"index" json:"storage_id"`
+	Prefix        string         `gorm:"size:512" json:"prefix"`
+	MaxAgeDays    int            `gorm:"default:30" json:"max_age_days"`
+	KeepMinCount  int            `gorm:"default:1" json:"keep_min_count"`
+	DryRun        bool           `gorm:"default:false" json:"dry_run"`
+	Schedule      string         `gorm:"size:64" json:"schedule"`
+	Enabled       bool           `gorm:"default:true" json:"enabled"`
+	LastRunAt     *time.Time     `json:"last_run_at"`
+	LastStatus    string         `gorm:"size:32;default:idle" json:"last_status"`
+	LastLog       string         `gorm:"type:text" json:"last_log,omitempty"`
+}
+
+// OSSArchiveRule 大文件自动归档至对象存储
+type OSSArchiveRule struct {
+	ID               uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
+	Name             string         `gorm:"size:128" json:"name"`
+	LocalPath        string         `gorm:"size:512" json:"local_path"`
+	MinSizeMB        int            `gorm:"default:100" json:"min_size_mb"`
+	FilePatterns     string         `gorm:"size:256;default:*" json:"file_patterns"`
+	TargetStorageID  uint           `gorm:"index" json:"target_storage_id"`
+	TargetPrefix     string         `gorm:"size:512;default:archives/" json:"target_prefix"`
+	DeleteLocalAfter bool           `gorm:"default:false" json:"delete_local_after"`
+	Schedule         string         `gorm:"size:64" json:"schedule"`
+	Enabled          bool           `gorm:"default:true" json:"enabled"`
+	LastRunAt        *time.Time     `json:"last_run_at"`
+	LastStatus       string         `gorm:"size:32;default:idle" json:"last_status"`
+	LastLog          string         `gorm:"type:text" json:"last_log,omitempty"`
 }
 
 // SiteDeployConfig Git / CI 自动部署配置

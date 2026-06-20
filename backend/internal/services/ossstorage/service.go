@@ -299,3 +299,21 @@ func (s *Service) UploadFile(storageID uint, localFile, key string) error {
 	}
 	return store.UploadFile(localFile, strings.TrimLeft(key, "/"))
 }
+
+// DownloadFile downloads an object from OSS to a local path.
+func (s *Service) DownloadFile(storageID uint, key, localPath string) error {
+	store, err := s.openStore(&storageID)
+	if err != nil {
+		return err
+	}
+	return store.DownloadFile(strings.TrimLeft(key, "/"), localPath)
+}
+
+// DeleteObject removes an object from OSS storage.
+func (s *Service) DeleteObject(storageID uint, key string) error {
+	store, err := s.openStore(&storageID)
+	if err != nil {
+		return err
+	}
+	return store.Delete(strings.TrimLeft(key, "/"))
+}

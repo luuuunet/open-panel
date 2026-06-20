@@ -201,9 +201,12 @@ func (s *Server) handleLogRetentionGet(c *gin.Context) {
 
 func (s *Server) handleLogRetentionPut(c *gin.Context) {
 	var req struct {
-		RetentionDays  int   `json:"retention_days"`
-		AutoCleanup    bool  `json:"auto_cleanup"`
-		LoggingEnabled *bool `json:"logging_enabled"`
+		RetentionDays   int   `json:"retention_days"`
+		AutoCleanup     bool  `json:"auto_cleanup"`
+		LoggingEnabled  *bool `json:"logging_enabled"`
+		MaxSizeMB       int   `json:"max_size_mb"`
+		MaxRotatedFiles int   `json:"max_rotated_files"`
+		CompressRotated *bool `json:"compress_rotated"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, 400, err.Error())
@@ -213,7 +216,7 @@ func (s *Server) handleLogRetentionPut(c *gin.Context) {
 		response.Error(c, 400, "retention_days must be >= 0")
 		return
 	}
-	if err := s.logs.SetRetentionSettings(req.RetentionDays, req.AutoCleanup, req.LoggingEnabled); err != nil {
+	if err := s.logs.SetRetentionSettings(req.RetentionDays, req.AutoCleanup, req.LoggingEnabled, req.MaxSizeMB, req.MaxRotatedFiles, req.CompressRotated); err != nil {
 		response.Error(c, 500, err.Error())
 		return
 	}

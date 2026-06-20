@@ -16,10 +16,10 @@ func (s *Service) SetOSS(oss *ossstorage.Service) {
 	s.oss = oss
 }
 
-func (s *Service) uploadBackupOSS(storageID uint, localFile string) error {
+func (s *Service) uploadBackupOSS(storageID uint, localFile string) (string, error) {
 	if s.oss == nil || storageID == 0 {
-		return fmt.Errorf("OSS 未配置")
+		return "", fmt.Errorf("OSS 未配置")
 	}
 	key := "backups/databases/" + filepath.Base(localFile)
-	return s.oss.UploadFile(storageID, localFile, key)
+	return key, s.oss.UploadFile(storageID, localFile, key)
 }

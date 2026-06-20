@@ -46,7 +46,11 @@ func (s *Service) baseDefaults() map[string]string {
 		"panel_ip_blacklist":         "",
 		"password_require_strong":    "true",
 		"panel_security_headers":     "true",
-		"power_save_enabled":         "false",
+		"power_save_enabled":              "false",
+		"panel_auto_update_enabled":       "false",
+		"panel_auto_update_schedule":      "0 4 * * 0",
+		"panel_auto_update_auto_apply":    "false",
+		"panel_update_repo":               "luuuunet/owpanel",
 	}
 }
 

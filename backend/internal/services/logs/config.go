@@ -7,16 +7,22 @@ import (
 )
 
 type viewConfig struct {
-	Enabled        map[string]bool `json:"enabled"`
-	RetentionDays  int             `json:"retention_days"`
-	AutoCleanup    bool            `json:"auto_cleanup"`
-	LoggingEnabled *bool           `json:"logging_enabled,omitempty"`
+	Enabled         map[string]bool `json:"enabled"`
+	RetentionDays   int             `json:"retention_days"`
+	AutoCleanup     bool            `json:"auto_cleanup"`
+	LoggingEnabled  *bool           `json:"logging_enabled,omitempty"`
+	MaxSizeMB       int             `json:"max_size_mb"`
+	MaxRotatedFiles int             `json:"max_rotated_files"`
+	CompressRotated *bool           `json:"compress_rotated,omitempty"`
 }
 
 type RetentionSettings struct {
-	RetentionDays  int  `json:"retention_days"`
-	AutoCleanup    bool `json:"auto_cleanup"`
-	LoggingEnabled bool `json:"logging_enabled"`
+	RetentionDays   int  `json:"retention_days"`
+	AutoCleanup     bool `json:"auto_cleanup"`
+	LoggingEnabled  bool `json:"logging_enabled"`
+	MaxSizeMB       int  `json:"max_size_mb"`
+	MaxRotatedFiles int  `json:"max_rotated_files"`
+	CompressRotated bool `json:"compress_rotated"`
 }
 
 func (s *Service) configPath() string {
@@ -25,8 +31,10 @@ func (s *Service) configPath() string {
 
 func (s *Service) loadConfig() viewConfig {
 	cfg := viewConfig{
-		Enabled:       map[string]bool{},
-		RetentionDays: 7,
+		Enabled:         map[string]bool{},
+		RetentionDays:   7,
+		MaxSizeMB:       50,
+		MaxRotatedFiles: 5,
 	}
 	data, err := os.ReadFile(s.configPath())
 	if err != nil {
@@ -53,13 +61,30 @@ func (s *Service) isLoggingEnabled(cfg viewConfig) bool {
 func (s *Service) GetRetentionSettings() RetentionSettings {
 	cfg := s.loadConfig()
 	return RetentionSettings{
-		RetentionDays:  cfg.RetentionDays,
-		AutoCleanup:    cfg.AutoCleanup,
-		LoggingEnabled: s.isLoggingEnabled(cfg),
+		RetentionDays:   cfg.RetentionDays,
+		AutoCleanup:     cfg.AutoCleanup,
+		LoggingEnabled:  s.isLoggingEnabled(cfg),
+		MaxSizeMB:       defaultInt(cfg.MaxSizeMB, 50),
+		MaxRotatedFiles: defaultInt(cfg.MaxRotatedFiles, 5),
+		CompressRotated: compressRotated(cfg.CompressRotated),
 	}
 }
 
-func (s *Service) SetRetentionSettings(days int, auto bool, loggingEnabled *bool) error {
+func compressRotated(v *bool) bool {
+	if v == nil {
+		return true
+	}
+	return *v
+}
+
+func defaultInt(v, def int) int {
+	if v <= 0 {
+		return def
+	}
+	return v
+}
+
+func (s *Service) SetRetentionSettings(days int, auto bool, loggingEnabled *bool, maxSizeMB, maxRotated int, compress *bool) error {
 	if days < 0 {
 		days = 0
 	}
@@ -68,6 +93,15 @@ func (s *Service) SetRetentionSettings(days int, auto bool, loggingEnabled *bool
 	cfg.AutoCleanup = auto
 	if loggingEnabled != nil {
 		cfg.LoggingEnabled = loggingEnabled
+	}
+	if maxSizeMB > 0 {
+		cfg.MaxSizeMB = maxSizeMB
+	}
+	if maxRotated > 0 {
+		cfg.MaxRotatedFiles = maxRotated
+	}
+	if compress != nil {
+		cfg.CompressRotated = compress
 	}
 	return s.saveConfig(cfg)
 }

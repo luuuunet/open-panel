@@ -216,7 +216,7 @@ const secondaryTiles = computed(() => {
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .monitor-metrics.dense .metrics-grid {
@@ -249,15 +249,25 @@ const secondaryTiles = computed(() => {
 }
 
 .metric-card {
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 12px;
-  background: var(--el-fill-color-blank);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  border: 1px solid var(--intel-metric-border, rgba(99, 102, 241, 0.08));
+  border-radius: 16px;
+  background: var(--intel-metric-bg, linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95)));
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.metric-card--hero {
+  background: var(--intel-metric-hero-bg, linear-gradient(145deg, rgba(99, 102, 241, 0.06), rgba(255, 255, 255, 0.98)));
+}
+
+.metric-card--hero:nth-child(2) {
+  background: linear-gradient(145deg, rgba(34, 197, 94, 0.07), rgba(255, 255, 255, 0.98));
 }
 
 .metric-card:hover {
-  border-color: var(--el-border-color);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border-color: rgba(99, 102, 241, 0.16);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
 }
 
 .metric-card--hero {
@@ -291,12 +301,13 @@ const secondaryTiles = computed(() => {
 
 .metric-icon {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .metric-card--tile .metric-icon {
@@ -326,22 +337,26 @@ const secondaryTiles = computed(() => {
 }
 
 .metric-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--el-text-color-secondary);
 }
 
 .metric-value {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  letter-spacing: -0.03em;
   color: var(--el-text-color-primary);
 }
 
 .metric-value--sm {
   display: block;
-  font-size: 17px;
+  font-size: 18px;
+  font-weight: 700;
   margin: 2px 0;
 }
 
