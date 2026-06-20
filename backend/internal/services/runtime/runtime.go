@@ -306,6 +306,16 @@ func (s *Service) startPM2(p *models.RuntimeProject) error {
 	script := strings.TrimSpace(p.RunScript)
 	shell := script != "" && (strings.Contains(script, " ") || p.Kind == "dotnet" || p.Kind == "python" || p.Kind == "go" || p.Kind == "rust")
 	env := parseEnv(p.EnvVars)
+	if p.Kind == "dotnet" {
+		for k, v := range s.dotnetRuntimeEnv() {
+			if env == nil {
+				env = map[string]string{}
+			}
+			if _, ok := env[k]; !ok {
+				env[k] = v
+			}
+		}
+	}
 	if p.ExternalPort > 0 {
 		if env == nil {
 			env = map[string]string{}
@@ -460,6 +470,20 @@ func (s *Service) dockerImage(kind, version string) string {
 	default:
 		return "alpine:latest"
 	}
+}
+
+func (s *Service) dotnetRuntimeEnv() map[string]string {
+	for _, major := range []string{"10", "8", "9"} {
+		root := filepath.Join(s.dataDir, "server", "dotnet", major, "root")
+		if st, err := os.Stat(filepath.Join(root, "dotnet")); err == nil && !st.IsDir() {
+			path := root
+			if cur := os.Getenv("PATH"); cur != "" {
+				path = root + string(os.PathListSeparator) + cur
+			}
+			return map[string]string{"DOTNET_ROOT": root, "PATH": path}
+		}
+	}
+	return nil
 }
 
 func (s *Service) pm2Name(p *models.RuntimeProject) string {

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/luuuunet/owpanel/internal/secrets"
 )
@@ -18,7 +19,11 @@ func tryDockerInstall(key, version, installPath, dataDir string) (bool, error) {
 	if key == "docker" {
 		_ = version
 		_ = installPath
-		return true, installDockerEnginePackage()
+		err := installDockerEnginePackage()
+		if err == nil {
+			persistDockerEngineInstall(dataDir)
+		}
+		return true, err
 	}
 	if key == "kafka" {
 		return false, nil
@@ -96,8 +101,34 @@ func ensureDockerEngine(dataDir string) error {
 	if !dockerEngineReady() {
 		return fmt.Errorf("docker 安装后仍不可用，请检查 systemctl status docker")
 	}
+	persistDockerEngineInstall(dataDir)
 	logInstallLine("Docker 引擎已就绪")
 	return nil
+}
+
+// requiresDockerEngine reports whether installing key needs a working Docker engine first.
+func requiresDockerEngine(key string) bool {
+	if key == "docker" {
+		return false
+	}
+	if _, ok := dockerSpec(key); ok {
+		return true
+	}
+	if _, ok := aiDockerApps[key]; ok {
+		return true
+	}
+	switch key {
+	case "kafka", "huggingface-ai", "openpanel", "open-panel":
+		return true
+	}
+	return false
+}
+
+func persistDockerEngineInstall(dataDir string) {
+	base := filepath.Join(dataDir, "server", "docker")
+	_ = os.MkdirAll(base, 0755)
+	marker := filepath.Join(base, ".owpanel-installed")
+	_ = os.WriteFile(marker, []byte("engine=auto\ninstalled_at="+time.Now().Format(time.RFC3339)+"\n"), 0644)
 }
 
 func installDockerEnginePackage() error {

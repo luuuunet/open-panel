@@ -136,6 +136,14 @@ func (s *Service) ClearSimulatedIfRealPresent(key string) bool {
 	return true
 }
 
+func dotnetPackagePresent(key, dataDir string) bool {
+	base := resolveDotnetBase(dataDir, key, filepath.Join("server", "dotnet", dotnetMajorFromKey(key)))
+	if isSimulatedAt(base) {
+		return false
+	}
+	return fileExists(filepath.Join(base, "root", "dotnet"))
+}
+
 func systemPackagePresent(key, dataDir string) bool {
 	if IsSimulatedInstall(key, dataDir) {
 		return false
@@ -160,6 +168,12 @@ func systemPackagePresent(key, dataDir string) bool {
 	}
 	if strings.HasPrefix(key, "nodejs") {
 		return nodePackagePresent(key, dataDir)
+	}
+	if strings.HasPrefix(key, "dotnet") {
+		return dotnetPackagePresent(key, dataDir)
+	}
+	if key == "docker" {
+		return dockerEngineReady() || fileExists(filepath.Join(dataDir, "server", "docker", ".owpanel-installed"))
 	}
 
 	spec, ok := resolvePackageSpec(key)

@@ -44,13 +44,13 @@ Centralized logs across panel, system, websites, CDN, and WAF — with **AI anal
 One command. Downloads a **pre-built binary** (~16 MB, **1–2 minutes** on a 1 GB VPS):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/luuuunet/owpanel/v0.1.14/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/luuuunet/owpanel/v0.1.15/scripts/install.sh | sudo bash
 ```
 
 Force source build (slow, 15–30 min on small VPS):
 
 ```bash
-FROM_SOURCE=1 curl -fsSL https://raw.githubusercontent.com/luuuunet/owpanel/v0.1.14/scripts/install.sh | sudo bash
+FROM_SOURCE=1 curl -fsSL https://raw.githubusercontent.com/luuuunet/owpanel/v0.1.15/scripts/install.sh | sudo bash
 ```
 
 Or from a local clone:
@@ -86,7 +86,7 @@ If you previously installed **Open Panel** under `/opt/open-panel`, re-run the i
 
 ```bash
 # Option A: fresh install to new path (recommended for new servers)
-curl -fsSL https://raw.githubusercontent.com/luuuunet/owpanel/v0.1.14/scripts/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/luuuunet/owpanel/v0.1.15/scripts/install.sh | sudo bash
 
 # Option B: keep existing data — set env vars before starting owpanel
 export OWPANEL_DATA=/opt/open-panel/data

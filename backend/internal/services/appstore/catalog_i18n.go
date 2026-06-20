@@ -12,6 +12,8 @@ var catalogDescriptionsEN = map[string]string{
 	"redis":           "Redis in-memory cache and data store",
 	"mongodb":         "MongoDB document database",
 	"python":          "Python runtime environment",
+	"dotnet8":         ".NET 8 LTS ASP.NET Core runtime",
+	"dotnet10":        ".NET 10 ASP.NET Core runtime",
 	"rust184":         "Rust 1.84 toolchain (rustc/cargo) for Actix, Axum, and other web frameworks",
 	"rust183":         "Rust 1.83 toolchain (rustc/cargo)",
 	"pureftpd":        "Pure-FTPd FTP server",

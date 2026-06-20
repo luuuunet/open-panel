@@ -105,6 +105,11 @@ func resolvePackageSpec(key string) (packageSpec, bool) {
 }
 
 func runSystemInstall(key, version, installPath, dataDir string) error {
+	if requiresDockerEngine(key) {
+		if err := ensureDockerEngine(dataDir); err != nil {
+			return fmt.Errorf("依赖 Docker：%w", err)
+		}
+	}
 	if ok, err := tryMailStackInstall(key, version, installPath, dataDir); ok {
 		return err
 	}
@@ -115,6 +120,9 @@ func runSystemInstall(key, version, installPath, dataDir string) error {
 		return err
 	}
 	if ok, err := tryRustInstall(key, version, installPath, dataDir); ok {
+		return err
+	}
+	if ok, err := tryDotnetInstall(key, version, installPath, dataDir); ok {
 		return err
 	}
 	if ok, err := tryRuntimeInstall(key, version, installPath, dataDir); ok {

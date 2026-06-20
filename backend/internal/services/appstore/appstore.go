@@ -674,7 +674,7 @@ func (s *Service) doInstallTask(key, version string, isUpgrade bool) {
 	s.db.Model(&models.App{}).Where("app_key = ?", key).Updates(updates)
 	s.InvalidateLiveStatus(key)
 
-	if _, ok := dockerSpec(key); ok && key != "docker" {
+	if dockerEngineReady() {
 		s.syncDockerAppRecordIfEngineReady()
 	}
 
@@ -765,6 +765,18 @@ func (s *Service) detectAppStatus(key string) string {
 	}
 	if strings.HasPrefix(key, "rust") && key != "rustfs" && key != "rustdesk" {
 		return detectRustStatus(key, s.dataDir)
+	}
+	if strings.HasPrefix(key, "dotnet") {
+		return detectDotnetStatus(key, s.dataDir)
+	}
+	if key == "docker" {
+		if dockerEngineReady() {
+			return "running"
+		}
+		if fileExists(filepath.Join(s.dataDir, "server", "docker", ".owpanel-installed")) {
+			return "stopped"
+		}
+		return detectServiceStatus("docker")
 	}
 	if key == "pm2" {
 		if fileExists(filepath.Join(s.dataDir, "server", "pm2", ".owpanel-installed")) {
