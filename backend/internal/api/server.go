@@ -359,7 +359,7 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		edged1:     edgeD1Svc,
 		cache:      cacheSvc,
 		analytics: analytics.NewService(db, cfg.DataDir, wafSvc, perfSvc),
-		productAnalytics: productanalytics.NewService(db, cfg.DataDir),
+		productAnalytics: productanalytics.NewService(db, cfg.DataDir, settingsSvc),
 		mail:      mailSvc,
 		dns:       dnsSvc,
 		wordpress: wpSvc,

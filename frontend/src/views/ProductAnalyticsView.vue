@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api, { resolveApiError } from '@/api'
 import SoftwareInstallLogDialog from '@/components/SoftwareInstallLogDialog.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   CircleCheck,
   CopyDocument,
@@ -138,6 +138,30 @@ async function startService() {
     ElMessage.error(resolveApiError(e, t('productAnalytics.startFailed')))
   } finally {
     serviceLoading.value = false
+  }
+}
+
+const uninstalling = ref(false)
+
+async function uninstallAbTool() {
+  try {
+    await ElMessageBox.confirm(
+      t('productAnalytics.uninstallConfirm'),
+      t('common.warning'),
+      { type: 'warning', confirmButtonText: t('common.uninstall'), cancelButtonText: t('common.cancel') }
+    )
+  } catch {
+    return
+  }
+  uninstalling.value = true
+  try {
+    await api.post(`/software/${APP_KEY}/uninstall`)
+    ElMessage.success(t('productAnalytics.uninstallDone'))
+    await refreshAll()
+  } catch (e: any) {
+    ElMessage.error(resolveApiError(e, t('productAnalytics.uninstallFailed')))
+  } finally {
+    uninstalling.value = false
   }
 }
 
@@ -282,6 +306,14 @@ onMounted(refreshAll)
               </el-button>
               <el-button type="primary" plain :icon="Link" :disabled="!status.running" @click="openDashboard">
                 {{ t('productAnalytics.openDashboard') }}
+              </el-button>
+              <el-button
+                type="danger"
+                plain
+                :loading="uninstalling"
+                @click="uninstallAbTool"
+              >
+                {{ t('productAnalytics.uninstall') }}
               </el-button>
             </template>
           </div>

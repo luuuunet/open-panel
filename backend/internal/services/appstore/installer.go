@@ -284,7 +284,7 @@ func runServiceAction(key, action, dataDir string) error {
 }
 
 func detectServiceStatus(key string) string {
-	if ok, status := tryDockerStatus(key); ok {
+	if ok, status := tryDockerStatus(key, ""); ok {
 		return status
 	}
 	if ok, status := tryAIStatus(key); ok {

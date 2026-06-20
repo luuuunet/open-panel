@@ -7,6 +7,7 @@ import (
 
 	"github.com/luuuunet/owpanel/internal/models"
 	"github.com/luuuunet/owpanel/internal/services/appstore"
+	"github.com/luuuunet/owpanel/internal/services/settings"
 	"gorm.io/gorm"
 )
 
@@ -16,8 +17,9 @@ const (
 )
 
 type Service struct {
-	db      *gorm.DB
-	dataDir string
+	db       *gorm.DB
+	dataDir  string
+	settings *settings.Service
 }
 
 type Status struct {
@@ -37,18 +39,35 @@ type WebsiteConfig struct {
 	ProductAnalyticsAPIURL   string `json:"product_analytics_api_url"`
 }
 
-func NewService(db *gorm.DB, dataDir string) *Service {
-	return &Service{db: db, dataDir: dataDir}
+func NewService(db *gorm.DB, dataDir string, settingsSvc *settings.Service) *Service {
+	return &Service{db: db, dataDir: dataDir, settings: settingsSvc}
 }
 
 func (s *Service) Status() Status {
 	installed := appstore.OpenpanelInstalled(s.dataDir)
 	running := appstore.OpenpanelComposeStatus(s.dataDir) == "running"
+	dashboardURL := DefaultDashboardURL
+	apiURL := DefaultAPIURL
+	if s.settings != nil {
+		if all, err := s.settings.GetAll(); err == nil {
+			host := strings.TrimSpace(all["server_public_ip"])
+			if host != "" {
+				host = strings.TrimPrefix(host, "http://")
+				host = strings.TrimPrefix(host, "https://")
+				host = strings.Split(host, "/")[0]
+				host = strings.Split(host, ":")[0]
+				if host != "" {
+					dashboardURL = fmt.Sprintf("http://%s:3300", host)
+					apiURL = fmt.Sprintf("http://%s:3333/api", host)
+				}
+			}
+		}
+	}
 	return Status{
 		Installed:    installed,
 		Running:      running,
-		DashboardURL: DefaultDashboardURL,
-		APIURL:       DefaultAPIURL,
+		DashboardURL: dashboardURL,
+		APIURL:       apiURL,
 	}
 }
 

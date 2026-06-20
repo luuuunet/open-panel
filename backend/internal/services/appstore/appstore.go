@@ -648,6 +648,9 @@ func (s *Service) doInstallTask(key, version string, isUpgrade bool) {
 		}
 		if !isUpgrade {
 			updates["installed"] = false
+			if appInstalledOnDisk(key, s.dataDir) {
+				_ = uninstallOpenpanelAnalytics(s.dataDir)
+			}
 		}
 		s.db.Model(&models.App{}).Where("app_key = ?", key).Updates(updates)
 		s.InvalidateLiveStatus(key)
@@ -709,12 +712,30 @@ func (s *Service) syncDockerAppRecordIfEngineReady() {
 	s.InvalidateLiveStatus("docker")
 }
 
+func (s *Service) reconcileDiskInstall(key string) {
+	if !appInstalledOnDisk(key, s.dataDir) {
+		return
+	}
+	var app models.App
+	if err := s.db.Where("app_key = ?", key).First(&app).Error; err != nil || app.Installed {
+		return
+	}
+	status := s.detectAppStatus(key)
+	_ = s.db.Model(&models.App{}).Where("app_key = ?", key).Updates(map[string]interface{}{
+		"installed":     true,
+		"status":        status,
+		"install_error": "",
+	}).Error
+	s.InvalidateLiveStatus(key)
+}
+
 func (s *Service) Uninstall(key string) error {
+	s.reconcileDiskInstall(key)
 	app, err := s.Get(key)
 	if err != nil {
 		return err
 	}
-	if !app.Installed {
+	if !app.Installed && !appInstalledOnDisk(key, s.dataDir) {
 		return errors.New("software not installed")
 	}
 	if err := runSystemUninstall(key, s.dataDir); err != nil {
@@ -750,7 +771,7 @@ func (s *Service) detectAppStatus(key string) string {
 	if IsSimulatedInstall(key, s.dataDir) {
 		return "simulated"
 	}
-	if ok, status := tryDockerStatus(key); ok {
+	if ok, status := tryDockerStatus(key, s.dataDir); ok {
 		return status
 	}
 	if strings.HasPrefix(key, "php") && key != "phpmyadmin" {
@@ -846,6 +867,7 @@ func (s *Service) ensurePHPReady(key string) error {
 
 func (s *Service) ServiceAction(key, action string) error {
 	defer s.InvalidateLiveStatus(key)
+	s.reconcileDiskInstall(key)
 	app, err := s.Get(key)
 	if err != nil {
 		return err
@@ -855,7 +877,7 @@ func (s *Service) ServiceAction(key, action string) error {
 			return err
 		}
 		app, _ = s.Get(key)
-	} else if !app.Installed {
+	} else if !app.Installed && !appInstalledOnDisk(key, s.dataDir) {
 		return errors.New("software not installed")
 	}
 	if app.Status == "simulated" || IsSimulatedInstall(key, s.dataDir) {

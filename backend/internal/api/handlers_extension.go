@@ -1,8 +1,11 @@
 package api
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/luuuunet/owpanel/internal/api/response"
+	"github.com/luuuunet/owpanel/internal/extension"
 	"github.com/luuuunet/owpanel/internal/middleware"
 )
 
@@ -12,10 +15,51 @@ func (s *Server) registerExtensionRoutes(authorized *gin.RouterGroup) {
 	admin := authorized.Group("/extensions")
 	admin.Use(middleware.RequireAdmin())
 	admin.GET("", s.handleListExtensions)
+	admin.GET("/featured", s.handleListFeaturedExtensions)
 	admin.POST("/reload", s.handleReloadExtensions)
 	admin.PATCH("/:id/enabled", s.handleSetExtensionEnabled)
 	authorized.GET("/extensions/embed/:id", s.handleExtensionEmbed)
 	authorized.GET("/extensions/detail/:id", s.handleExtensionDetail)
+}
+
+func (s *Server) handleListFeaturedExtensions(c *gin.Context) {
+	items := extension.FeaturedCatalog()
+	if s.appstore == nil {
+		response.OK(c, gin.H{"items": items})
+		return
+	}
+
+	installed := map[string]bool{}
+	if apps, err := s.appstore.ListInstalledNoSync(); err == nil {
+		for _, app := range apps {
+			installed[app.Key] = true
+		}
+	}
+
+	keys := make([]string, 0, len(items))
+	for _, item := range items {
+		if item.AppKey != "" {
+			keys = append(keys, item.AppKey)
+		}
+	}
+	statusMap := s.appstore.LiveStatusMap(keys)
+
+	out := make([]extension.FeaturedPack, len(items))
+	for i, item := range items {
+		out[i] = item
+		if item.AppKey == "" {
+			continue
+		}
+		out[i].Installed = installed[item.AppKey]
+		if st := statusMap[item.AppKey]; st != "" {
+			out[i].Status = st
+			out[i].Running = strings.EqualFold(st, "running")
+		}
+		if app, err := s.appstore.Get(item.AppKey); err == nil && out[i].Installed {
+			out[i].AccessURL = s.appstore.AccessURL(app.Key, app.BindDomain, app.Port)
+		}
+	}
+	response.OK(c, gin.H{"items": out})
 }
 
 func (s *Server) handleListExtensions(c *gin.Context) {

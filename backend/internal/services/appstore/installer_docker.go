@@ -57,9 +57,15 @@ func tryDockerServiceAction(key, action string) (bool, error) {
 	return true, dockerServiceAction(spec.Container, action)
 }
 
-func tryDockerStatus(key string) (bool, string) {
-	if ok, status := tryOpenpanelStatus(key); ok {
-		return true, status
+func tryDockerStatus(key, dataDir string) (bool, string) {
+	if key == openpanelAppKey {
+		if !OpenpanelInstalled(dataDir) {
+			return false, ""
+		}
+		if OpenpanelComposeStatus(dataDir) == "running" {
+			return true, "running"
+		}
+		return true, "stopped"
 	}
 	spec, ok := dockerSpec(key)
 	if !ok {
