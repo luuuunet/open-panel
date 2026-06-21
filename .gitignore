@@ -38,13 +38,18 @@ data/
 
 # Build / release artifacts
 dist/
+dist-deploy/
+dist-fix-owpanel
 backend/web/
 backend/owpanel.exe
 backend/reset-admin-linux
 backend/op-linux-amd64
 backend/op
+backend/open-panel-linux-amd64
 owpanel-linux
 owpanel-linux-amd64
+open-panel-linux
+open-panel-linux-amd64
 backend/server
 backend/owpanel-linux-amd64
 
