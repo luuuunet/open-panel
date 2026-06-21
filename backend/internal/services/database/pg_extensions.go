@@ -208,10 +208,14 @@ func (s *Service) pgExecOnDatabase(inst *models.DatabaseInstance, args ...string
 	if user == "" {
 		user = "postgres"
 	}
-	base := []string{"-h", host, "-p", fmt.Sprintf("%d", port), "-U", user, "-v", "ON_ERROR_STOP=1"}
-	base = append(base, args...)
+	base := []string{"-v", "ON_ERROR_STOP=1"}
+	if !(runtime.GOOS == "linux" && isLocalHost(host) && user == "postgres" && inst.Password == "") {
+		base = append([]string{"-h", host, "-p", fmt.Sprintf("%d", port), "-U", user, "-v", "ON_ERROR_STOP=1"}, args...)
+	} else {
+		base = append(base, args...)
+	}
 	if runtime.GOOS == "linux" && isLocalHost(host) && user == "postgres" && inst.Password == "" {
-		cmd := exec.Command("sudo", append([]string{"-u", "postgres", bin}, base...)...)
+		cmd := exec.Command("sudo", append([]string{"-n", "-u", "postgres", bin}, base...)...)
 		out, err := cmd.CombinedOutput()
 		if err == nil && !strings.Contains(string(out), "ERROR") {
 			return out, nil
@@ -255,7 +259,7 @@ func installLinuxPackages(pkgs []string) error {
 	mgr := platform.PackageManager()
 	switch mgr {
 	case "apt":
-		if err := runPgCommand("apt-get", "update", "-qq"); err != nil {
+		if err := platform.AptGetUpdate("-qq"); err != nil {
 			return fmt.Errorf("apt update: %w", err)
 		}
 		args := append([]string{"install", "-y"}, pkgs...)

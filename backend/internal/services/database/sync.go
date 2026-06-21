@@ -2,8 +2,6 @@ package database
 
 import (
 	"fmt"
-	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/luuuunet/owpanel/internal/models"
@@ -195,22 +193,6 @@ func (s *Service) pgDbOwner(dbName string) string {
 		}
 	}
 	return "postgres"
-}
-
-func (s *Service) pgSuperExec(args ...string) ([]byte, error) {
-	bin, err := findBinary("psql")
-	if err != nil {
-		return nil, err
-	}
-	if runtime.GOOS == "linux" {
-		cmd := exec.Command("sudo", append([]string{"-u", "postgres", bin, "-h", "127.0.0.1"}, args...)...)
-		out, err := cmd.CombinedOutput()
-		if err == nil && !strings.Contains(string(out), "ERROR") {
-			return out, nil
-		}
-	}
-	cmd := exec.Command(bin, append([]string{"-h", "127.0.0.1", "-U", "postgres"}, args...)...)
-	return cmd.CombinedOutput()
 }
 
 func (s *Service) syncMongoDB() int {

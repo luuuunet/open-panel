@@ -14,29 +14,29 @@ fi
 
 ensure_prereqs
 
+install_mongodb_org() {
+  local ver="${1:-7.0}"
+  rm -f "/etc/apt/sources.list.d/mongodb-org-${ver}.list"
+  setup_mongodb_repo "$ver"
+  try_apt_retry mongodb-org
+}
+
 case "$PKG" in
   apt)
-    if try_apt_retry mongodb; then
+    log "installing MongoDB from official repository …"
+    if install_mongodb_org 7.0; then
       enable_start mongod
-      log "mongodb installed from default apt"
+      log "mongodb 7.0 installed from official repo"
       exit 0
     fi
-    log "default apt mongodb unavailable, trying MongoDB official repo …"
+    log "mongodb-org 7.0 unavailable, trying 6.0 …"
     rm -f /etc/apt/sources.list.d/mongodb-org-7.0.list
-    setup_mongodb_repo 7.0
-    if ! try_apt_retry mongodb-org; then
-      if [[ "$OS_ID" == "ubuntu" && "$OS_CODENAME" != "jammy" ]]; then
-        log "retrying MongoDB repo with jammy suite …"
-        gpg_dearmor_url "https://pgp.mongodb.com/server-7.0.asc" /usr/share/keyrings/mongodb-server-7.0.gpg
-        write_apt_repo /etc/apt/sources.list.d/mongodb-org-7.0.list \
-          "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse"
-        apt_update
-        try_apt_retry mongodb-org || die "mongodb install failed"
-      else
-        die "mongodb install failed"
-      fi
+    if install_mongodb_org 6.0; then
+      enable_start mongod
+      log "mongodb 6.0 installed from official repo"
+      exit 0
     fi
-    enable_start mongod
+    die "mongodb install failed (official repo)"
     ;;
   dnf|yum)
     cat > /etc/yum.repos.d/mongodb-org-7.0.repo <<'EOF'

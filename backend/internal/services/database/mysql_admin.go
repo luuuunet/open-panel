@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/luuuunet/owpanel/internal/models"
+	"github.com/luuuunet/owpanel/internal/services/appstore"
 )
 
 const mysqlRootPasswordKey = "mysql_root_password"
@@ -327,15 +328,15 @@ func (s *Service) EnsureMySQLInstalled(logf func(string)) error {
 		return fmt.Errorf("未检测到 MySQL，请先在软件商店安装 MySQL/MariaDB")
 	}
 	if logf != nil {
-		logf("正在安装 MySQL（mysql-server）…")
+		logf("正在安装 MariaDB/MySQL …")
 	}
-	cmd := exec.Command("bash", "-c", "export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq mysql-server mariadb-client 2>/dev/null || apt-get install -y -qq mysql-server")
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("安装 MySQL 失败: %s", strings.TrimSpace(string(out)))
+	if err := appstore.RunMariaDBStackInstall(); err != nil {
+		return fmt.Errorf("安装 MySQL/MariaDB 失败: %w", err)
 	}
-	_ = exec.Command("systemctl", "enable", "mysql").Run()
-	_ = exec.Command("systemctl", "start", "mysql").Run()
+	for _, svc := range []string{"mariadb", "mysql", "mysqld"} {
+		_ = exec.Command("systemctl", "enable", svc).Run()
+		_ = exec.Command("systemctl", "start", svc).Run()
+	}
 	if _, err := findBinary("mysql", "mariadb"); err != nil {
 		return fmt.Errorf("MySQL 安装后仍不可用")
 	}

@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/luuuunet/owpanel/internal/platform"
 )
 
 const stackFallbackRemoteBase = "https://raw.githubusercontent.com/luuuunet/owpanel/main/scripts/stack"
@@ -58,6 +60,12 @@ func runStackFallback(key string) error {
 	if runtime.GOOS != "linux" {
 		return fmt.Errorf("stack fallback only supported on Linux")
 	}
+	platform.SanitizeBrokenAptRepos()
+	if detectLinuxPkgMgr() == "apt" {
+		if err := platform.AptGetUpdate("-qq"); err != nil {
+			logInstallLine("apt update 警告（已尝试修复源）: " + err.Error())
+		}
+	}
 	component := stackFallbackComponent(key)
 	logInstallLine(fmt.Sprintf("apt 安装失败，尝试 stack 多通道安装 %s …", component))
 
@@ -77,6 +85,23 @@ func runStackFallback(key string) error {
 }
 
 func installLinuxPackagesWithFallback(key string, spec packageSpec) error {
+	platform.SanitizeBrokenAptRepos()
+	// Database engines: use stack scripts first on apt (handles repo quirks + broken third-party lists).
+	if detectLinuxPkgMgr() == "apt" && stackFallbackSupported(key) {
+		switch key {
+		case "mongodb", "redis", "postgresql", "mariadb", "mysql":
+			if err := runStackFallback(key); err == nil {
+				return nil
+			}
+		}
+	}
+	// Ubuntu/Debian no longer ship a usable "mongodb" meta package; use stack script directly.
+	if key == "mongodb" && detectLinuxPkgMgr() == "apt" && stackFallbackSupported(key) {
+		if err := runStackFallback(key); err != nil {
+			return err
+		}
+		return nil
+	}
 	err := installLinuxPackages(spec)
 	if err == nil {
 		return nil

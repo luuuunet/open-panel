@@ -69,6 +69,16 @@ func ensureMySQLDataDir(version, installPath, dataDir string) error {
 }
 
 func installMySQLApt(version, installPath, dataDir string) error {
+	platform.SanitizeBrokenAptRepos()
+	osInfo := platform.Detect()
+	if osInfo.OSFamily == "debian" || osInfo.OSFamily == "ubuntu" {
+		logInstallLine("Debian/Ubuntu 优先安装 MariaDB（MySQL 兼容，官方仓库稳定可用）…")
+		if err := runStackFallback("mariadb"); err == nil {
+			return startMySQLService("mariadb")
+		}
+		logInstallLine(fmt.Sprintf("MariaDB stack 安装未成功，尝试 Oracle MySQL %s …", version))
+	}
+
 	pkgs := mysqlAptPackages(version)
 	if len(pkgs) == 0 {
 		return fmt.Errorf("不支持的 MySQL 版本: %s", version)
@@ -104,13 +114,14 @@ func installMariaDBFallback(version string, cause error) error {
 	if platform.Detect().OSFamily != "debian" && platform.Detect().OSFamily != "ubuntu" {
 		return cause
 	}
+	platform.SanitizeBrokenAptRepos()
 	logInstallLine(fmt.Sprintf("MySQL %s 官方包安装失败 (%v)，尝试 MariaDB …", version, cause))
 	if err := runStackFallback("mariadb"); err == nil {
 		logInstallLine("已通过 stack 脚本安装 MariaDB（MySQL 兼容，Debian 推荐）")
 		return startMySQLService("mariadb")
 	}
-	if err := runAptGet("update", "-qq"); err != nil {
-		return cause
+	if err := platform.AptGetUpdate("-qq"); err != nil {
+		return fmt.Errorf("%w; apt update after MariaDB stack: %v", cause, err)
 	}
 	if err := runAptInstall("mariadb-server"); err != nil {
 		return cause
@@ -181,7 +192,7 @@ func mysqlAptServerSelect(version string) string {
 
 func setupMySQLAptRepo(version string) error {
 	if mysqlAptRepoConfigured() {
-		return runCommand("apt-get", "update", "-qq")
+		return runAptGet("update", "-qq")
 	}
 	if err := installMySQLAptPrereqs(); err != nil {
 		return fmt.Errorf("安装依赖: %w", err)
@@ -194,7 +205,7 @@ func setupMySQLAptRepo(version string) error {
 	if err := dpkgInstallNonInteractive(debPath); err != nil {
 		return err
 	}
-	return runCommand("apt-get", "update", "-qq")
+	return runAptGet("update", "-qq")
 }
 
 func mysqlAptRepoConfigured() bool {

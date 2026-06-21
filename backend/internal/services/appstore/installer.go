@@ -105,6 +105,7 @@ func resolvePackageSpec(key string) (packageSpec, bool) {
 }
 
 func runSystemInstall(key, version, installPath, dataDir string) error {
+	platform.SanitizeBrokenAptRepos()
 	if requiresDockerEngine(key) {
 		if err := ensureDockerEngine(dataDir); err != nil {
 			return fmt.Errorf("依赖 Docker：%w", err)
@@ -352,6 +353,14 @@ func installLinuxPackages(spec packageSpec) error {
 }
 
 func runAptGet(args ...string) error {
+	if len(args) > 0 && args[0] == "update" {
+		if err := platform.AptGetUpdate(args[1:]...); err != nil {
+			logKey := installLogKeyForGoroutine()
+			logInstallLineKey(logKey, fmt.Sprintf("$ apt-get update failed: %v", err))
+			return err
+		}
+		return nil
+	}
 	cmd := exec.Command("apt-get", args...)
 	cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
 	logKey := installLogKeyForGoroutine()

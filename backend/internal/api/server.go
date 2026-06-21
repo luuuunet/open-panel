@@ -13,6 +13,7 @@ import (
 	"github.com/luuuunet/owpanel/internal/api/response"
 	"github.com/luuuunet/owpanel/internal/auth"
 	"github.com/luuuunet/owpanel/internal/bootstrap"
+	"github.com/luuuunet/owpanel/internal/platform"
 	"github.com/luuuunet/owpanel/internal/config"
 	"github.com/luuuunet/owpanel/internal/middleware"
 	"github.com/luuuunet/owpanel/internal/models"
@@ -214,6 +215,8 @@ func NewServer(cfg *config.Config, db *gorm.DB) *Server {
 		switch key {
 		case "mysql", "mariadb", "phpmyadmin":
 			return dbSvc.EnsureMySQLRootPasswordAuth()
+		case "postgresql":
+			return dbSvc.EnsurePostgresSuperuserAuth()
 		case "postfix", "dovecot":
 			return mailSvc.EnsureConfigured()
 		case "mail-server":
@@ -443,6 +446,7 @@ func (s *Server) Run() error {
 	go s.startSiteExpiryLoop()
 	go s.startAutomationScheduler()
 	go s.runInitialSecurityBootstrap()
+	go func() { platform.SanitizeBrokenAptRepos() }()
 	go bootstrap.Host(s.appstore, s.webserver, s.settings, s.cfg.DataDir)
 	go s.appstore.WarmStoreCatalog()
 	s.emitExtension(extension.EventPanelStartup, map[string]interface{}{"version": version.Version})

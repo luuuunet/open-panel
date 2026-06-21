@@ -3,6 +3,32 @@
 # Usage: fallback.sh nginx|redis|postgresql|docker|php83|…
 set -euo pipefail
 
+# Fix broken third-party apt lists before any install (e.g. MongoDB noble repo blocks all apt updates).
+owpanel_apt_emergency_sanitize() {
+  if ! command -v apt-get >/dev/null 2>&1; then
+    return 0
+  fi
+  export DEBIAN_FRONTEND=noninteractive
+  shopt -s nullglob
+  local f
+  for f in /etc/apt/sources.list.d/*.list; do
+    if grep -q 'repo.mongodb.org' "$f" 2>/dev/null; then
+      if grep -qE '/ubuntu (noble|mantic)/' "$f" 2>/dev/null; then
+        sed -i 's|/ubuntu noble/mongodb-org/|/ubuntu jammy/mongodb-org/|g;s|/ubuntu mantic/mongodb-org/|/ubuntu jammy/mongodb-org/|g' "$f" 2>/dev/null || rm -f "$f"
+      fi
+    fi
+  done
+  shopt -u nullglob
+  if apt-get update -qq 2>/tmp/owpanel-apt-pre.err; then
+    return 0
+  fi
+  if grep -qE 'mongodb.org|Release file' /tmp/owpanel-apt-pre.err 2>/dev/null; then
+    rm -f /etc/apt/sources.list.d/mongodb-org-*.list
+    apt-get update -qq || true
+  fi
+}
+owpanel_apt_emergency_sanitize
+
 COMPONENT="${1:-}"
 [[ -n "$COMPONENT" ]] || { echo "usage: $0 <component>" >&2; exit 1; }
 

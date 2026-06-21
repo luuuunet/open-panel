@@ -33,9 +33,36 @@ detect_os() {
   [[ -n "$PKG" ]] || die "unsupported OS: $OS_PRETTY"
 }
 
+apt_sanitize_known_bad_repos() {
+  local f changed=0
+  shopt -s nullglob
+  for f in /etc/apt/sources.list.d/*.list; do
+    if grep -q 'repo.mongodb.org' "$f" 2>/dev/null; then
+      if grep -qE '/ubuntu (noble|mantic)/' "$f" 2>/dev/null; then
+        log "fixing MongoDB apt repo → jammy in $(basename "$f")"
+        sed -i 's|/ubuntu noble/mongodb-org/|/ubuntu jammy/mongodb-org/|g;s|/ubuntu mantic/mongodb-org/|/ubuntu jammy/mongodb-org/|g' "$f" 2>/dev/null || rm -f "$f"
+        changed=1
+      fi
+    fi
+  done
+  shopt -u nullglob
+  [[ "$changed" == "1" ]]
+}
+
 apt_update() {
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq
+  apt_sanitize_known_bad_repos || true
+  if apt-get update -qq 2>/tmp/owpanel-apt.err; then
+    return 0
+  fi
+  if grep -qE 'mongodb.org|does not have a Release file' /tmp/owpanel-apt.err 2>/dev/null; then
+    log "removing broken MongoDB apt lists so other packages can install …"
+    rm -f /etc/apt/sources.list.d/mongodb-org-*.list
+    apt-get update -qq
+    return $?
+  fi
+  cat /tmp/owpanel-apt.err >&2
+  return 1
 }
 
 apt_install() {
@@ -59,6 +86,7 @@ ensure_codename() {
 ensure_prereqs() {
   case "$PKG" in
     apt)
+      apt_sanitize_known_bad_repos || true
       apt_update
       apt_install ca-certificates curl gnupg lsb-release apt-transport-https
       ;;
@@ -185,7 +213,8 @@ setup_mongodb_repo() {
   local ver="${1:-7.0}"
   ensure_codename
   gpg_dearmor_url "https://pgp.mongodb.com/server-${ver}.asc" "/usr/share/keyrings/mongodb-server-${ver}.gpg"
-  local suite="$OS_CODENAME"
+  local suite
+  suite="$(mongodb_apt_suite)"
   if [[ "$OS_ID" == "ubuntu" ]]; then
     write_apt_repo "/etc/apt/sources.list.d/mongodb-org-${ver}.list" \
       "deb [arch=$(apt_arch) signed-by=/usr/share/keyrings/mongodb-server-${ver}.gpg] https://repo.mongodb.org/apt/ubuntu ${suite}/mongodb-org/${ver} multiverse"
@@ -194,6 +223,30 @@ setup_mongodb_repo() {
       "deb [signed-by=/usr/share/keyrings/mongodb-server-${ver}.gpg] https://repo.mongodb.org/apt/debian ${suite}/mongodb-org/${ver} main"
   fi
   apt_update
+}
+
+# MongoDB apt repos lag new distro releases; map to the nearest supported suite.
+mongodb_apt_suite() {
+  ensure_codename
+  local suite="${OS_CODENAME}"
+  if [[ "${OS_ID}" == "ubuntu" ]]; then
+    case "${suite}" in
+      jammy|focal) ;;
+      *)
+        log "MongoDB apt has no ${suite} suite; using jammy repository"
+        suite="jammy"
+        ;;
+    esac
+  elif [[ "${OS_ID}" == "debian" ]]; then
+    case "${suite}" in
+      bookworm|bullseye) ;;
+      *)
+        log "MongoDB apt has no ${suite} suite; using bookworm repository"
+        suite="bookworm"
+        ;;
+    esac
+  fi
+  echo "${suite}"
 }
 
 install_docker_official_script() {
