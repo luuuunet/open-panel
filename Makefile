@@ -18,6 +18,7 @@ frontend-dev:
 build: backend-build frontend-build
 
 backend-build:
+	bash scripts/sync-stack-embed.sh
 	cd backend && go build -ldflags "$(LDFLAGS)" -o bin/owpanel ./cmd/server
 	cd backend && go build -ldflags "$(LDFLAGS)" -o bin/op ./cmd/op
 

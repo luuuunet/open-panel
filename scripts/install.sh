@@ -248,7 +248,24 @@ install_binary_layout() {
     find "$INSTALL_DIR/scripts/stack" -name '*.sh' -exec chmod +x {} \;
     find "$INSTALL_DIR/scripts/stack" -name '*.sh' -exec sed -i 's/\r$//' {} \; 2>/dev/null || true
     log "已安装 stack 备用脚本 → $INSTALL_DIR/scripts/stack"
+    return 0
   fi
+  # Fallback: download from GitHub release or main branch
+  local dest="$INSTALL_DIR/scripts/stack"
+  mkdir -p "$dest"
+  local urls=(
+    "https://github.com/luuuunet/owpanel/releases/download/${RELEASE_VERSION}/owpanel-stack-scripts.tar.gz"
+    "https://github.com/luuuunet/owpanel/releases/latest/download/owpanel-stack-scripts.tar.gz"
+  )
+  local url
+  for url in "${urls[@]}"; do
+    if curl -fsSL --connect-timeout 30 --max-time 120 "$url" | tar -xzf - -C "$dest" 2>/dev/null; then
+      find "$dest" -name '*.sh' -exec chmod +x {} \;
+      log "已从 GitHub 下载 stack 安装脚本 → $dest"
+      return 0
+    fi
+  done
+  log "WARN: 未找到本地 stack 脚本，GitHub 下载亦失败；软件安装将尝试在线拉取 fallback.sh"
 }
 
 write_systemd() {

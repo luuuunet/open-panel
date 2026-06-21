@@ -22,6 +22,9 @@ build_one() {
     go build -ldflags="$LDFLAGS" -o "$dir/op$ext" ./cmd/op)
   rm -rf "$dir/web"
   cp -a "$ROOT/backend/web" "$dir/web"
+  mkdir -p "$dir/scripts"
+  cp -a "$ROOT/scripts/stack" "$dir/scripts/stack"
+  find "$dir/scripts/stack" -name '*.sh' -exec chmod +x {} \;
   mkdir -p "$dir/data"
   cat > "$dir/README.txt" <<EOF
 OWPanel $VERSION ($goos/$goarch)
@@ -37,8 +40,15 @@ EOF
 log "Building frontend..."
 (cd "$ROOT/frontend" && npm ci && npm run build)
 
+log "Syncing stack scripts for Go embed..."
+bash "$ROOT/scripts/sync-stack-embed.sh"
+
 build_one linux amd64 "" "owpanel-linux-amd64"
 build_one linux arm64 "" "owpanel-linux-arm64"
 build_one windows amd64 ".exe" "owpanel-windows-amd64"
+
+log "Packaging stack install scripts tarball..."
+(cd "$ROOT/scripts/stack" && tar -czf "$OUT/owpanel-stack-scripts.tar.gz" .)
+log "Package: $OUT/owpanel-stack-scripts.tar.gz"
 
 log "Done. Artifacts in $OUT"

@@ -1,0 +1,25 @@
+{
+  "name": "owpanel-stack-scripts",
+  "description": "Multi-channel Linux installers for common panel software (apt/dnf/yum fallbacks)",
+  "repository": "https://github.com/luuuunet/owpanel/tree/main/scripts/stack",
+  "components": {
+    "nginx": { "script": "install-nginx.sh", "packages": ["nginx"] },
+    "openresty": { "script": "install-openresty.sh", "packages": ["openresty"] },
+    "apache": { "script": "install-apache.sh", "packages": ["apache2", "httpd"] },
+    "mariadb": { "script": "install-mariadb.sh", "packages": ["mariadb-server", "mysql-server"] },
+    "mysql": { "script": "install-mariadb.sh", "aliases": ["mariadb"] },
+    "postgresql": { "script": "install-postgresql.sh", "packages": ["postgresql", "postgresql-contrib"] },
+    "redis": { "script": "install-redis.sh", "packages": ["redis-server", "redis"] },
+    "mongodb": { "script": "install-mongodb.sh", "packages": ["mongodb-org"] },
+    "docker": { "script": "install-docker.sh", "packages": ["docker.io", "docker-compose-plugin"] },
+    "certbot": { "script": "install-certbot.sh", "packages": ["certbot"] },
+    "php83": { "script": "install-php.sh", "note": "set PHP_VERSION=8.3" },
+    "php82": { "script": "install-php.sh", "note": "set PHP_VERSION=8.2" },
+    "memcached": { "script": "install-generic.sh", "env": { "GENERIC_KEY": "memcached" } },
+    "fail2ban": { "script": "install-generic.sh", "env": { "GENERIC_KEY": "fail2ban" } },
+    "supervisor": { "script": "install-generic.sh", "env": { "GENERIC_KEY": "supervisor" } },
+    "pureftpd": { "script": "install-generic.sh", "env": { "GENERIC_KEY": "pureftpd" } },
+    "postfix": { "script": "install-generic.sh", "env": { "GENERIC_KEY": "postfix" } },
+    "dovecot": { "script": "install-generic.sh", "env": { "GENERIC_KEY": "dovecot" } }
+  }
+}

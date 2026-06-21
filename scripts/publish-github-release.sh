@@ -117,7 +117,7 @@ build_packages() {
 collect_assets() {
   ASSETS=()
   local f
-  for f in owpanel-linux-amd64.tar.gz owpanel-linux-arm64.tar.gz; do
+  for f in owpanel-linux-amd64.tar.gz owpanel-linux-arm64.tar.gz owpanel-stack-scripts.tar.gz; do
     [[ -f "$DIST/$f" ]] || die "missing asset: $DIST/$f (run without --skip-build)"
     ASSETS+=("$DIST/$f")
   done
