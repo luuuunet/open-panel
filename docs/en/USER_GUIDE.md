@@ -32,32 +32,32 @@ Complete reference for administrators, operators, and authorized sub-users.
 
 OWPanel is an open-source, self-hosted Linux server management panel (Go backend + Vue 3 UI, single binary with embedded frontend).
 
-### Highlights
+### ✨ Highlights
 
-- Self-hosted — no vendor cloud account required
-- Lightweight (~16 MB release), suitable for 1 GB VPS
-- i18n: Simplified Chinese, Traditional Chinese, English
-- Security: entrance path, 2FA, IP lists, PAM bastion, firewall/WAF
-- Smart ops: health score, one-click optimize, uptime monitoring
-- Optional AI: log analysis, terminal help, site workflows
-- Install: distro packages first, GitHub stack scripts as fallback
+- 🛡️ Self-hosted — no vendor cloud account required
+- ⚡ Lightweight (~16 MB release), suitable for 1 GB VPS
+- 🌍 i18n: Simplified Chinese, Traditional Chinese, English
+- 🔐 Security: entrance path, 2FA, IP lists, PAM bastion, firewall/WAF
+- 📊 Smart ops: health score, one-click optimize, uptime monitoring
+- 🤖 Optional AI: log analysis, terminal help, site workflows
+- 📥 Install: distro packages first, GitHub stack scripts as fallback
 
-### Modules
+### 🛠 Modules
 
 | Category | Capabilities |
 |----------|--------------|
-| **Overview** | Dashboard, metrics, health score, traffic map |
-| **Websites** | Vhosts, SSL, WordPress toolbox, A/B analytics |
-| **Runtimes** | PHP, Node.js, Java, Go, Rust, Python, .NET |
-| **Databases** | MySQL/MariaDB, PostgreSQL, MongoDB, Redis, backups |
-| **Containers** | Docker, Compose templates |
-| **Files & OSS** | File manager, object storage |
-| **Mail / FTP / DNS** | Mail server, FTP, DNS records |
-| **Security** | Firewall, WAF, CDN cache, Cilium, Fail2ban |
-| **Automation** | Cron, backups, monitoring, auto-ops, DevOps |
-| **Cluster** | Multi-server agent, Kubernetes |
-| **Logs & AI** | Log center, AI Hub, extension marketplace |
-| **System** | SSH/PAM, toolbox, users, panel settings & update |
+| 📊 **Overview** | Dashboard, metrics, health score, traffic map |
+| 🌐 **Websites** | Vhosts, SSL, WordPress toolbox, A/B analytics |
+| ⚙️ **Runtimes** | PHP, Node.js, Java, Go, Rust, Python, .NET |
+| 🗄️ **Databases** | MySQL/MariaDB, PostgreSQL, MongoDB, Redis, backups |
+| 🐳 **Containers** | Docker, Compose templates |
+| 📁 **Files & OSS** | File manager, object storage |
+| 📧 **Mail / FTP / DNS** | Mail server, FTP, DNS records |
+| 🛡️ **Security** | Firewall, WAF, CDN cache, Cilium, Fail2ban |
+| 🤖 **Automation** | Cron, backups, monitoring, auto-ops, DevOps |
+| ☸️ **Cluster** | Multi-server agent, Kubernetes |
+| 📋 **Logs & AI** | Log center, AI Hub, extension marketplace |
+| 🖥️ **System** | SSH/PAM, toolbox, users, panel settings & update |
 
 ---
 
