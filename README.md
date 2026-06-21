@@ -7,19 +7,79 @@
 
 ---
 
-**OWPanel** is a self-hosted control plane for your own Linux servers. No vendor lock-in, no central cloud — you run the panel on your machine, and your data stays on your machine. Built-in automation handles backups, cron jobs, service restarts, log analysis, and AI-assisted ops.
+**OWPanel** 是面向 Linux 服务器的开源自托管运维面板。数据留在你的机器上，不绑定厂商云端账号；通过 Web 界面统一管理网站、数据库、Docker、安全、备份与自动化运维。
 
-> Formerly **Open Panel** — same project, new name and repository: [github.com/luuuunet/owpanel](https://github.com/luuuunet/owpanel)
+> 原项目名 **Open Panel**，现仓库：[github.com/luuuunet/owpanel](https://github.com/luuuunet/owpanel)
 
-### Highlights
+### 产品特点
 
-- **Decentralized by design** — Single binary on your server; no external account required
-- **Automated operations** — Scheduled backups, cron templates, one-click service control, auto log cleanup
-- **Smart dashboard** — Live metrics, health score, traffic map, and running-service overview
-- **AI-assisted ops** — Log analysis, SSH terminal help, and site/project workflows
-- **Full stack control** — Websites, databases, Docker, firewall/WAF, FTP, mail, DNS from one UI
+- **自托管 / 去中心化** — 单二进制部署，无需注册第三方面板账号
+- **开箱即用** — 内嵌 Vue 3 前端，systemd 服务，Linux 一键安装
+- **轻量高效** — Go 后端，预编译包约 16 MB，1 GB VPS 亦可运行
+- **多语言界面** — 简体中文 / 繁体中文 / English
+- **安全加固** — 安全入口、2FA、IP 黑白名单、会话超时、安全响应头
+- **智能运维** — 健康评分、一键优化、内存释放、自动巡检与告警
+- **AI 辅助**（可选） — 日志分析、终端助手、建站/部署工作流
+- **官方源优先安装** — 软件商店先走 apt/dnf 官方包，失败再从 GitHub 拉取 stack 安装脚本
+- **可扩展** — 扩展市场卡片式安装，Docker Compose 模板一键部署
+- **子账户权限** — 按模块授权，适合团队分工
+- **CLI 工具** — `op` 命令行管理面板配置与服务
 
-Built with **Go** + **Vue 3**. Embedded web UI, systemd service, Linux only.
+### 功能模块
+
+| 分类 | 功能 |
+|------|------|
+| **概览** | 仪表盘、CPU/内存/磁盘/网络监控、健康评分、全球流量地图、一键优化 |
+| **网站** | 虚拟主机（Nginx/OpenResty）、SSL 证书、伪静态/重定向、WP 工具包、A/B 测试 |
+| **运行环境** | PHP 多版本、Node.js / Java / Go / Rust / Python / .NET、PM2 / Docker |
+| **数据库** | MySQL/MariaDB、PostgreSQL（含扩展管理）、MongoDB、Redis、备份与恢复 |
+| **容器** | Docker 容器/镜像/卷/网络、Compose 项目、Portainer 等模板 |
+| **文件** | 在线文件管理、上传下载、回收站、对象存储（OSS）对接 |
+| **邮件 & 传输** | 邮件服务器（Postfix/Dovecot）、FTP（Pure-FTPd）、DNS 解析管理 |
+| **安全** | 防火墙、Nginx WAF、CDN 缓存、Cilium 策略、安全检测、Fail2ban |
+| **自动化** | 计划任务、面板/网站/数据库备份、可用性监控、自动化运维、DevOps 中心 |
+| **集群** | 多节点集群代理、Kubernetes 集群管理 |
+| **日志** | 面板/系统/网站/CDN/WAF 日志聚合、AI 日志分析 |
+| **AI** | AI 中心、Hugging Face 模型部署、建站助手、文件编辑器 AI 对话 |
+| **软件** | 软件商店、已安装管理、扩展市场、在线配置与安装日志 |
+| **系统** | SSH 终端、PAM 堡垒机、系统工具箱、用户与权限、面板设置与在线更新 |
+
+---
+
+### Features (English)
+
+**Characteristics**
+
+- Self-hosted, decentralized — single binary, no vendor cloud account
+- Embedded Vue 3 UI, systemd service, one-command Linux install
+- Lightweight Go backend (~16 MB release), runs on 1 GB VPS
+- i18n: Simplified Chinese, Traditional Chinese, English
+- Security: entrance path, 2FA, IP allow/deny lists, session timeout
+- Smart ops: health score, one-click optimize, auto inspection
+- Optional AI: log analysis, terminal help, site bootstrap workflows
+- Install strategy: distro official packages first, GitHub stack scripts as fallback
+- Extension marketplace, Docker Compose templates, sub-account RBAC
+- CLI: `op info`, `op config`, `op restart`, `op update`
+
+**Modules**
+
+| Category | Capabilities |
+|----------|--------------|
+| **Overview** | Dashboard, metrics, health score, traffic map, service control |
+| **Websites** | Vhosts, SSL, WordPress toolbox, A/B analytics |
+| **Runtimes** | PHP, Node.js, Java, Go, Rust, Python, .NET |
+| **Databases** | MySQL/MariaDB, PostgreSQL, MongoDB, Redis, backups |
+| **Containers** | Docker management, Compose stacks, app templates |
+| **Files & OSS** | File manager, cloud object storage |
+| **Mail & DNS** | Mail server, FTP, DNS records |
+| **Security** | Firewall, WAF, CDN cache, Cilium, Fail2ban |
+| **Automation** | Cron, backups, uptime monitoring, auto-ops, DevOps |
+| **Cluster** | Multi-server cluster agent, Kubernetes |
+| **Logs & AI** | Centralized logs, AI analysis, AI Hub |
+| **Software** | App store, extensions, install logs, online config |
+| **System** | SSH terminal, PAM bastion, toolbox, users, panel update |
+
+Built with **Go** + **Vue 3**.
 
 ### Dashboard
 
