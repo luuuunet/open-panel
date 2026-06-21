@@ -5,37 +5,27 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/luuuunet/owpanel/internal/dockercompose"
 )
 
-// dockerComposeArgv returns the command prefix for Compose v2 (docker compose) or v1 (docker-compose).
 func dockerComposeArgv(extra ...string) ([]string, error) {
-	if hasDockerComposeV2() {
-		return append([]string{"docker", "compose"}, extra...), nil
+	name, args, err := dockercompose.Argv(extra...)
+	if err != nil {
+		return nil, err
 	}
-	if path, err := exec.LookPath("docker-compose"); err == nil {
-		return append([]string{path}, extra...), nil
-	}
-	return nil, fmt.Errorf("未找到 docker compose（请安装 docker-compose-plugin 或 docker-compose）")
+	return append([]string{name}, args...), nil
 }
 
 func hasDockerComposeV2() bool {
-	if _, err := exec.LookPath("docker"); err != nil {
-		return false
-	}
-	out, err := exec.Command("docker", "compose", "version").CombinedOutput()
-	if err != nil {
-		return false
-	}
-	return strings.Contains(strings.ToLower(string(out)), "compose")
+	return dockercompose.HasV2()
 }
 
 func runDockerComposeInDir(dir string, args ...string) error {
-	argv, err := dockerComposeArgv(args...)
+	name, cmdArgs, err := dockercompose.Argv(args...)
 	if err != nil {
 		return err
 	}
-	name := argv[0]
-	cmdArgs := argv[1:]
 	cmdLine := fmt.Sprintf("$ (cd %s) %s %s", dir, name, strings.Join(cmdArgs, " "))
 	logInstallLine(cmdLine)
 	cmd := exec.Command(name, cmdArgs...)
@@ -61,15 +51,5 @@ func runDockerComposeInDir(dir string, args ...string) error {
 }
 
 func dockerComposePSRunning(dir string) bool {
-	argv, err := dockerComposeArgv("ps", "--status", "running", "-q")
-	if err != nil {
-		return false
-	}
-	cmd := exec.Command(argv[0], argv[1:]...)
-	cmd.Dir = dir
-	out, err := cmd.Output()
-	if err != nil {
-		return false
-	}
-	return strings.TrimSpace(string(out)) != ""
+	return dockercompose.PSRunning(dir)
 }

@@ -224,7 +224,7 @@ func (s *Service) BlueGreenUpdate(id uint) (*RollingResult, error) {
 	}
 	project := filepath.Base(app.Path)
 	greenProject := project + "_green"
-	out1, _ := runCompose(app.Path, "-p", greenProject, "up", "-d", "--scale", "app=1")
+	out1, _ := runCompose(app.Path, "", "-p", greenProject, "up", "-d", "--scale", "app=1")
 	if _, err := runCompose(app.Path, "", "pull"); err != nil {
 		return &RollingResult{Strategy: "blue-green", Status: "partial", Log: err.Error()}, nil
 	}
@@ -232,7 +232,7 @@ func (s *Service) BlueGreenUpdate(id uint) (*RollingResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, _ = runCompose(app.Path, "-p", greenProject, "down")
+	_, _ = runCompose(app.Path, "", "-p", greenProject, "down")
 	log := strings.TrimSpace(out1 + "\n" + out2)
 	return &RollingResult{Strategy: "blue-green", Status: "success", Log: log}, nil
 }

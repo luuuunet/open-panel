@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/luuuunet/owpanel/internal/dockercompose"
 )
 
 func composeFile(dir string) string {
@@ -23,23 +24,11 @@ func runCompose(dir, composePath string, args ...string) (string, error) {
 	if composePath == "" {
 		composePath = composeFile(dir)
 	}
-	base := []string{"compose", "-f", composePath}
-	base = append(base, args...)
-	cmd := exec.Command("docker", base...)
-	cmd.Dir = dir
-	out, err := cmd.CombinedOutput()
-	text := strings.TrimSpace(string(out))
-	if err != nil {
-		if text == "" {
-			text = err.Error()
-		}
-		return text, fmt.Errorf("%s", text)
-	}
-	return text, nil
+	return dockercompose.RunInDir(dir, composePath, args...)
 }
 
 func dockerAvailable() bool {
-	_, err := exec.LookPath("docker")
+	_, _, err := dockercompose.Argv("version")
 	return err == nil
 }
 
